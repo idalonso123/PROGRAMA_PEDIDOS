@@ -1,4 +1,4 @@
-# Sistema de Pedidos de Compra - Vivero Aranjuez V2
+# Sistema de Pedidos de Compra
 
 Sistema modular para la generación automática de pedidos de compra con generación semanal programada y persistencia de estado.
 
