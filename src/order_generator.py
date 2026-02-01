@@ -123,6 +123,16 @@ class OrderGenerator:
         Returns:
             Optional[str]: Ruta del archivo generado o None si hay error
         """
+        logger.debug(f"[DEBUG generar_archivo_pedido] Recibido DataFrame con {len(pedidos_df)} registros")
+        if len(pedidos_df) > 0:
+            logger.debug(f"[DEBUG] Columnas disponibles: {list(pedidos_df.columns)}")
+            if 'Unidades_Pedido' in pedidos_df.columns:
+                logger.debug(f"[DEBUG] Distribución de Unidades_Pedido:")
+                logger.debug(f"  Con valor 0: {len(pedidos_df[pedidos_df['Unidades_Pedido'] == 0])}")
+                logger.debug(f"  Con valor > 0: {len(pedidos_df[pedidos_df['Unidades_Pedido'] > 0])}")
+                if 'Ventas_Objetivo' in pedidos_df.columns:
+                    logger.debug(f"  Suma Ventas_Objetivo: {pedidos_df['Ventas_Objetivo'].sum():.2f}€")
+        
         if len(pedidos_df) == 0:
             logger.warning(f"No hay pedidos para generar en semana {semana}")
             return None
@@ -130,8 +140,11 @@ class OrderGenerator:
         # Filtrar artículos con Unidades_Pedido > 0
         pedidos_filtrados = pedidos_df[pedidos_df['Unidades_Pedido'] > 0].copy()
         
+        logger.debug(f"[DEBUG] Tras filtrar Unidades_Pedido > 0: {len(pedidos_filtrados)} registros")
+        
         if len(pedidos_filtrados) == 0:
             logger.warning(f"Tras filtrar, no hay artículos con pedido > 0 para semana {semana}")
+            logger.warning(f"[DEBUG] Posible causa: Todos los artículos tienen Unidades_Pedido = 0")
             return None
         
         # Ordenar por proveedor y código
@@ -174,8 +187,8 @@ class OrderGenerator:
             }
             
             COLUMN_HEADERS = [
-                'Codigo artículo',      # A
-                'Nombre Articulo',      # B
+                'Código artículo',      # A
+                'Nombre Artículo',      # B
                 'Talla',                # C
                 'Color',                # D
                 'Sección',              # E
@@ -193,8 +206,8 @@ class OrderGenerator:
             ]
             
             COLUMN_MAPPING = {
-                'Codigo_Articulo': 'Codigo artículo',
-                'Nombre_Articulo': 'Nombre Articulo',
+                'Codigo_Articulo': 'Código artículo',
+                'Nombre_Articulo': 'Nombre Artículo',
                 'Talla': 'Talla',
                 'Color': 'Color',
                 'Seccion': 'Sección',

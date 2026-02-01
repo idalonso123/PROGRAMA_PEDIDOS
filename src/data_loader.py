@@ -604,6 +604,32 @@ class DataLoader:
             if coste == 0 or pd.isna(coste):
                 coste = pvp / 2.5
         
+        # BÚSQUEDA INDEPENDIENTE DE PROVEEDOR (igual que el script original):
+        # Si no se encontró proveedor en la primera búsqueda, buscar solo por código
+        # Esto es independiente del resto de columnas y no afecta a PVP ni Coste
+        if proveedor == '' or pd.isna(proveedor):
+            # Buscar todos los artículos con el mismo código
+            match_proveedor = coste_df[coste_df['Codigo'].astype(str) == str(codigo).strip()]
+            if len(match_proveedor) > 0:
+                # Buscar la columna del proveedor
+                columnas_normalizadas = [self.normalizar_texto(col) for col in match_proveedor.columns]
+                nombre_proveedor_normalizado = self.normalizar_texto('Nombre proveedor')
+                idx_proveedor = None
+                for i, col_norm in enumerate(columnas_normalizadas):
+                    if nombre_proveedor_normalizado == col_norm:
+                        idx_proveedor = i
+                        break
+                
+                # Buscar un registro que tenga proveedor válido
+                for idx, row in match_proveedor.iterrows():
+                    if idx_proveedor is not None:
+                        prov = row.iloc[idx_proveedor]
+                    else:
+                        prov = ''
+                    if pd.notna(prov) and prov != '':
+                        proveedor = prov
+                        break
+        
         return {
             'accion_raw': accion_raw,
             'categoria': categoria,
