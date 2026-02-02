@@ -133,7 +133,7 @@ class SchedulerService:
         ahora = self.obtener_fecha_actual()
         dia_actual = ahora.strftime('%A').lower()
         hora_actual = ahora.hour
-        minuto_actual = ahora.minuto
+        minuto_actual = ahora.minute
         
         # Verificar día de la semana
         dia_ejecucion = self.obtener_dia_semana_ingles()

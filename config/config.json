@@ -198,6 +198,22 @@
         "clasificacion_abc": "CLASIFICACION_ABC+D_*.xlsx"
     },
     
+    "archivos_correccion": {
+        "stock_actual": "Stock_actual.xlsx"
+    },
+    
+    "parametros_correccion": {
+        "habilitar_correccion": true,
+        "stock_minimo_por_categoria": {
+            "A": 1.5,
+            "B": 1.0,
+            "C": 0.5,
+            "D": 0.0
+        },
+        "umbral_alerta_stock": 5,
+        "permitir_pedidos_negativos": false
+    },
+    
     "formato_salida": {
         "prefijo_archivo": "Pedido_Semana",
         "incluir_fecha_en_nombre": true
