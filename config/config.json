@@ -221,5 +221,45 @@
     
     "codigos_mascotas_vivo": [
         "2104", "2204", "2305", "2405", "2504", "2606", "2705", "2707", "2708", "2805", "2806", "2906"
-    ]
+    ],
+    
+    "email": {
+        "smtp": {
+            "servidor": "smtp.serviciodecorreo.es",
+            "puerto": 465,
+            "usar_ssl": true,
+            "usar_tls": false
+        },
+        "remitente": {
+            "email": "ivan.delgado@viveverde.es",
+            "nombre": "Sistema de Pedidos VIVEVERDE"
+        },
+        "plantillas": {
+            "asunto": "VIVEVERDE: Pedido de compra - Semana {semana} - {seccion}",
+            "cuerpo": "Buenos días {nombre_encargado}. \nTe adjunto el pedido de compra generado para la semana {semana} de la sección {seccion}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE."
+        },
+        "destinatarios": {
+            "maf": "exterior@viveverde.es",
+            "interior": "interior@viveverde.es",
+            "mascotas_vivo": "mascotas@gmail.com",
+            "mascotas_manufacturado": "mascotas@gmail.com",
+            "deco_interior": [
+                "decoracion@viveverde.es",
+                "sandra.delgado@viveverde.es"
+            ],
+            "deco_exterior": "deco.exterior@viveverde.es",
+            "tierras_aridos": "deco.exterior@viveverde.es",
+            "fitos": "ivan.delgado@viveverde.es",
+            "semillas": "ivan.delgado@viveverde.es",
+            "utiles_jardin": "ivan.delgado@viveverde.es",
+            "vivero": "exterior@viveverde.es"
+        },
+        "email_centralizado": null,
+        "habilitar_envio": true,
+        "adjuntar_resumen": true
+    },
+    
+    "env_email": {
+        "password_var": "EMAIL_PASSWORD"
+    }
 }

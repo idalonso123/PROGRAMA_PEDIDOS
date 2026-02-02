@@ -3,7 +3,8 @@
 Sistema de Pedidos de Compra - Vivero Aranjuez V2
 
 Sistema modular para la generación automática de pedidos de compra
-con generación semanal programada, persistencia de estado y sistema de corrección (FASE 2).
+con generación semanal programada, persistencia de estado, sistema de corrección (FASE 2)
+y envío automático de emails a los responsables de cada sección.
 
 Este es el módulo principal que coordina todos los componentes del sistema:
 - DataLoader: Carga de datos de entrada
@@ -13,6 +14,7 @@ Este es el módulo principal que coordina todos los componentes del sistema:
 - CorrectionEngine: Motor de corrección de pedidos (FASE 2)
 - OrderGenerator: Generación de archivos de salida
 - SchedulerService: Control de ejecución programada
+- EmailService: Envío de emails a responsables
 
 MODO DE USO:
 - Ejecución normal (programada): python main.py
@@ -21,9 +23,10 @@ MODO DE USO:
 - Mostrar información del estado: python main.py --status
 - Solo corrección (FASE 2): python main.py --correccion --semana 15
 - Con corrección habilitada: python main.py --semana 15 --con-correccion
+- Sin envío de emails: python main.py --semana 15 --sin-email
 
 Autor: Sistema de Pedidos Vivero V2
-Fecha: 2026-02-03 (Actualizado con FASE 2)
+Fecha: 2026-02-03 (Actualizado con Email Service)
 """
 
 import sys
@@ -47,6 +50,9 @@ from src.scheduler_service import SchedulerService, EstadoEjecucion
 # Imports de FASE 2 - Sistema de Corrección
 from src.correction_data_loader import CorrectionDataLoader
 from src.correction_engine import CorrectionEngine, crear_correction_engine
+
+# Imports de EMAIL Service
+from src.email_service import EmailService, crear_email_service
 
 # Importar pandas
 import pandas as pd
@@ -378,6 +384,149 @@ def generar_archivo_pedido_corregido(
 
 
 # ============================================
+# EMAIL SERVICE: FUNCIONES DE ENVÍO DE EMAILS
+# ============================================
+
+def enviar_emails_pedidos(
+    semana: int,
+    config: Dict[str, Any],
+    archivos_por_seccion: Dict[str, List[str]]
+) -> Dict[str, Any]:
+    """
+    Envía los archivos de pedido por email a los responsables de cada sección.
+    
+    Args:
+        semana (int): Número de semana procesada
+        config (Dict): Configuración del sistema
+        archivos_por_seccion (Dict): Mapeo sección -> lista de archivos generados
+    
+    Returns:
+        Dict: Resultado del envío de emails
+    """
+    logger.info("\n" + "=" * 60)
+    logger.info("ENVÍO DE EMAILS A RESPONSABLES")
+    logger.info("=" * 60)
+    
+    # Verificar si el envío de emails está habilitado
+    email_config = config.get('email', {})
+    if not email_config.get('habilitar_envio', True):
+        logger.info("Envío de emails deshabilitado en configuración.")
+        return {'exito': False, 'razon': 'deshabilitado'}
+    
+    try:
+        # Crear servicio de email
+        email_service = crear_email_service(config)
+        
+        # Verificar configuración
+        verificacion = email_service.verificar_configuracion()
+        if not verificacion['valido']:
+            logger.warning("Problemas en la configuración de email:")
+            for problema in verificacion['problemas']:
+                logger.warning(f"  - {problema}")
+            
+            # Si falta la contraseña, no continuamos
+            if any('EMAIL_PASSWORD' in p for p in verificacion['problemas']):
+                logger.error("No se puede enviar emails sin configurar la variable EMAIL_PASSWORD")
+                return {'exito': False, 'razon': 'sin_password'}
+        
+        # Enviar email para cada sección
+        resultados = {}
+        emails_enviados = 0
+        emails_fallidos = 0
+        
+        for seccion, archivos in archivos_por_seccion.items():
+            if not archivos:
+                logger.info(f"Sin archivos para la sección {seccion}. Saltando.")
+                continue
+            
+            logger.info(f"\nEnviando email para sección: {seccion}")
+            logger.info(f"Archivos: {archivos}")
+            
+            resultado = email_service.enviar_pedido_por_seccion(
+                semana=semana,
+                seccion=seccion,
+                archivos=archivos
+            )
+            
+            resultados[seccion] = resultado
+            
+            if resultado.get('exito', False):
+                emails_enviados += 1
+                logger.info(f"✓ Email enviado exitosamente a {seccion}")
+            else:
+                emails_fallidos += 1
+                logger.error(f"✗ Error al enviar email a {seccion}: {resultado.get('error', 'Error desconocido')}")
+        
+        # Resumen del envío
+        logger.info("\n" + "=" * 60)
+        logger.info("RESUMEN DE ENVÍO DE EMAILS")
+        logger.info("=" * 60)
+        logger.info(f"Emails enviados exitosamente: {emails_enviados}")
+        logger.info(f"Emails fallidos: {emails_fallidos}")
+        logger.info(f"Secciones procesadas: {len(resultados)}")
+        
+        return {
+            'exito': emails_enviados > 0,
+            'emails_enviados': emails_enviados,
+            'emails_fallidos': emails_fallidos,
+            'resultados': resultados
+        }
+        
+    except Exception as e:
+        logger.error(f"Error al enviar emails: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {'exito': False, 'error': str(e)}
+
+
+def agrupar_archivos_por_seccion(
+    archivos_generados: List[str],
+    config: Dict[str, Any]
+) -> Dict[str, List[str]]:
+    """
+    Agrupa los archivos generados por sección para el envío de emails.
+    
+    Args:
+        archivos_generados (List[str]): Lista de rutas de archivos generados
+        config (Dict): Configuración del sistema
+    
+    Returns:
+        Dict[str, List[str]]: Mapeo sección -> lista de archivos
+    """
+    archivos_por_seccion = {}
+    
+    # Obtener directorio de salida
+    dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
+    
+    for archivo in archivos_generados:
+        if not archivo:
+            continue
+        
+        # Extraer nombre del archivo
+        nombre_archivo = os.path.basename(archivo)
+        
+        # Determinar la sección a partir del nombre del archivo
+        # Formato esperado: Pedido_Semana_{semana}_{fecha}_{seccion}.xlsx
+        partes = nombre_archivo.replace('.xlsx', '').split('_')
+        
+        if len(partes) >= 4:
+            # La sección es la última parte del nombre
+            seccion = partes[-1]
+            
+            # Filtrar solo archivos principales (no resúmenes ni corregidos si es necesario)
+            if 'RESUMEN' in nombre_archivo.upper():
+                continue  # Saltar resúmenes para envío individual
+            
+            if seccion not in archivos_por_seccion:
+                archivos_por_seccion[seccion] = []
+            
+            archivos_por_seccion[seccion].append(archivo)
+    
+    logger.debug(f"[DEBUG] Archivos agrupados por sección: {archivos_por_seccion}")
+    return archivos_por_seccion
+
+
+# ============================================
 # PROCESO PRINCIPAL DE GENERACIÓN DE PEDIDO
 # ============================================
 
@@ -386,8 +535,9 @@ def procesar_pedido_semana(
     config: Dict[str, Any], 
     state_manager: StateManager,
     forzar: bool = False,
-    aplicar_correccion: bool = True
-) -> Tuple[bool, Optional[str], int, float, Dict[str, Any]]:
+    aplicar_correccion: bool = True,
+    enviar_email: bool = True
+) -> Tuple[bool, Optional[str], int, float, Dict[str, Any], Dict[str, Any]]:
     """
     Procesa el pedido para una semana específica (FASE 1 + FASE 2 opcional).
     
@@ -397,10 +547,11 @@ def procesar_pedido_semana(
         state_manager (StateManager): Gestor de estado
         forzar (bool): Si True, fuerza el procesamiento aunque ya esté hecho
         aplicar_correccion (bool): Si True, aplica la corrección FASE 2
+        enviar_email (bool): Si True, envía los archivos por email
     
     Returns:
-        Tuple[bool, Optional[str], int, float, Dict]: 
-            (éxito, archivo_generado, articulos, importe, metricas_correccion)
+        Tuple[bool, Optional[str], int, float, Dict, Dict]: 
+            (éxito, archivo_generado, articulos, importe, metricas_correccion, resultado_email)
     """
     logger.info("=" * 70)
     logger.info(f"PROCESANDO PEDIDO PARA SEMANA {semana}")
@@ -611,6 +762,23 @@ def procesar_pedido_semana(
     )
     
     # ========================================
+    # ENVÍO DE EMAILS (si está habilitado)
+    # ========================================
+    
+    resultado_email = {'exito': False, 'razon': 'no_enviado'}
+    
+    if enviar_email and archivos_generados:
+        logger.info("\n" + "=" * 60)
+        logger.info("PREPARANDO ENVÍO DE EMAILS")
+        logger.info("=" * 60)
+        
+        # Agrupar archivos por sección
+        archivos_por_seccion = agrupar_archivos_por_seccion(archivos_generados, config)
+        
+        # Enviar emails
+        resultado_email = enviar_emails_pedidos(semana, config, archivos_por_seccion)
+    
+    # ========================================
     # RESUMEN FINAL
     # ========================================
     
@@ -634,9 +802,19 @@ def procesar_pedido_semana(
         logger.info(f"  TOTAL: {articulos_corregidos_total} artículos corregidos")
         logger.info(f"  Diferencia neta: {int(diferencia_total):+d} unidades")
     
+    # Resumen de emails
+    if resultado_email.get('exito'):
+        logger.info(f"\n✓ EMAILS ENVIADOS: {resultado_email.get('emails_enviados', 0)}")
+    elif resultado_email.get('razon') == 'deshabilitado':
+        logger.info("\nEmails deshabilitados")
+    elif resultado_email.get('razon') == 'sin_password':
+        logger.warning("\n✗ No se enviaron emails (falta configurar EMAIL_PASSWORD)")
+    elif not resultado_email.get('exito') and resultado_email.get('emails_fallidos', 0) > 0:
+        logger.warning(f"\n✗ EMAILS FALLIDOS: {resultado_email.get('emails_fallidos', 0)}")
+    
     logger.info("=" * 70)
     
-    return len(archivos_generados) > 0, archivo_principal, articulos_totales, importe_total, metricas_correccion_total
+    return len(archivos_generados) > 0, archivo_principal, articulos_totales, importe_total, metricas_correccion_total, resultado_email
 
 
 # ============================================
@@ -652,24 +830,26 @@ def main():
     """
     # Configurar parser de argumentos
     parser = argparse.ArgumentParser(
-        description='Sistema de Generacion de Pedidos de Compra - Vivero Aranjuez V2 (FASE 1 + FASE 2)',
+        description='Sistema de Generación de Pedidos de Compra - Vivero Aranjuez V2 (FASE 1 + FASE 2 + Email)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos de uso:
-  python main.py                      # Ejecucion normal (domingo 15:00)
-  python main.py --semana 15          # Forzar semana especifica
+  python main.py                      # Ejecución normal (domingo 15:00)
+  python main.py --semana 15          # Forzar semana específica
   python main.py --continuo           # Modo continuo (esperando horario)
   python main.py --status             # Mostrar estado del sistema
   python main.py --reset              # Resetear estado del sistema
   python main.py --semana 15 --sin-correccion    # Solo FASE 1
   python main.py --semana 15 --con-correccion     # FASE 1 + FASE 2 (forzado)
+  python main.py --semana 15 --sin-email          # Sin enviar emails
+  python main.py --verificar-email                # Verificar configuración de email
         """
     )
     
     parser.add_argument(
         '--semana', '-s',
         type=int,
-        help='Numero de semana a procesar (para pruebas)'
+        help='Número de semana a procesar (para pruebas)'
     )
     parser.add_argument(
         '--continuo', '-c',
@@ -707,6 +887,16 @@ Ejemplos de uso:
         action='store_true',
         help='Forzar ejecución con corrección FASE 2'
     )
+    parser.add_argument(
+        '--sin-email',
+        action='store_true',
+        help='No enviar emails después de generar los pedidos'
+    )
+    parser.add_argument(
+        '--verificar-email',
+        action='store_true',
+        help='Verificar la configuración de email y salir'
+    )
     
     args = parser.parse_args()
     
@@ -719,14 +909,44 @@ Ejemplos de uso:
     
     logger.info("=" * 70)
     logger.info("SISTEMA DE PEDIDOS DE COMPRA - VIVERO ARANJUEZ V2")
-    logger.info(f"Fecha de ejecucion: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    logger.info(f"Fecha de ejecución: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 70)
     
     # Cargar configuración
     config = cargar_configuracion()
     if config is None:
-        logger.error("No se pudo cargar la configuracion. Saliendo.")
+        logger.error("No se pudo cargar la configuración. Saliendo.")
         sys.exit(1)
+    
+    # Verificar configuración de email si se solicita
+    if args.verificar_email:
+        logger.info("\nVERIFICANDO CONFIGURACIÓN DE EMAIL:")
+        logger.info("-" * 40)
+        
+        try:
+            email_service = crear_email_service(config)
+            verificacion = email_service.verificar_configuracion()
+            
+            if verificacion['valido']:
+                logger.info("✓ Configuración de email válida")
+            else:
+                logger.warning("✗ Problemas en la configuración:")
+                for problema in verificacion['problemas']:
+                    logger.warning(f"  - {problema}")
+            
+            # Verificar variable de entorno
+            import os
+            if os.environ.get('EMAIL_PASSWORD'):
+                logger.info("✓ Variable EMAIL_PASSWORD configurada")
+            else:
+                logger.warning("✗ Variable EMAIL_PASSWORD NO configurada")
+                logger.info("  Para configurarla, ejecuta:")
+                logger.info("  export EMAIL_PASSWORD='tu_contraseña'")
+            
+        except Exception as e:
+            logger.error(f"Error al verificar email: {str(e)}")
+        
+        sys.exit(0)
     
     # Determinar si aplicar corrección
     params_correccion = config.get('parametros_correccion', {})
@@ -736,7 +956,13 @@ Ejemplos de uso:
     if args.con_correccion:
         aplicar_correccion = True
     
-    logger.info(f"Modo de ejecucion: {'FASE 1 + FASE 2' if aplicar_correccion else 'Solo FASE 1'}")
+    # Determinar si enviar emails
+    email_config = config.get('email', {})
+    email_habilitado = email_config.get('habilitar_envio', True)
+    enviar_email = email_habilitado and not args.sin_email
+    
+    logger.info(f"Modo de ejecución: {'FASE 1 + FASE 2' if aplicar_correccion else 'Solo FASE 1'}")
+    logger.info(f"Envío de emails: {'Sí' if enviar_email else 'No'}")
     
     # Inicializar StateManager
     state_manager = StateManager(config)
@@ -758,10 +984,10 @@ Ejemplos de uso:
         logger.info("\n" + scheduler.simular_proxima_ejecucion())
         
         ultima = state_manager.obtener_ultima_semana_procesada()
-        logger.info(f"\nUltima semana procesada: {ultima if ultima else 'Ninguna'}")
+        logger.info(f"\nÚltima semana procesada: {ultima if ultima else 'Ninguna'}")
         
         metricas = state_manager.obtener_metricas()
-        logger.info(f"Metricas: {metricas}")
+        logger.info(f"Métricas: {metricas}")
         
         sys.exit(0)
     
@@ -775,12 +1001,12 @@ Ejemplos de uso:
         logger.info(f"Semana forzada por argumento: {semana}")
     elif args.continuo:
         # Modo continuo: esperar hasta el horario de ejecución
-        logger.info("Modo continuo activado. Esperando horario de ejecucion...")
+        logger.info("Modo continuo activado. Esperando horario de ejecución...")
         
         while True:
             es_horario, mensaje = scheduler.verificar_horario_ejecucion()
             if es_horario:
-                logger.info("¡Es el horario de ejecucion!")
+                logger.info("¡Es el horario de ejecución!")
                 break
             
             logger.info(mensaje)
@@ -799,7 +1025,7 @@ Ejemplos de uso:
         es_horario, mensaje = scheduler.verificar_horario_ejecucion()
         
         if not es_horario:
-            logger.warning(f"No es el horario de ejecucion: {mensaje}")
+            logger.warning(f"No es el horario de ejecución: {mensaje}")
             logger.info(scheduler.simular_proxima_ejecucion())
             
             # Verificar si hay semana pendiente
@@ -810,7 +1036,7 @@ Ejemplos de uso:
                 sys.exit(0)
             
             logger.info(f"pero hay semana pendiente: {msg_semana}")
-            logger.info("Use --continuo para esperar hasta el horario de ejecucion.")
+            logger.info("Use --continuo para esperar hasta el horario de ejecución.")
             sys.exit(0)
         
         # Calcular semana a procesar
@@ -829,20 +1055,24 @@ Ejemplos de uso:
         sys.exit(0)
     
     # Procesar el pedido (FASE 1 + FASE 2 opcional)
-    exito, archivo, articulos, importe, metricas_correccion = procesar_pedido_semana(
+    exito, archivo, articulos, importe, metricas_correccion, resultado_email = procesar_pedido_semana(
         semana, config, state_manager, 
         forzar=args.semana is not None,
-        aplicar_correccion=aplicar_correccion
+        aplicar_correccion=aplicar_correccion,
+        enviar_email=enviar_email
     )
     
     if exito:
         logger.info(f"\n¡PEDIDO GENERADO EXITOSAMENTE!")
         logger.info(f"Archivo principal: {archivo}")
-        logger.info(f"Articulos: {articulos}")
+        logger.info(f"Artículos: {articulos}")
         logger.info(f"Importe: {importe:.2f}€")
         
         if metricas_correccion:
             logger.info(f"\nFASE 2 completada: {len(metricas_correccion)} secciones corregidas")
+        
+        if resultado_email.get('exito'):
+            logger.info(f"\nEmails enviados: {resultado_email.get('emails_enviados', 0)}")
         
         sys.exit(0)
     else:
