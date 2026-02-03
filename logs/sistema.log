@@ -2724,3 +2724,448 @@ ERROR: No se pudo generar el pedido.
 2026-01-30 21:13:17 - INFO - Archivo: .\./data/output\Pedido_Semana_14_2026-01-30_maf.xlsx
 2026-01-30 21:13:17 - INFO - Articulos: 1486
 2026-01-30 21:13:17 - INFO - Importe: 47966.89€
+2026-02-01 14:50:03 - INFO - ======================================================================
+2026-02-01 14:50:03 - INFO - SISTEMA DE PEDIDOS DE COMPRA - VIVERO ARANJUEZ V2
+2026-02-01 14:50:03 - INFO - Fecha de ejecucion: 2026-02-01 14:50:03
+2026-02-01 14:50:03 - INFO - ======================================================================
+2026-02-01 14:50:03 - INFO - StateManager inicializado. Archivo de estado: .\./data\state.json
+2026-02-01 14:50:03 - INFO - Cargando estado desde: .\./data\state.json
+2026-02-01 14:50:03 - INFO - Estado cargado correctamente
+2026-02-01 14:50:03 - INFO - SchedulerService inicializado correctamente
+2026-02-01 14:50:03 - INFO - Horario configurado: sunday a las 15:00
+2026-02-01 14:50:03 - INFO - Semana forzada por argumento: 15
+2026-02-01 14:50:03 - INFO - ======================================================================
+2026-02-01 14:50:03 - INFO - PROCESANDO PEDIDO PARA SEMANA 15
+2026-02-01 14:50:03 - INFO - ======================================================================
+2026-02-01 14:50:03 - INFO - DataLoader inicializado correctamente
+2026-02-01 14:50:03 - INFO - ForecastEngine inicializado correctamente
+2026-02-01 14:50:03 - INFO - OrderGenerator inicializado correctamente
+2026-02-01 14:50:03 - INFO - SchedulerService inicializado correctamente
+2026-02-01 14:50:03 - INFO - Horario configurado: sunday a las 15:00
+2026-02-01 14:50:03 - INFO - Período de la semana: 2026-04-06 al 2026-04-12
+2026-02-01 14:50:03 - INFO - Stock acumulado cargado: 2633 artículos
+2026-02-01 14:50:03 - INFO - 
+==================================================
+2026-02-01 14:50:03 - INFO - SECCION: MAF
+2026-02-01 14:50:03 - INFO - ==================================================
+2026-02-01 14:50:03 - INFO - === LEYENDO DATOS PARA SECCIÓN: MAF ===
+2026-02-01 14:50:03 - INFO - Archivo ABC encontrado para 'maf': .\./data/input\CLASIFICACION_ABC+D_maf.xlsx
+2026-02-01 14:50:03 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_maf.xlsx
+2026-02-01 14:50:03 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:50:03 - INFO - Clasificación ABC cargada para 'maf': 499 registros
+2026-02-01 14:50:03 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:50:09 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:09 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:50:09 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:50:09 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:50:09 - INFO - Filtrados 10970 registros de sección 'maf' de 44082 total
+2026-02-01 14:50:09 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:50:12 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:12 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:50:12 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MAF ===
+2026-02-01 14:50:12 - INFO -   ABC: 499 registros
+2026-02-01 14:50:12 - INFO -   Ventas: 10970 registros
+2026-02-01 14:50:12 - INFO -   Costes: 22145 registros
+2026-02-01 14:50:12 - INFO - Datos de ventas: 884 registros
+2026-02-01 14:50:12 - INFO - Calculando pedido para semana 15 (884 registros)
+2026-02-01 14:50:14 - INFO -   Objetivo: 6466.57€, Actual (ABC): 5077.16€
+2026-02-01 14:50:14 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:50:14 - INFO -   Factor total: 1.0500
+2026-02-01 14:50:14 - INFO -   Factor escalado: 1.3373
+2026-02-01 14:50:14 - INFO -   Ventas preliminares (con ceil): 7465.79€
+2026-02-01 14:50:14 - INFO -   Objetivo final: 6789.90€
+2026-02-01 14:50:14 - INFO -   Delta: 675.89€
+2026-02-01 14:50:14 - INFO -   Ventas finales: 6795.72€
+2026-02-01 14:50:14 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_maf.xlsx
+2026-02-01 14:50:14 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_maf.xlsx
+2026-02-01 14:50:14 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_maf.xlsx
+2026-02-01 14:50:14 - INFO -   Articulos: 159
+2026-02-01 14:50:14 - INFO -   Importe: 6590.67€
+2026-02-01 14:50:14 - INFO - 
+==================================================
+2026-02-01 14:50:14 - INFO - SECCION: DECO_INTERIOR
+2026-02-01 14:50:14 - INFO - ==================================================
+2026-02-01 14:50:14 - INFO - === LEYENDO DATOS PARA SECCIÓN: DECO_INTERIOR ===
+2026-02-01 14:50:14 - INFO - Archivo ABC encontrado para 'deco_interior': .\./data/input\CLASIFICACION_ABC+D_deco_interior.xlsx
+2026-02-01 14:50:14 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_deco_interior.xlsx
+2026-02-01 14:50:15 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:50:15 - INFO - Clasificación ABC cargada para 'deco_interior': 1827 registros
+2026-02-01 14:50:15 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:50:21 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:21 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:50:21 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:50:21 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:50:21 - INFO - Filtrados 2468 registros de sección 'deco_interior' de 44082 total
+2026-02-01 14:50:21 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:50:24 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:24 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:50:24 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA DECO_INTERIOR ===
+2026-02-01 14:50:24 - INFO -   ABC: 1827 registros
+2026-02-01 14:50:24 - INFO -   Ventas: 2468 registros
+2026-02-01 14:50:24 - INFO -   Costes: 22145 registros
+2026-02-01 14:50:24 - INFO - Datos de ventas: 200 registros
+2026-02-01 14:50:24 - INFO - Calculando pedido para semana 15 (200 registros)
+2026-02-01 14:50:25 - INFO -   Objetivo: 1823.97€, Actual (ABC): 2549.17€
+2026-02-01 14:50:25 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:50:25 - INFO -   Factor total: 1.0500
+2026-02-01 14:50:25 - INFO -   Factor escalado: 0.7513
+2026-02-01 14:50:25 - INFO -   Ventas preliminares (con ceil): 2274.55€
+2026-02-01 14:50:25 - INFO -   Objetivo final: 1915.17€
+2026-02-01 14:50:25 - INFO -   Delta: 359.38€
+2026-02-01 14:50:25 - INFO -   Ventas finales: 1916.54€
+2026-02-01 14:50:25 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_deco_interior.xlsx
+2026-02-01 14:50:25 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_deco_interior.xlsx
+2026-02-01 14:50:25 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_deco_interior.xlsx
+2026-02-01 14:50:25 - INFO -   Articulos: 92
+2026-02-01 14:50:25 - INFO -   Importe: 1872.60€
+2026-02-01 14:50:25 - INFO - 
+==================================================
+2026-02-01 14:50:25 - INFO - SECCION: SEMILLAS
+2026-02-01 14:50:25 - INFO - ==================================================
+2026-02-01 14:50:25 - INFO - === LEYENDO DATOS PARA SECCIÓN: SEMILLAS ===
+2026-02-01 14:50:25 - INFO - Archivo ABC encontrado para 'semillas': .\./data/input\CLASIFICACION_ABC+D_semillas.xlsx
+2026-02-01 14:50:25 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_semillas.xlsx
+2026-02-01 14:50:25 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:50:26 - INFO - Clasificación ABC cargada para 'semillas': 218 registros
+2026-02-01 14:50:26 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:50:31 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:31 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:50:32 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:50:32 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:50:32 - INFO - Filtrados 1180 registros de sección 'semillas' de 44082 total
+2026-02-01 14:50:32 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:50:35 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:35 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:50:35 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA SEMILLAS ===
+2026-02-01 14:50:35 - INFO -   ABC: 218 registros
+2026-02-01 14:50:35 - INFO -   Ventas: 1180 registros
+2026-02-01 14:50:35 - INFO -   Costes: 22145 registros
+2026-02-01 14:50:35 - INFO - Datos de ventas: 86 registros
+2026-02-01 14:50:35 - INFO - Calculando pedido para semana 15 (86 registros)
+2026-02-01 14:50:35 - INFO -   Objetivo: 459.43€, Actual (ABC): 450.89€
+2026-02-01 14:50:35 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:50:35 - INFO -   Factor total: 1.0500
+2026-02-01 14:50:35 - INFO -   Factor escalado: 1.0699
+2026-02-01 14:50:35 - INFO -   Ventas preliminares (con ceil): 641.24€
+2026-02-01 14:50:35 - INFO -   Objetivo final: 482.40€
+2026-02-01 14:50:35 - INFO -   Delta: 158.84€
+2026-02-01 14:50:35 - INFO -   Ventas finales: 493.07€
+2026-02-01 14:50:35 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_semillas.xlsx
+2026-02-01 14:50:35 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_semillas.xlsx
+2026-02-01 14:50:35 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_semillas.xlsx
+2026-02-01 14:50:35 - INFO -   Articulos: 32
+2026-02-01 14:50:36 - INFO -   Importe: 442.61€
+2026-02-01 14:50:36 - INFO - 
+==================================================
+2026-02-01 14:50:36 - INFO - SECCION: MASCOTAS_VIVO
+2026-02-01 14:50:36 - INFO - ==================================================
+2026-02-01 14:50:36 - INFO - === LEYENDO DATOS PARA SECCIÓN: MASCOTAS_VIVO ===
+2026-02-01 14:50:36 - INFO - Archivo ABC encontrado para 'mascotas_vivo': .\./data/input\CLASIFICACION_ABC+D_mascotas_vivo.xlsx
+2026-02-01 14:50:36 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_mascotas_vivo.xlsx
+2026-02-01 14:50:36 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:50:36 - INFO - Clasificación ABC cargada para 'mascotas_vivo': 205 registros
+2026-02-01 14:50:36 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:50:42 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:42 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:50:42 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:50:42 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:50:42 - INFO - Filtrados 1124 registros de sección 'mascotas_vivo' de 44082 total
+2026-02-01 14:50:42 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:50:45 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:45 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:50:45 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MASCOTAS_VIVO ===
+2026-02-01 14:50:45 - INFO -   ABC: 205 registros
+2026-02-01 14:50:45 - INFO -   Ventas: 1124 registros
+2026-02-01 14:50:45 - INFO -   Costes: 22145 registros
+2026-02-01 14:50:45 - INFO - Datos de ventas: 94 registros
+2026-02-01 14:50:45 - INFO - Calculando pedido para semana 15 (94 registros)
+2026-02-01 14:50:46 - INFO -   Objetivo: 872.45€, Actual (ABC): 872.12€
+2026-02-01 14:50:46 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:50:46 - INFO -   Factor total: 1.0500
+2026-02-01 14:50:46 - INFO -   Factor escalado: 1.0504
+2026-02-01 14:50:46 - INFO -   Ventas preliminares (con ceil): 1180.02€
+2026-02-01 14:50:46 - INFO -   Objetivo final: 916.07€
+2026-02-01 14:50:46 - INFO -   Delta: 263.95€
+2026-02-01 14:50:46 - INFO -   Ventas finales: 916.51€
+2026-02-01 14:50:46 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_vivo.xlsx
+2026-02-01 14:50:46 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_vivo.xlsx
+2026-02-01 14:50:46 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_vivo.xlsx
+2026-02-01 14:50:46 - INFO -   Articulos: 30
+2026-02-01 14:50:46 - INFO -   Importe: 853.57€
+2026-02-01 14:50:46 - INFO - 
+==================================================
+2026-02-01 14:50:46 - INFO - SECCION: MASCOTAS_MANUFACTURADO
+2026-02-01 14:50:46 - INFO - ==================================================
+2026-02-01 14:50:46 - INFO - === LEYENDO DATOS PARA SECCIÓN: MASCOTAS_MANUFACTURADO ===
+2026-02-01 14:50:46 - INFO - Archivo ABC encontrado para 'mascotas_manufacturado': .\./data/input\CLASIFICACION_ABC+D_mascotas_manufacturado.xlsx
+2026-02-01 14:50:46 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_mascotas_manufacturado.xlsx
+2026-02-01 14:50:47 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:50:47 - INFO - Clasificación ABC cargada para 'mascotas_manufacturado': 2749 registros
+2026-02-01 14:50:47 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:50:53 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:53 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:50:53 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:50:53 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:50:53 - INFO - Filtrados 9784 registros de sección 'mascotas_manufacturado' de 44082 total
+2026-02-01 14:50:53 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:50:56 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:50:56 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:50:56 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MASCOTAS_MANUFACTURADO ===
+2026-02-01 14:50:56 - INFO -   ABC: 2749 registros
+2026-02-01 14:50:56 - INFO -   Ventas: 9784 registros
+2026-02-01 14:50:56 - INFO -   Costes: 22145 registros
+2026-02-01 14:50:56 - INFO - Datos de ventas: 759 registros
+2026-02-01 14:50:56 - INFO - Calculando pedido para semana 15 (759 registros)
+2026-02-01 14:51:00 - INFO -   Objetivo: 6689.54€, Actual (ABC): 8926.08€
+2026-02-01 14:51:00 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:00 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:00 - INFO -   Factor escalado: 0.7869
+2026-02-01 14:51:00 - INFO -   Ventas preliminares (con ceil): 8871.83€
+2026-02-01 14:51:00 - INFO -   Objetivo final: 7024.02€
+2026-02-01 14:51:00 - INFO -   Delta: 1847.81€
+2026-02-01 14:51:00 - INFO -   Ventas finales: 7031.18€
+2026-02-01 14:51:01 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_manufacturado.xlsx
+2026-02-01 14:51:01 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_manufacturado.xlsx
+2026-02-01 14:51:01 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_mascotas_manufacturado.xlsx
+2026-02-01 14:51:01 - INFO -   Articulos: 331
+2026-02-01 14:51:01 - INFO -   Importe: 7003.86€
+2026-02-01 14:51:01 - INFO - 
+==================================================
+2026-02-01 14:51:01 - INFO - SECCION: INTERIOR
+2026-02-01 14:51:01 - INFO - ==================================================
+2026-02-01 14:51:01 - INFO - === LEYENDO DATOS PARA SECCIÓN: INTERIOR ===
+2026-02-01 14:51:01 - INFO - Archivo ABC encontrado para 'interior': .\./data/input\CLASIFICACION_ABC+D_interior.xlsx
+2026-02-01 14:51:01 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_interior.xlsx
+2026-02-01 14:51:01 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:01 - INFO - Clasificación ABC cargada para 'interior': 555 registros
+2026-02-01 14:51:01 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:51:08 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:08 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:51:08 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:51:08 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:51:08 - INFO - Filtrados 3624 registros de sección 'interior' de 44082 total
+2026-02-01 14:51:08 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:51:11 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:11 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:51:11 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA INTERIOR ===
+2026-02-01 14:51:11 - INFO -   ABC: 555 registros
+2026-02-01 14:51:11 - INFO -   Ventas: 3624 registros
+2026-02-01 14:51:11 - INFO -   Costes: 22145 registros
+2026-02-01 14:51:11 - INFO - Datos de ventas: 283 registros
+2026-02-01 14:51:11 - INFO - Calculando pedido para semana 15 (283 registros)
+2026-02-01 14:51:12 - INFO -   Objetivo: 2338.22€, Actual (ABC): 2125.82€
+2026-02-01 14:51:12 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:12 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:12 - INFO -   Factor escalado: 1.1549
+2026-02-01 14:51:12 - INFO -   Ventas preliminares (con ceil): 3031.79€
+2026-02-01 14:51:12 - INFO -   Objetivo final: 2455.13€
+2026-02-01 14:51:12 - INFO -   Delta: 576.66€
+2026-02-01 14:51:12 - INFO -   Ventas finales: 2456.51€
+2026-02-01 14:51:12 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_interior.xlsx
+2026-02-01 14:51:12 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_interior.xlsx
+2026-02-01 14:51:12 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_interior.xlsx
+2026-02-01 14:51:12 - INFO -   Articulos: 92
+2026-02-01 14:51:12 - INFO -   Importe: 2400.45€
+2026-02-01 14:51:12 - INFO - 
+==================================================
+2026-02-01 14:51:12 - INFO - SECCION: FITOS
+2026-02-01 14:51:12 - INFO - ==================================================
+2026-02-01 14:51:12 - INFO - === LEYENDO DATOS PARA SECCIÓN: FITOS ===
+2026-02-01 14:51:12 - INFO - Archivo ABC encontrado para 'fitos': .\./data/input\CLASIFICACION_ABC+D_fitos.xlsx
+2026-02-01 14:51:12 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_fitos.xlsx
+2026-02-01 14:51:12 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:12 - INFO - Clasificación ABC cargada para 'fitos': 247 registros
+2026-02-01 14:51:12 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:51:18 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:18 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:51:19 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:51:19 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:51:19 - INFO - Filtrados 1987 registros de sección 'fitos' de 44082 total
+2026-02-01 14:51:19 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:51:22 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:22 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:51:22 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA FITOS ===
+2026-02-01 14:51:22 - INFO -   ABC: 247 registros
+2026-02-01 14:51:22 - INFO -   Ventas: 1987 registros
+2026-02-01 14:51:22 - INFO -   Costes: 22145 registros
+2026-02-01 14:51:22 - INFO - Datos de ventas: 140 registros
+2026-02-01 14:51:22 - INFO - Calculando pedido para semana 15 (140 registros)
+2026-02-01 14:51:23 - INFO -   Objetivo: 1708.82€, Actual (ABC): 1689.27€
+2026-02-01 14:51:23 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:23 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:23 - INFO -   Factor escalado: 1.0622
+2026-02-01 14:51:23 - INFO -   Ventas preliminares (con ceil): 2318.88€
+2026-02-01 14:51:23 - INFO -   Objetivo final: 1794.26€
+2026-02-01 14:51:23 - INFO -   Delta: 524.62€
+2026-02-01 14:51:23 - INFO -   Ventas finales: 1805.12€
+2026-02-01 14:51:23 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_fitos.xlsx
+2026-02-01 14:51:23 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_fitos.xlsx
+2026-02-01 14:51:23 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_fitos.xlsx
+2026-02-01 14:51:23 - INFO -   Articulos: 77
+2026-02-01 14:51:23 - INFO -   Importe: 1769.24€
+2026-02-01 14:51:23 - INFO - 
+==================================================
+2026-02-01 14:51:23 - INFO - SECCION: VIVERO
+2026-02-01 14:51:23 - INFO - ==================================================
+2026-02-01 14:51:23 - INFO - === LEYENDO DATOS PARA SECCIÓN: VIVERO ===
+2026-02-01 14:51:23 - INFO - Archivo ABC encontrado para 'vivero': .\./data/input\CLASIFICACION_ABC+D_vivero.xlsx
+2026-02-01 14:51:23 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_vivero.xlsx
+2026-02-01 14:51:23 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:23 - INFO - Clasificación ABC cargada para 'vivero': 565 registros
+2026-02-01 14:51:23 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:51:29 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:29 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:51:29 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:51:29 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:51:29 - INFO - Filtrados 2460 registros de sección 'vivero' de 44082 total
+2026-02-01 14:51:29 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:51:32 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:32 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:51:32 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA VIVERO ===
+2026-02-01 14:51:32 - INFO -   ABC: 565 registros
+2026-02-01 14:51:32 - INFO -   Ventas: 2460 registros
+2026-02-01 14:51:32 - INFO -   Costes: 22145 registros
+2026-02-01 14:51:32 - INFO - Datos de ventas: 196 registros
+2026-02-01 14:51:32 - INFO - Calculando pedido para semana 15 (196 registros)
+2026-02-01 14:51:33 - INFO -   Objetivo: 4775.39€, Actual (ABC): 6436.04€
+2026-02-01 14:51:33 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:33 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:33 - INFO -   Factor escalado: 0.7791
+2026-02-01 14:51:33 - INFO -   Ventas preliminares (con ceil): 5935.58€
+2026-02-01 14:51:33 - INFO -   Objetivo final: 5014.16€
+2026-02-01 14:51:33 - INFO -   Delta: 921.42€
+2026-02-01 14:51:33 - INFO -   Ventas finales: 5014.82€
+2026-02-01 14:51:33 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_vivero.xlsx
+2026-02-01 14:51:33 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_vivero.xlsx
+2026-02-01 14:51:33 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_vivero.xlsx
+2026-02-01 14:51:33 - INFO -   Articulos: 79
+2026-02-01 14:51:33 - INFO -   Importe: 4793.14€
+2026-02-01 14:51:33 - INFO - 
+==================================================
+2026-02-01 14:51:33 - INFO - SECCION: UTILES_JARDIN
+2026-02-01 14:51:33 - INFO - ==================================================
+2026-02-01 14:51:33 - INFO - === LEYENDO DATOS PARA SECCIÓN: UTILES_JARDIN ===
+2026-02-01 14:51:33 - INFO - Archivo ABC encontrado para 'utiles_jardin': .\./data/input\CLASIFICACION_ABC+D_utiles_jardin.xlsx
+2026-02-01 14:51:33 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_utiles_jardin.xlsx
+2026-02-01 14:51:33 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:33 - INFO - Clasificación ABC cargada para 'utiles_jardin': 433 registros
+2026-02-01 14:51:33 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:51:41 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:41 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:51:41 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:51:41 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:51:41 - INFO - Filtrados 1009 registros de sección 'utiles_jardin' de 44082 total
+2026-02-01 14:51:41 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:51:44 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:44 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:51:44 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA UTILES_JARDIN ===
+2026-02-01 14:51:44 - INFO -   ABC: 433 registros
+2026-02-01 14:51:44 - INFO -   Ventas: 1009 registros
+2026-02-01 14:51:44 - INFO -   Costes: 22145 registros
+2026-02-01 14:51:44 - INFO - Datos de ventas: 78 registros
+2026-02-01 14:51:44 - INFO - Calculando pedido para semana 15 (78 registros)
+2026-02-01 14:51:45 - INFO -   Objetivo: 978.93€, Actual (ABC): 772.11€
+2026-02-01 14:51:45 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:45 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:45 - INFO -   Factor escalado: 1.3313
+2026-02-01 14:51:45 - INFO -   Ventas preliminares (con ceil): 1287.72€
+2026-02-01 14:51:45 - INFO -   Objetivo final: 1027.88€
+2026-02-01 14:51:45 - INFO -   Delta: 259.84€
+2026-02-01 14:51:45 - INFO -   Ventas finales: 1028.35€
+2026-02-01 14:51:45 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_utiles_jardin.xlsx
+2026-02-01 14:51:45 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_utiles_jardin.xlsx
+2026-02-01 14:51:45 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_utiles_jardin.xlsx
+2026-02-01 14:51:45 - INFO -   Articulos: 62
+2026-02-01 14:51:45 - INFO -   Importe: 1025.40€
+2026-02-01 14:51:45 - INFO - 
+==================================================
+2026-02-01 14:51:45 - INFO - SECCION: TIERRAS_ARIDOS
+2026-02-01 14:51:45 - INFO - ==================================================
+2026-02-01 14:51:45 - INFO - === LEYENDO DATOS PARA SECCIÓN: TIERRAS_ARIDOS ===
+2026-02-01 14:51:45 - WARNING - No se encontró archivo específico para 'tierras_aridos', usando: .\./data/input\CLASIFICACION_ABC+D_DECO_EXTERIOR.xlsx
+2026-02-01 14:51:45 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_DECO_EXTERIOR.xlsx
+2026-02-01 14:51:45 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:45 - INFO - Clasificación ABC cargada para 'tierras_aridos': 995 registros
+2026-02-01 14:51:45 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:51:52 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:52 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:51:52 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:51:52 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:51:52 - INFO - Filtrados 3264 registros de sección 'tierras_aridos' de 44082 total
+2026-02-01 14:51:52 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:51:55 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:51:55 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:51:55 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA TIERRAS_ARIDOS ===
+2026-02-01 14:51:55 - INFO -   ABC: 995 registros
+2026-02-01 14:51:55 - INFO -   Ventas: 3264 registros
+2026-02-01 14:51:55 - INFO -   Costes: 22145 registros
+2026-02-01 14:51:56 - INFO - Datos de ventas: 257 registros
+2026-02-01 14:51:56 - INFO - Calculando pedido para semana 15 (257 registros)
+2026-02-01 14:51:56 - INFO -   Objetivo: 3489.25€, Actual (ABC): 3157.98€
+2026-02-01 14:51:56 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:51:56 - INFO -   Factor total: 1.0500
+2026-02-01 14:51:56 - INFO -   Factor escalado: 1.1601
+2026-02-01 14:51:56 - INFO -   Ventas preliminares (con ceil): 4053.35€
+2026-02-01 14:51:56 - INFO -   Objetivo final: 3663.71€
+2026-02-01 14:51:56 - INFO -   Delta: 389.64€
+2026-02-01 14:51:56 - INFO -   Ventas finales: 3666.91€
+2026-02-01 14:51:56 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_tierras_aridos.xlsx
+2026-02-01 14:51:56 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_tierras_aridos.xlsx
+2026-02-01 14:51:56 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_tierras_aridos.xlsx
+2026-02-01 14:51:56 - INFO -   Articulos: 61
+2026-02-01 14:51:56 - INFO -   Importe: 3614.01€
+2026-02-01 14:51:56 - INFO - 
+==================================================
+2026-02-01 14:51:56 - INFO - SECCION: DECO_EXTERIOR
+2026-02-01 14:51:56 - INFO - ==================================================
+2026-02-01 14:51:56 - INFO - === LEYENDO DATOS PARA SECCIÓN: DECO_EXTERIOR ===
+2026-02-01 14:51:56 - INFO - Archivo ABC encontrado para 'deco_exterior': .\./data/input\CLASIFICACION_ABC+D_deco_exterior.xlsx
+2026-02-01 14:51:56 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_deco_exterior.xlsx
+2026-02-01 14:51:56 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-01 14:51:56 - INFO - Clasificación ABC cargada para 'deco_exterior': 995 registros
+2026-02-01 14:51:56 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-01 14:52:03 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:52:03 - INFO - Usando hoja: Ventas por vendedor
+2026-02-01 14:52:03 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-01 14:52:03 - INFO - Ventas cargadas: 44082 registros
+2026-02-01 14:52:03 - INFO - Filtrados 4018 registros de sección 'deco_exterior' de 44082 total
+2026-02-01 14:52:03 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-01 14:52:06 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-01 14:52:06 - INFO - Costes cargados: 22145 registros
+2026-02-01 14:52:06 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA DECO_EXTERIOR ===
+2026-02-01 14:52:06 - INFO -   ABC: 995 registros
+2026-02-01 14:52:06 - INFO -   Ventas: 4018 registros
+2026-02-01 14:52:06 - INFO -   Costes: 22145 registros
+2026-02-01 14:52:06 - INFO - Datos de ventas: 267 registros
+2026-02-01 14:52:06 - INFO - Calculando pedido para semana 15 (267 registros)
+2026-02-01 14:52:07 - INFO -   Objetivo: 3413.58€, Actual (ABC): 3445.57€
+2026-02-01 14:52:07 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.0
+2026-02-01 14:52:07 - INFO -   Factor total: 1.0500
+2026-02-01 14:52:07 - INFO -   Factor escalado: 1.0403
+2026-02-01 14:52:07 - INFO -   Ventas preliminares (con ceil): 4676.23€
+2026-02-01 14:52:07 - INFO -   Objetivo final: 3584.26€
+2026-02-01 14:52:07 - INFO -   Delta: 1091.97€
+2026-02-01 14:52:07 - INFO -   Ventas finales: 3588.71€
+2026-02-01 14:52:07 - INFO - Generando archivo: .\./data/output\Pedido_Semana_15_2026-02-01_deco_exterior.xlsx
+2026-02-01 14:52:08 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_15_2026-02-01_deco_exterior.xlsx
+2026-02-01 14:52:08 - INFO - Archivo generado: .\./data/output\Pedido_Semana_15_2026-02-01_deco_exterior.xlsx
+2026-02-01 14:52:08 - INFO -   Articulos: 158
+2026-02-01 14:52:08 - INFO -   Importe: 3554.31€
+2026-02-01 14:52:08 - INFO - Estado guardado correctamente
+2026-02-01 14:52:08 - INFO - Generando resumen: .\./data/output\Resumen_Pedidos_VIVERO_2026-02-01.xlsx
+2026-02-01 14:52:08 - INFO - Resumen guardado: .\./data/output\Resumen_Pedidos_VIVERO_2026-02-01.xlsx
+2026-02-01 14:52:08 - INFO - Estado guardado correctamente
+2026-02-01 14:52:08 - INFO - 
+======================================================================
+2026-02-01 14:52:08 - INFO - RESUMEN DE EJECUCION
+2026-02-01 14:52:08 - INFO - ======================================================================
+2026-02-01 14:52:08 - INFO - Semana procesada: 15
+2026-02-01 14:52:08 - INFO - Archivos generados: 12
+2026-02-01 14:52:08 - INFO - Total articulos: 1173
+2026-02-01 14:52:08 - INFO - Total importe: 33919.86€
+2026-02-01 14:52:08 - INFO - ======================================================================
+2026-02-01 14:52:08 - INFO - 
+¡PEDIDO GENERADO EXITOSAMENTE!
+2026-02-01 14:52:08 - INFO - Archivo: .\./data/output\Pedido_Semana_15_2026-02-01_maf.xlsx
+2026-02-01 14:52:08 - INFO - Articulos: 1173
+2026-02-01 14:52:08 - INFO - Importe: 33919.86€
