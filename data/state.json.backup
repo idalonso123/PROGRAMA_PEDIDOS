@@ -3,7 +3,7 @@
         "version": "2.0.0",
         "fecha_creacion": "2026-01-31T00:00:00",
         "ultima_actualizacion": null,
-        "ultima_ejecucion_exitosa": "2026-02-03T19:38:31.115400",
+        "ultima_ejecucion_exitosa": "2026-02-04T00:06:25.715223",
         "ultima_semana_procesada": 14,
         "año_en_curso": 2026
     },
@@ -2701,6 +2701,24 @@
             "importe": 47966.89,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-03T20:46:28.956669",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T00:06:25.715174",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
         }
     ],
     "pedidos_generados": [
@@ -2739,12 +2757,24 @@
             "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
             "fecha": "2026-02-03",
             "importe": 47966.89
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
+            "fecha": "2026-02-03",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
         }
     ],
     "metricas": {
-        "total_ejecuciones": 6,
-        "total_articulos_procesados": 4147,
-        "total_importe_pedidos": 129853.64,
+        "total_ejecuciones": 8,
+        "total_articulos_procesados": 7167,
+        "total_importe_pedidos": 226081.38,
         "ultima_semana_procesada_exitosamente": 14
     },
     "errores_pendientes": [],

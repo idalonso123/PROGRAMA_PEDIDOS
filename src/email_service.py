@@ -22,6 +22,7 @@ import smtplib
 import ssl
 import os
 import logging
+import pandas as pd
 from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -100,9 +101,135 @@ class EmailService:
             'Sistema de Pedidos automáticos VIVEVERDE.'
         )
         
+        # Cargar nombres de encargados desde archivo Excel
+        self._cargar_encargados()
+        
         logger.debug(f"[DEBUG] SMTP configurado: {self.smtp_config}")
         logger.debug(f"[DEBUG] Remitente: {self.remitente}")
         logger.debug(f"[DEBUG] Destinatarios: {self.destinatarios}")
+        logger.debug(f"[DEBUG] Encargados cargados: {self.encargados_por_seccion}")
+    
+    def _cargar_encargados(self):
+        """
+        Carga la información de los encargados desde el archivo Excel configurable.
+        
+        Lee el archivo especificado en la configuración (archivo_encargados) y crea
+        un mapeo de secciones a nombres de encargados. El archivo debe tener las
+        columnas: 'Nombre Encargado', 'mail', 'seccion/es'.
+        
+        La carga es dinámica y configurable, sin datos hardcodeados.
+        """
+        self.encargados_por_seccion = {}
+        
+        try:
+            # Obtener ruta del archivo de encargados desde configuración
+            archivos_entrada = self.config.get('archivos_entrada', {})
+            nombre_archivo = archivos_entrada.get('archivo_encargados', 'encargados.xlsx')
+            
+            # Construir ruta completa usando rutas absolutas
+            directorio_base = self.config.get('rutas', {}).get('directorio_base', '.')
+            directorio_entrada = self.config.get('rutas', {}).get('directorio_entrada', './data/input')
+            
+            # Convertir a ruta absoluta si es relativa
+            if not os.path.isabs(directorio_base):
+                directorio_base = os.path.abspath(directorio_base)
+            if not os.path.isabs(directorio_entrada):
+                directorio_entrada = os.path.abspath(directorio_entrada)
+            
+            ruta_archivo = os.path.join(directorio_base, directorio_entrada, nombre_archivo)
+            
+            logger.debug(f"[DEBUG] Buscando archivo de encargados en: {ruta_archivo}")
+            logger.debug(f"[DEBUG] Directorio base: {directorio_base}")
+            logger.debug(f"[DEBUG] Directorio entrada: {directorio_entrada}")
+            
+            # Verificar si existe el archivo
+            if not os.path.exists(ruta_archivo):
+                logger.warning(f"Archivo de encargados no encontrado: {ruta_archivo}")
+                logger.info("Usando nombres genéricos para los encargados")
+                return
+            
+            logger.debug(f"[DEBUG] Archivo de encargados encontrado: {ruta_archivo}")
+            
+            # Leer archivo Excel
+            df = pd.read_excel(ruta_archivo)
+            
+            # Los datos están en las últimas 3 columnas (índices 8, 9, 10)
+            # Tomar solo esas columnas si existen
+            if len(df.columns) >= 11:
+                df_data = df.iloc[:, 8:11].copy()
+                df_data.columns = ['nombre_encargado', 'mail', 'seccion']
+                
+                # Saltar la fila de encabezados (índice 5) y las filas vacías
+                # Empezar desde la fila 6 (índice 6)
+                df_data = df_data.iloc[2:]
+                
+                # Filtrar filas sin nombre de encargado
+                df_data = df_data.dropna(subset=['nombre_encargado'])
+            else:
+                logger.warning(f"Archivo de encargados no tiene el formato esperado: {ruta_archivo}")
+                return
+            
+            # Procesar cada fila
+            for _, fila in df_data.iterrows():
+                nombre = str(fila['nombre_encargado']).strip() if pd.notna(fila['nombre_encargado']) else ''
+                mail = str(fila['mail']).strip() if pd.notna(fila['mail']) else ''
+                secciones_raw = str(fila['seccion']).strip() if pd.notna(fila['seccion']) else ''
+                
+                # Ignorar filas de encabezados
+                if nombre.lower() == 'nombre encargado' and mail.lower() == 'mail':
+                    continue
+                
+                if not nombre or not mail or not secciones_raw:
+                    continue
+                
+                # Las secciones pueden estar separadas por comas
+                secciones = [s.strip().lower() for s in secciones_raw.split(',')]
+                
+                for seccion in secciones:
+                    if not seccion:
+                        continue
+                    
+                    # Normalizar nombre de sección
+                    seccion_normalizada = seccion.replace(' ', '_')
+                    
+                    # Guardar información del encargado
+                    self.encargados_por_seccion[seccion] = {'nombre': nombre, 'email': mail}
+                    self.encargados_por_seccion[seccion_normalizada] = {'nombre': nombre, 'email': mail}
+                    
+                    # También intentar con nombre capitalizado
+                    self.encargados_por_seccion[seccion.title()] = {'nombre': nombre, 'email': mail}
+            
+            logger.info(f"Cargados {len(self.encargados_por_seccion)} mapeos de encargados desde: {ruta_archivo}")
+            logger.debug(f"[DEBUG] Encargados cargados: {self.encargados_por_seccion}")
+            
+        except Exception as e:
+            logger.error(f"Error al cargar archivo de encargados: {str(e)}")
+            logger.info("Usando nombres genéricos para los encargados")
+    
+    def _normalizar_seccion(self, seccion: str) -> str:
+        """
+        Normaliza el nombre de una sección para buscar en el mapeo de encargados.
+        
+        Args:
+            seccion (str): Nombre de la sección
+            
+        Returns:
+            str: Nombre normalizado
+        """
+        # Intentar diferentes variaciones
+        variaciones = [
+            seccion.lower(),
+            seccion.upper(),
+            seccion.title(),
+            seccion.replace('_', ' '),
+            seccion.replace(' ', '_'),
+        ]
+        
+        for var in variaciones:
+            if var in self.encargados_por_seccion:
+                return var
+        
+        return seccion.lower()
     
     def _obtener_password(self) -> str:
         """
@@ -280,28 +407,50 @@ class EmailService:
         """
         Obtiene la lista de destinatarios para una sección específica.
         
+        Prioriza los datos del archivo de encargados (configurable) sobre los
+        valores hardcodeados en la configuración. Usa el nombre del encargado
+        cargado desde el archivo Excel para personalizar el saludo del email.
+        
         Args:
             seccion (str): Nombre de la sección
             
         Returns:
             List[Dict]: Lista de diccionarios con 'email' y 'nombre' de cada destinatario
         """
-        destinatarios_config = self.destinatarios.get(seccion, [])
-        
-        # Si es string, convertir a lista
-        if isinstance(destinatarios_config, str):
-            destinatarios_config = [destinatarios_config]
-        
-        # Si es lista de strings, convertir a formato con nombre genérico
         resultado = []
-        for dest in destinatarios_config:
-            if isinstance(dest, str):
-                resultado.append({
-                    'email': dest,
-                    'nombre': 'Encargado'  # Nombre genérico
-                })
-            elif isinstance(dest, dict):
-                resultado.append(dest)
+        
+        # Normalizar nombre de sección para buscar en el mapeo de encargados
+        seccion_normalizada = self._normalizar_seccion(seccion)
+        
+        # Verificar si tenemos datos del encargado para esta sección
+        info_encargado = self.encargados_por_seccion.get(seccion_normalizada)
+        
+        if info_encargado:
+            # Usar email y nombre del archivo de encargados
+            resultado.append({
+                'email': info_encargado['email'],
+                'nombre': info_encargado['nombre']
+            })
+            logger.debug(f"[DEBUG] Usando datos de encargado para {seccion}: {info_encargado}")
+        else:
+            # Fallback a configuración estática
+            destinatarios_config = self.destinatarios.get(seccion, [])
+            
+            # Si es string, convertir a lista
+            if isinstance(destinatarios_config, str):
+                destinatarios_config = [destinatarios_config]
+            
+            # Si es lista de strings, convertir a formato con nombre genérico
+            for dest in destinatarios_config:
+                if isinstance(dest, str):
+                    resultado.append({
+                        'email': dest,
+                        'nombre': 'Encargado'  # Nombre genérico cuando no hay datos del Excel
+                    })
+                elif isinstance(dest, dict):
+                    resultado.append(dest)
+            
+            logger.debug(f"[DEBUG] Usando configuración estática para {seccion}: {resultado}")
         
         logger.debug(f"[DEBUG] Destinatarios para {seccion}: {resultado}")
         return resultado
