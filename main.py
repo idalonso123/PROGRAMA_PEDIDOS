@@ -485,46 +485,58 @@ def agrupar_archivos_por_seccion(
 ) -> Dict[str, List[str]]:
     """
     Agrupa los archivos generados por sección para el envío de emails.
-    
+
     Args:
         archivos_generados (List[str]): Lista de rutas de archivos generados
         config (Dict): Configuración del sistema
-    
+
     Returns:
         Dict[str, List[str]]: Mapeo sección -> lista de archivos
     """
     archivos_por_seccion = {}
-    
+
     # Obtener directorio de salida
     dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
-    
+
     for archivo in archivos_generados:
         if not archivo:
             continue
-        
-        # Extraer nombre del archivo
+
+        # Saltar resúmenes
         nombre_archivo = os.path.basename(archivo)
+        if 'RESUMEN' in nombre_archivo.upper():
+            continue
+
+        # Extraer nombre del archivo sin extensión
+        nombre_sin_extension = nombre_archivo.replace('.xlsx', '')
         
-        # Determinar la sección a partir del nombre del archivo
-        # Formato esperado: Pedido_Semana_{semana}_{fecha}_{seccion}.xlsx
-        partes = nombre_archivo.replace('.xlsx', '').split('_')
+        # El formato es: Pedido_Semana_{semana}_{fecha}_{seccion}.xlsx
+        # La fecha tiene formato YYYY-MM-DD (contiene guiones)
+        # Por ejemplo: Pedido_Semana_14_2026-02-03_deco_interior.xlsx
+        
+        # Dividir por guiones bajos
+        partes = nombre_sin_extension.split('_')
         
         if len(partes) >= 4:
-            # La sección es la última parte del nombre
-            seccion = partes[-1]
-            
-            # Filtrar solo archivos principales (no resúmenes ni corregidos si es necesario)
-            if 'RESUMEN' in nombre_archivo.upper():
-                continue  # Saltar resúmenes para envío individual
-            
+            # La fecha es la parte 3 (formato YYYY-MM-DD con guiones)
+            # Comprobamos si la parte 3 contiene '-' para verificar si es fecha
+            if '-' in partes[3]:
+                # La sección es todo lo que viene después de la fecha
+                # Unimos las partes desde el índice 4 en adelante con '_'
+                seccion = '_'.join(partes[4:])
+            else:
+                # Si por alguna razón la fecha no está en su posición,
+                # usamos el comportamiento original (última parte)
+                seccion = partes[-1]
+
             if seccion not in archivos_por_seccion:
                 archivos_por_seccion[seccion] = []
-            
-            archivos_por_seccion[seccion].append(archivo)
-    
-    logger.debug(f"[DEBUG] Archivos agrupados por sección: {archivos_por_seccion}")
-    return archivos_por_seccion
 
+            archivos_por_seccion[seccion].append(archivo)
+
+    logger.debug(f"[DEBUG] Archivos agrupados por sección: {archivos_por_seccion}")
+
+    return archivos_por_seccion
 
 # ============================================
 # PROCESO PRINCIPAL DE GENERACIÓN DE PEDIDO

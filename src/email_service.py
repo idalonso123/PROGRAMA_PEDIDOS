@@ -294,7 +294,7 @@ class EmailService:
         
         # Si es lista de strings, convertir a formato con nombre genérico
         resultado = []
-        for dest in destinatorios_config:
+        for dest in destinatarios_config:
             if isinstance(dest, str):
                 resultado.append({
                     'email': dest,
@@ -531,21 +531,21 @@ if __name__ == "__main__":
                 'email': 'ivan.delgado@viveverde.es',
                 'nombre': 'Sistema de Pedidos VIVEVERDE'
             },
-            'destinatarios': {
-                'maf': 'ivan.delgado@viveverde.es',
-                'vivero': 'ivan.delgado@viveverde.es',
-                'interior': 'ivan.delgado@viveverde.es',
-                'mascotas_manufacturado': 'ivan.delgado@viveverde.es',
-                'mascotas_vivo': 'ivan.delgado@viveverde.es',
-                'deco.exterior': 'ivan.delgado@viveverde.es',
-                'tierras_aridos': 'ivan.delgado@viveverde.es',
-                'fitos': 'ivan.delgado@viveverde.es',
-                'semillas': 'ivan.delgado@viveverde.es',
-                'utiles_jardin': 'ivan.delgado@viveverde.es',
-                'deco_interior': [
-                    'ivan.delgado@viveverde.es',
-                    'ivan.delgado@viveverde.es'
-                ]
+        "destinatarios": {
+            "maf": "exterior@viveverde.es",
+            "interior": "interior@viveverde.es",
+            "mascotas_vivo": "mascotas@viveverde.es",
+            "mascotas_manufacturado": "mascotas@viveverde.es",
+            "deco_interior": [
+                "decoracion@viveverde.es",
+                "sandra.delgado@viveverde.es"
+            ],
+            "deco_exterior": "deco.exterior@viveverde.es",
+            "tierras_aridos": "deco.exterior@viveverde.es",
+            "fitos": "ivan.delgado@viveverde.es",
+            "semillas": "ivan.delgado@viveverde.es",
+            "utiles_jardin": "ivan.delgado@viveverde.es",
+            "vivero": "exterior@viveverde.es"
             },
             'plantillas': {
                 'asunto': 'VIVEVERDE: Pedido de compra - Semana {semana} - {seccion}',

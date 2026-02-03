@@ -239,20 +239,20 @@
             "cuerpo": "Buenos días {nombre_encargado}. \nTe adjunto el pedido de compra generado para la semana {semana} de la sección {seccion}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE."
         },
         "destinatarios": {
-            "maf": "exterior@viveverde.es",
-            "interior": "interior@viveverde.es",
-            "mascotas_vivo": "mascotas@gmail.com",
-            "mascotas_manufacturado": "mascotas@gmail.com",
+            "maf": "ivan.delgado@viveverde.es",
+            "interior": "ivan.delgado@viveverde.es",
+            "mascotas_vivo": "ivan.delgado@viveverde.es",
+            "mascotas_manufacturado": "ivan.delgado@viveverde.es",
             "deco_interior": [
-                "decoracion@viveverde.es",
-                "sandra.delgado@viveverde.es"
+                "ivan.delgado@viveverde.es",
+                "ivan.delgado@viveverde.es"
             ],
-            "deco_exterior": "deco.exterior@viveverde.es",
-            "tierras_aridos": "deco.exterior@viveverde.es",
+            "deco_exterior": "ivan.delgado@viveverde.es",
+            "tierras_aridos": "ivan.delgado@viveverde.es",
             "fitos": "ivan.delgado@viveverde.es",
             "semillas": "ivan.delgado@viveverde.es",
             "utiles_jardin": "ivan.delgado@viveverde.es",
-            "vivero": "exterior@viveverde.es"
+            "vivero": "ivan.delgado@viveverde.es"
         },
         "email_centralizado": null,
         "habilitar_envio": true,
