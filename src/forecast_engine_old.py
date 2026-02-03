@@ -535,7 +535,7 @@ class ForecastEngine:
         }
     
     def generar_resumen_pedido(self, pedidos_df: pd.DataFrame, semana: int,
-                                datos_originales: pd.DataFrame, seccion: str) -> Dict[str, Any]:
+                                datos_originales: pd.DataFrame) -> Dict[str, Any]:
         """
         Genera un resumen consolidado del pedido para una semana.
         
@@ -543,7 +543,6 @@ class ForecastEngine:
             pedidos_df (pd.DataFrame): DataFrame con los pedidos calculados
             semana (int): Número de semana
             datos_originales (pd.DataFrame): Datos originales de ventas
-            seccion (str): Nombre de la sección
         
         Returns:
             Dict: Resumen con métricas del pedido
@@ -565,14 +564,13 @@ class ForecastEngine:
         crecimiento = self.parametros.get('objetivo_crecimiento', 0.05)
         factor_total = (1 + crecimiento) * (1 + festivo)
         
-        objetivo = self.obtener_objetivo_semana(seccion, semana)
+        objetivo = self.obtener_objetivo_semana(self._obtener_seccion_activa(), semana)
         objetivo_final = round(objetivo * factor_total, 2)
         
         crecimiento_unidades = round((objetivo_final / objetivo - 1) * 100, 1) if objetivo > 0 else 0
         
         return {
             'Semana': semana,
-            'Seccion': seccion,  # Incluir la sección en el resumen
             'Vtas. semana año pasado': round(ventas_año_pasado, 2),
             'Objetivo_Semana': objetivo,
             'Obj. semana + % crec. anual': round(objetivo * (1 + crecimiento), 2),

@@ -346,14 +346,13 @@ class OrderGenerator:
             
             # Cabeceras
             COLUMN_HEADERS = [
-                'Sección', 'Semana', 'Vtas. semana año pasado', 'Objetivo semana', 'Obj. semana + % crec. anual', 
+                'Semana', 'Vtas. semana año pasado', 'Objetivo semana', 'Obj. semana + % crec. anual', 
                 'Obj. semana + % crec. + Festivos', '% Obj. crecim. + Festivos', 'Total Unidades', 'Total Articulos', 
                 'Total Importe', 'Alcance %', 'Articulos A', 'Articulos B', 'Articulos C',
                 '% Festivo', '% Stock Min', 'Stock Min Obj'
             ]
             
             COLUMN_MAPPING = {
-                'Seccion': 'Sección',
                 'Semana': 'Semana',
                 'Vtas. semana año pasado': 'Vtas. semana año pasado',
                 'Objetivo_Semana': 'Objetivo semana',

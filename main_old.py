@@ -2,8 +2,31 @@
 """
 Sistema de Pedidos de Compra - Vivero Aranjuez V2
 
+Sistema modular para la generación automática de pedidos de compra
+con generación semanal programada, persistencia de estado, sistema de corrección (FASE 2)
+y envío automático de emails a los responsables de cada sección.
+
+Este es el módulo principal que coordina todos los componentes del sistema:
+- DataLoader: Carga de datos de entrada
+- StateManager: Persistencia de estado entre ejecuciones
+- ForecastEngine: Cálculo de pedidos (FASE 1)
+- CorrectionDataLoader: Carga de datos de corrección (FASE 2)
+- CorrectionEngine: Motor de corrección de pedidos (FASE 2)
+- OrderGenerator: Generación de archivos de salida
+- SchedulerService: Control de ejecución programada
+- EmailService: Envío de emails a responsables
+
+MODO DE USO:
+- Ejecución normal (programada): python main.py
+- Ejecución forzada para una semana específica: python main.py --semana 15
+- Ejecución en modo continuo (esperando horario): python main.py --continuo
+- Mostrar información del estado: python main.py --status
+- Solo corrección (FASE 2): python main.py --correccion --semana 15
+- Con corrección habilitada: python main.py --semana 15 --con-correccion
+- Sin envío de emails: python main.py --semana 15 --sin-email
+
 Autor: Sistema de Pedidos Vivero V2
-Fecha: 2026-02-04 (Actualizado con correcciones de bugs)
+Fecha: 2026-02-03 (Actualizado con Email Service)
 """
 
 import sys
@@ -14,36 +37,62 @@ import argparse
 from datetime import datetime
 from typing import Optional, Dict, Any, Tuple, List
 
+# Añadir el directorio actual al path para imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Imports de los módulos del sistema
 from src.data_loader import DataLoader
 from src.state_manager import StateManager
 from src.forecast_engine import ForecastEngine
 from src.order_generator import OrderGenerator
 from src.scheduler_service import SchedulerService, EstadoEjecucion
 
+# Imports de FASE 2 - Sistema de Corrección
 from src.correction_data_loader import CorrectionDataLoader
 from src.correction_engine import CorrectionEngine, crear_correction_engine
 
+# Imports de EMAIL Service
 from src.email_service import EmailService, crear_email_service
 
+# Importar pandas
 import pandas as pd
 
+# ============================================
+# CONFIGURACIÓN DE LOGGING
+# ============================================
+
 def configurar_logging(nivel: int = logging.INFO, log_file: Optional[str] = None) -> logging.Logger:
+    """
+    Configura el sistema de logging del sistema.
+    
+    Args:
+        nivel (int): Nivel de logging (logging.INFO, logging.DEBUG, etc.)
+        log_file (Optional[str]): Ruta del archivo de log (opcional)
+    
+    Returns:
+        logging.Logger: Instancia del logger configurada
+    """
+    # Crear formato
     formato = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
+    # Configurar logger raíz
     logger = logging.getLogger()
     logger.setLevel(nivel)
+    
+    # Limpiar handlers existentes
     logger.handlers = []
     
+    # Handler de consola
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formato)
     logger.addHandler(console_handler)
     
+    # Handler de archivo (si se especifica)
     if log_file:
+        # Crear directorio de logs si no existe
         log_dir = os.path.dirname(log_file)
         if log_dir and not os.path.exists(log_dir):
             os.makedirs(log_dir, exist_ok=True)
@@ -54,8 +103,23 @@ def configurar_logging(nivel: int = logging.INFO, log_file: Optional[str] = None
     
     return logger
 
+
+# ============================================
+# CARGA DE CONFIGURACIÓN
+# ============================================
+
 def cargar_configuracion(ruta: str = 'config/config.json') -> Optional[Dict[str, Any]]:
+    """
+    Carga la configuración desde el archivo JSON.
+    
+    Args:
+        ruta (str): Ruta al archivo de configuración
+    
+    Returns:
+        Optional[Dict]: Configuración cargada o None si hay error
+    """
     try:
+        # Obtener directorio base (donde está main.py)
         dir_base = os.path.dirname(os.path.abspath(__file__))
         ruta_completa = os.path.join(dir_base, ruta)
         
@@ -73,12 +137,32 @@ def cargar_configuracion(ruta: str = 'config/config.json') -> Optional[Dict[str,
         print(f"ERROR al cargar configuración: {str(e)}")
         return None
 
+
+# ============================================
+# FASE 2: FUNCIONES DE CORRECCIÓN
+# ============================================
+
 def verificar_archivos_correccion(config: Dict[str, Any], semana: int) -> Dict[str, bool]:
+    """
+    Verifica qué archivos de corrección están disponibles para una semana.
+    
+    Args:
+        config (Dict): Configuración del sistema
+        semana (int): Número de semana
+    
+    Returns:
+        Dict[str, bool]: Disponibilidad de cada archivo
+    """
     dir_entrada = config.get('rutas', {}).get('directorio_entrada', './data/input')
     archivos_correccion = config.get('archivos_correccion', {})
     
-    disponibilidad = {'stock': False, 'ventas': False, 'compras': False}
+    disponibilidad = {
+        'stock': False,
+        'ventas': False,
+        'compras': False
+    }
     
+    # Patrones de búsqueda para cada archivo
     patrones = {
         'stock': ['Stock_actual.xlsx', f'Stock_semana_{semana}.xlsx'],
         'ventas': [f'Ventas_semana_{semana}.xlsx', f'Ventas_Semana_{semana}.xlsx', 'Ventas_semana.xlsx'],
@@ -95,21 +179,36 @@ def verificar_archivos_correccion(config: Dict[str, Any], semana: int) -> Dict[s
     
     return disponibilidad
 
+
 def aplicar_correccion_pedido(
     pedido_teorico: pd.DataFrame,
     semana: int,
     config: Dict[str, Any],
     parametros_abc: Optional[Dict[str, Any]] = None
 ) -> Tuple[Optional[pd.DataFrame], Dict[str, Any]]:
+    """
+    Aplica la corrección FASE 2 a un pedido teórico.
+    
+    Args:
+        pedido_teorico (pd.DataFrame): Pedido generado en FASE 1
+        semana (int): Número de semana
+        config (Dict): Configuración del sistema
+        parametros_abc (Optional[Dict]): Parámetros ABC para el motor de corrección
+    
+    Returns:
+        Tuple[Optional[pd.DataFrame], Dict]: (Pedido corregido, Métricas de corrección)
+    """
     logger.info("\n" + "=" * 60)
     logger.info("FASE 2: APLICANDO CORRECCIÓN AL PEDIDO")
     logger.info("=" * 60)
     
+    # Verificar si la corrección está habilitada
     params_correccion = config.get('parametros_correccion', {})
     if not params_correccion.get('habilitar_correccion', True):
         logger.info("Corrección deshabilitada en configuración. Usando pedido teórico.")
         return pedido_teorico.copy(), {'correccion_aplicada': False}
     
+    # Verificar archivos de corrección disponibles
     disponibilidad = verificar_archivos_correccion(config, semana)
     
     if not any(disponibilidad.values()):
@@ -119,18 +218,24 @@ def aplicar_correccion_pedido(
     logger.info(f"Archivos de corrección disponibles: {disponibilidad}")
     
     try:
+        # Inicializar CorrectionDataLoader
         correction_loader = CorrectionDataLoader(config)
+        
+        # Cargar datos de corrección
         datos_correccion = correction_loader.cargar_datos_correccion(semana)
         
+        # Verificar si hay datos cargados
         datos_cargados = sum(1 for v in datos_correccion.values() if v is not None)
         if datos_cargados == 0:
             logger.warning("No se pudieron cargar datos de corrección. Usando pedido teórico.")
             return pedido_teorico.copy(), {'correccion_aplicada': False, 'razon': 'sin_datos'}
         
+        # Fusionar datos de corrección con pedido teórico
         pedido_fusionado = correction_loader.merge_con_pedido_teorico(
             pedido_teorico, datos_correccion
         )
         
+        # Inicializar CorrectionEngine
         config_abc = {
             'pesos_categoria': config.get('parametros', {}).get('pesos_categoria', {})
         }
@@ -143,6 +248,7 @@ def aplicar_correccion_pedido(
             politica_stock_minimo=politica_stock
         )
         
+        # Aplicar corrección
         pedido_corregido = engine.aplicar_correccion_dataframe(
             pedido_fusionado,
             columna_pedido='Unidades_Pedido',
@@ -155,6 +261,7 @@ def aplicar_correccion_pedido(
             columna_compras_sugeridas='Unidades_Pedido'
         )
         
+        # Calcular métricas
         metricas = engine.calcular_metricas_correccion(
             pedido_corregido,
             columna_pedido_original='Unidades_Pedido',
@@ -165,6 +272,7 @@ def aplicar_correccion_pedido(
         metricas['correccion_aplicada'] = True
         metricas['datos_cargados'] = datos_cargados
         
+        # Generar alertas
         alertas = engine.generar_alertas(pedido_corregido)
         if alertas:
             metricas['alertas'] = alertas
@@ -172,6 +280,7 @@ def aplicar_correccion_pedido(
             for alerta in alertas:
                 logger.warning(f"  [{alerta['nivel']}] {alerta['mensaje']}")
         
+        # Resumen de corrección
         logger.info("\nRESUMEN DE CORRECCIÓN:")
         logger.info(f"  Artículos corregidos: {metricas['articulos_corregidos']}/{metricas['total_articulos']}")
         logger.info(f"  Porcentaje corregido: {metricas['porcentaje_corregidos']:.1f}%")
@@ -186,6 +295,7 @@ def aplicar_correccion_pedido(
         logger.error(traceback.format_exc())
         return pedido_teorico.copy(), {'correccion_aplicada': False, 'razon': 'error', 'error': str(e)}
 
+
 def generar_archivo_pedido_corregido(
     pedido_corregido: pd.DataFrame,
     semana: int,
@@ -194,25 +304,45 @@ def generar_archivo_pedido_corregido(
     config: Dict[str, Any],
     order_generator: OrderGenerator
 ) -> Optional[str]:
+    """
+    Genera el archivo Excel con el pedido corregido.
+    
+    Args:
+        pedido_corregido (pd.DataFrame): Pedido tras aplicar corrección
+        semana (int): Número de semana
+        seccion (str): Nombre de la sección
+        parametros_seccion (Dict): Parámetros de la sección
+        config (Dict): Configuración del sistema
+        order_generator (OrderGenerator): Generador de archivos
+    
+    Returns:
+        Optional[str]: Ruta del archivo generado o None si hay error
+    """
     try:
+        # Calcular fechas
         from datetime import datetime, timedelta
         fecha_base = datetime.now()
         
+        # Calcular fecha del lunes de la semana
         dia_semana = fecha_base.weekday()
         dias_hasta_lunes = (7 - dia_semana) % 7
         fecha_lunes = fecha_base + timedelta(days=dias_hasta_lunes + (7 * ((semana - fecha_base.isocalendar()[1]) % 52)))
         
+        # Usar fecha actual si es futuro
         if fecha_lunes < datetime.now():
             fecha_lunes = datetime.now()
         
         fecha_lunes_str = fecha_lunes.strftime('%Y-%m-%d')
         
+        # Generar nombre de archivo con sufijo "_CORREGIDO"
         dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
         nombre_archivo = f"Pedido_Semana_{semana}_{fecha_lunes_str}_{seccion}_CORREGIDO.xlsx"
         ruta_archivo = os.path.join(dir_salida, nombre_archivo)
         
+        # Preparar datos para exportación
         df_exportar = pedido_corregido.copy()
         
+        # Renombrar columnas para claridad
         renombrar = {
             'Unidades_Pedido': 'Pedido_Teorico',
             'Pedido_Corregido': 'Pedido_Final',
@@ -228,6 +358,7 @@ def generar_archivo_pedido_corregido(
             if col_vieja in df_exportar.columns:
                 df_exportar.rename(columns={col_vieja: col_nueva}, inplace=True)
         
+        # Ordenar columnas
         columnas_orden = [
             'Código artículo', 'Nombre artículo', 'Talla', 'Color', 'Categoria',
             'Pedido_Teorico', 'Stock_Minimo', 'Stock_Real', 'Ajuste_Stock',
@@ -239,6 +370,7 @@ def generar_archivo_pedido_corregido(
         columnas_finales = [col for col in columnas_orden if col in df_exportar.columns]
         df_exportar = df_exportar[columnas_finales]
         
+        # Guardar archivo
         df_exportar.to_excel(ruta_archivo, index=False, sheet_name=seccion.capitalize())
         
         logger.info(f"Archivo de pedido corregido generado: {nombre_archivo}")
@@ -250,33 +382,54 @@ def generar_archivo_pedido_corregido(
         logger.error(traceback.format_exc())
         return None
 
+
+# ============================================
+# EMAIL SERVICE: FUNCIONES DE ENVÍO DE EMAILS
+# ============================================
+
 def enviar_emails_pedidos(
     semana: int,
     config: Dict[str, Any],
     archivos_por_seccion: Dict[str, List[str]]
 ) -> Dict[str, Any]:
+    """
+    Envía los archivos de pedido por email a los responsables de cada sección.
+    
+    Args:
+        semana (int): Número de semana procesada
+        config (Dict): Configuración del sistema
+        archivos_por_seccion (Dict): Mapeo sección -> lista de archivos generados
+    
+    Returns:
+        Dict: Resultado del envío de emails
+    """
     logger.info("\n" + "=" * 60)
     logger.info("ENVÍO DE EMAILS A RESPONSABLES")
     logger.info("=" * 60)
     
+    # Verificar si el envío de emails está habilitado
     email_config = config.get('email', {})
     if not email_config.get('habilitar_envio', True):
         logger.info("Envío de emails deshabilitado en configuración.")
         return {'exito': False, 'razon': 'deshabilitado'}
     
     try:
+        # Crear servicio de email
         email_service = crear_email_service(config)
         
+        # Verificar configuración
         verificacion = email_service.verificar_configuracion()
         if not verificacion['valido']:
             logger.warning("Problemas en la configuración de email:")
             for problema in verificacion['problemas']:
                 logger.warning(f"  - {problema}")
             
+            # Si falta la contraseña, no continuamos
             if any('EMAIL_PASSWORD' in p for p in verificacion['problemas']):
                 logger.error("No se puede enviar emails sin configurar la variable EMAIL_PASSWORD")
                 return {'exito': False, 'razon': 'sin_password'}
         
+        # Enviar email para cada sección
         resultados = {}
         emails_enviados = 0
         emails_fallidos = 0
@@ -304,6 +457,7 @@ def enviar_emails_pedidos(
                 emails_fallidos += 1
                 logger.error(f"✗ Error al enviar email a {seccion}: {resultado.get('error', 'Error desconocido')}")
         
+        # Resumen del envío
         logger.info("\n" + "=" * 60)
         logger.info("RESUMEN DE ENVÍO DE EMAILS")
         logger.info("=" * 60)
@@ -324,45 +478,51 @@ def enviar_emails_pedidos(
         logger.error(traceback.format_exc())
         return {'exito': False, 'error': str(e)}
 
+
 def agrupar_archivos_por_seccion(
     archivos_generados: List[str],
     config: Dict[str, Any]
 ) -> Dict[str, List[str]]:
     """
-    CORRECCIÓN: Esta función ahora maneja correctamente secciones con guiones bajos.
-    
-    El problema original era que para archivos como:
-    - Pedido_Semana_14_2026-02-03_mascotas_vivo.xlsx
-    - Pedido_Semana_14_2026-02-03_deco_interior.xlsx
-    
-    El código dividía por '_' y tomaba solo la última parte, convirtiendo:
-    - 'mascotas_vivo' en 'vivo'
-    - 'deco_interior' en 'interior'
-    
-    La solución es reconstruir la sección uniendo todas las partes después de la fecha.
+    Agrupa los archivos generados por sección para el envío de emails.
+
+    Args:
+        archivos_generados (List[str]): Lista de rutas de archivos generados
+        config (Dict): Configuración del sistema
+
+    Returns:
+        Dict[str, List[str]]: Mapeo sección -> lista de archivos
     """
     archivos_por_seccion = {}
+
+    # Obtener directorio de salida
     dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
 
     for archivo in archivos_generados:
         if not archivo:
             continue
 
+        # Saltar resúmenes
         nombre_archivo = os.path.basename(archivo)
         if 'RESUMEN' in nombre_archivo.upper():
             continue
 
+        # Extraer nombre del archivo sin extensión
         nombre_sin_extension = nombre_archivo.replace('.xlsx', '')
         
+        # El formato es: Pedido_Semana_{semana}_{fecha}_{seccion}.xlsx
+        # La fecha tiene formato YYYY-MM-DD (contiene guiones)
+        # Por ejemplo: Pedido_Semana_14_2026-02-03_deco_interior.xlsx
+        
+        # Dividir por guiones bajos
         partes = nombre_sin_extension.split('_')
         
         if len(partes) >= 4:
             # La fecha es la parte 3 (formato YYYY-MM-DD con guiones)
             # Comprobamos si la parte 3 contiene '-' para verificar si es fecha
             if '-' in partes[3]:
-                # CORRECCIÓN: La sección es todo lo que viene después de la fecha
+                # La sección es todo lo que viene después de la fecha
                 # Unimos las partes desde el índice 4 en adelante con '_'
-                # Esto preserva secciones como 'mascotas_vivo' y 'deco_interior'
                 seccion = '_'.join(partes[4:])
             else:
                 # Si por alguna razón la fecha no está en su posición,
@@ -378,6 +538,10 @@ def agrupar_archivos_por_seccion(
 
     return archivos_por_seccion
 
+# ============================================
+# PROCESO PRINCIPAL DE GENERACIÓN DE PEDIDO
+# ============================================
+
 def procesar_pedido_semana(
     semana: int, 
     config: Dict[str, Any], 
@@ -386,26 +550,46 @@ def procesar_pedido_semana(
     aplicar_correccion: bool = True,
     enviar_email: bool = True
 ) -> Tuple[bool, Optional[str], int, float, Dict[str, Any], Dict[str, Any]]:
+    """
+    Procesa el pedido para una semana específica (FASE 1 + FASE 2 opcional).
+    
+    Args:
+        semana (int): Número de semana a procesar
+        config (Dict): Configuración del sistema
+        state_manager (StateManager): Gestor de estado
+        forzar (bool): Si True, fuerza el procesamiento aunque ya esté hecho
+        aplicar_correccion (bool): Si True, aplica la corrección FASE 2
+        enviar_email (bool): Si True, envía los archivos por email
+    
+    Returns:
+        Tuple[bool, Optional[str], int, float, Dict, Dict]: 
+            (éxito, archivo_generado, articulos, importe, metricas_correccion, resultado_email)
+    """
     logger.info("=" * 70)
     logger.info(f"PROCESANDO PEDIDO PARA SEMANA {semana}")
     logger.info("=" * 70)
     
+    # Mensaje sobre corrección
     if aplicar_correccion:
         logger.info("MODO: FASE 1 (Forecast) + FASE 2 (Corrección)")
     else:
         logger.info("MODO: Solo FASE 1 (Forecast) - Corrección deshabilitada")
     
+    # Inicializar componentes FASE 1
     data_loader = DataLoader(config)
     forecast_engine = ForecastEngine(config)
     order_generator = OrderGenerator(config)
     scheduler = SchedulerService(config)
     
+    # Calcular fechas de la semana
     fecha_lunes, fecha_domingo, fecha_archivo = scheduler.calcular_fechas_semana_pedido(semana)
     logger.info(f"Período de la semana: {fecha_lunes} al {fecha_domingo}")
     
+    # Obtener stock acumulado del estado
     stock_acumulado = state_manager.obtener_stock_acumulado()
     logger.info(f"Stock acumulado cargado: {len(stock_acumulado)} artículos")
     
+    # Procesar cada sección configurada
     secciones = config.get('secciones_activas', [])
     pedidos_totales = {}
     pedidos_corregidos = {}
@@ -422,6 +606,7 @@ def procesar_pedido_semana(
         logger.info(f"{'=' * 50}")
         
         try:
+            # Leer datos de la sección
             abc_df, ventas_df, costes_df = data_loader.leer_datos_seccion(seccion)
             
             logger.debug(f"[DEBUG] abc_df: {len(abc_df) if abc_df is not None else 0} registros")
@@ -432,6 +617,7 @@ def procesar_pedido_semana(
                 logger.error(f"No se pudieron leer los datos para la seccion '{seccion}'")
                 continue
             
+            # Filtrar ventas por semana
             if 'Semana' not in ventas_df.columns:
                 if 'Fecha' in ventas_df.columns:
                     ventas_df['Fecha'] = pd.to_datetime(ventas_df['Fecha'], errors='coerce')
@@ -450,6 +636,10 @@ def procesar_pedido_semana(
             
             logger.info(f"Datos de ventas: {len(datos_semana)} registros")
             
+            # ========================================
+            # FASE 1: CALCULAR PEDIDO TEÓRICO
+            # ========================================
+            
             parametros_seccion = {
                 'objetivos_semanales': config.get('secciones', {}).get(seccion, {}).get('objetivos_semanales', {}),
                 'objetivo_crecimiento': config.get('parametros', {}).get('objetivo_crecimiento', 0.05),
@@ -465,11 +655,17 @@ def procesar_pedido_semana(
                 logger.warning(f"No se generaron pedidos para '{seccion}'")
                 continue
             
+            # Aplicar stock mínimo dinámico
             pedidos, nuevo_stock, ajustes = forecast_engine.aplicar_stock_minimo(
                 pedidos, semana, stock_acumulado
             )
             
+            # Actualizar stock acumulado
             stock_acumulado.update(nuevo_stock)
+            
+            # ========================================
+            # FASE 2: APLICAR CORRECCIÓN (si está habilitada)
+            # ========================================
             
             if aplicar_correccion:
                 pedidos_corregido, metricas = aplicar_correccion_pedido(
@@ -478,8 +674,10 @@ def procesar_pedido_semana(
                 )
                 
                 if metricas.get('correccion_aplicada', False):
+                    # Guardar métricas por sección
                     metricas_correccion_total[seccion] = metricas
                     
+                    # Generar archivo corregido
                     archivo_corregido = generar_archivo_pedido_corregido(
                         pedidos_corregido, semana, seccion, parametros_seccion, config, order_generator
                     )
@@ -488,6 +686,7 @@ def procesar_pedido_semana(
                         archivos_generados.append(archivo_corregido)
                         logger.info(f"Archivo corregido: {os.path.basename(archivo_corregido)}")
                     
+                    # Usar pedido corregido para métricas
                     pedidos_final = pedidos_corregido
                     pedidos_corregidos[seccion] = pedidos_corregido
                 else:
@@ -496,11 +695,17 @@ def procesar_pedido_semana(
             else:
                 pedidos_final = pedidos
             
+            # ========================================
+            # GENERAR ARCHIVO DE SALIDA
+            # ========================================
+            
+            # Generar archivo Excel
             archivo = order_generator.generar_archivo_pedido(pedidos_final, semana, seccion, parametros_seccion)
             
             if archivo:
                 archivos_generados.append(archivo)
                 
+                # Calcular métricas
                 if 'Pedido_Final' in pedidos_final.columns:
                     pedidos_validos = pedidos_final[pedidos_final['Pedido_Final'] > 0]
                     articulos = len(pedidos_validos)
@@ -528,28 +733,28 @@ def procesar_pedido_semana(
             logger.error(traceback.format_exc())
             continue
     
+    # Actualizar stock acumulado en el estado
     if stock_acumulado:
         state_manager.actualizar_stock_acumulado(stock_acumulado)
     
-    # CORRECCIÓN: Generar archivo de resumen para CADA SECCIÓN y uno consolidado
+    # Generar archivo de resumen si hay datos
     if pedidos_totales:
         resumen_data = []
         for seccion, pedidos in pedidos_totales.items():
             if len(pedidos) > 0:
-                # CORRECCIÓN: Pasar la sección correcta a generar_resumen_pedido
                 resumen_seccion = forecast_engine.generar_resumen_pedido(
-                    pedidos, semana, datos_semanales.get(seccion, pd.DataFrame()), seccion
+                    pedidos, semana, datos_semanales.get(seccion, pd.DataFrame())
                 )
                 if resumen_seccion:
                     resumen_data.append(resumen_seccion)
         
         if resumen_data:
             resumen_df = pd.DataFrame(resumen_data)
-            # CORRECCIÓN: Generar un resumen consolidado con TODAS las secciones
-            archivo_resumen = order_generator.generar_resumen_excel(resumen_df, 'CONSOLIDADO')
+            archivo_resumen = order_generator.generar_resumen_excel(resumen_df, 'VIVERO')
             if archivo_resumen:
                 archivos_generados.append(archivo_resumen)
     
+    # Registrar ejecución en el estado
     archivo_principal = archivos_generados[0] if archivos_generados else None
     
     notas_correccion = ""
@@ -568,6 +773,10 @@ def procesar_pedido_semana(
         notas=f"Procesadas {len(secciones)} secciones{notas_correccion}"
     )
     
+    # ========================================
+    # ENVÍO DE EMAILS (si está habilitado)
+    # ========================================
+    
     resultado_email = {'exito': False, 'razon': 'no_enviado'}
     
     if enviar_email and archivos_generados:
@@ -575,10 +784,15 @@ def procesar_pedido_semana(
         logger.info("PREPARANDO ENVÍO DE EMAILS")
         logger.info("=" * 60)
         
-        # CORRECCIÓN: Usar la función grouping corregida
+        # Agrupar archivos por sección
         archivos_por_seccion = agrupar_archivos_por_seccion(archivos_generados, config)
         
+        # Enviar emails
         resultado_email = enviar_emails_pedidos(semana, config, archivos_por_seccion)
+    
+    # ========================================
+    # RESUMEN FINAL
+    # ========================================
     
     logger.info("\n" + "=" * 70)
     logger.info("RESUMEN DE EJECUCION")
@@ -600,6 +814,7 @@ def procesar_pedido_semana(
         logger.info(f"  TOTAL: {articulos_corregidos_total} artículos corregidos")
         logger.info(f"  Diferencia neta: {int(diferencia_total):+d} unidades")
     
+    # Resumen de emails
     if resultado_email.get('exito'):
         logger.info(f"\n✓ EMAILS ENVIADOS: {resultado_email.get('emails_enviados', 0)}")
     elif resultado_email.get('razon') == 'deshabilitado':
@@ -613,7 +828,19 @@ def procesar_pedido_semana(
     
     return len(archivos_generados) > 0, archivo_principal, articulos_totales, importe_total, metricas_correccion_total, resultado_email
 
+
+# ============================================
+# FUNCIÓN PRINCIPAL
+# ============================================
+
 def main():
+    """
+    Función principal del sistema.
+    
+    Maneja los argumentos de línea de comandos, coordina la carga de
+    configuración y delega la ejecución al proceso correspondiente.
+    """
+    # Configurar parser de argumentos
     parser = argparse.ArgumentParser(
         description='Sistema de Generación de Pedidos de Compra - Vivero Aranjuez V2 (FASE 1 + FASE 2 + Email)',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -631,21 +858,64 @@ Ejemplos de uso:
         """
     )
     
-    parser.add_argument('--semana', '-s', type=int, help='Número de semana a procesar (para pruebas)')
-    parser.add_argument('--continuo', '-c', action='store_true', help='Ejecutar en modo continuo')
-    parser.add_argument('--status', action='store_true', help='Mostrar estado del sistema y salir')
-    parser.add_argument('--reset', action='store_true', help='Resetear el estado del sistema')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Activar logging detallado (DEBUG)')
-    parser.add_argument('--log', type=str, default='logs/sistema.log', help='Archivo de log (default: logs/sistema.log)')
-    parser.add_argument('--sin-correccion', action='store_true', help='Ejecutar solo FASE 1 (sin corrección)')
-    parser.add_argument('--con-correccion', action='store_true', help='Forzar ejecución con corrección FASE 2')
-    parser.add_argument('--sin-email', action='store_true', help='No enviar emails después de generar los pedidos')
-    parser.add_argument('--verificar-email', action='store_true', help='Verificar la configuración de email y salir')
+    parser.add_argument(
+        '--semana', '-s',
+        type=int,
+        help='Número de semana a procesar (para pruebas)'
+    )
+    parser.add_argument(
+        '--continuo', '-c',
+        action='store_true',
+        help='Ejecutar en modo continuo (esperando el horario programado)'
+    )
+    parser.add_argument(
+        '--status',
+        action='store_true',
+        help='Mostrar estado del sistema y salir'
+    )
+    parser.add_argument(
+        '--reset',
+        action='store_true',
+        help='Resetear el estado del sistema'
+    )
+    parser.add_argument(
+        '--verbose', '-v',
+        action='store_true',
+        help='Activar logging detallado (DEBUG)'
+    )
+    parser.add_argument(
+        '--log',
+        type=str,
+        default='logs/sistema.log',
+        help='Archivo de log (default: logs/sistema.log)'
+    )
+    parser.add_argument(
+        '--sin-correccion',
+        action='store_true',
+        help='Ejecutar solo FASE 1 (sin corrección)'
+    )
+    parser.add_argument(
+        '--con-correccion',
+        action='store_true',
+        help='Forzar ejecución con corrección FASE 2'
+    )
+    parser.add_argument(
+        '--sin-email',
+        action='store_true',
+        help='No enviar emails después de generar los pedidos'
+    )
+    parser.add_argument(
+        '--verificar-email',
+        action='store_true',
+        help='Verificar la configuración de email y salir'
+    )
     
     args = parser.parse_args()
     
+    # Determinar nivel de logging
     nivel_log = logging.DEBUG if args.verbose else logging.INFO
     
+    # Configurar logging
     global logger
     logger = configurar_logging(nivel=nivel_log, log_file=args.log)
     
@@ -654,11 +924,13 @@ Ejemplos de uso:
     logger.info(f"Fecha de ejecución: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("=" * 70)
     
+    # Cargar configuración
     config = cargar_configuracion()
     if config is None:
         logger.error("No se pudo cargar la configuración. Saliendo.")
         sys.exit(1)
     
+    # Verificar configuración de email si se solicita
     if args.verificar_email:
         logger.info("\nVERIFICANDO CONFIGURACIÓN DE EMAIL:")
         logger.info("-" * 40)
@@ -674,6 +946,7 @@ Ejemplos de uso:
                 for problema in verificacion['problemas']:
                     logger.warning(f"  - {problema}")
             
+            # Verificar variable de entorno
             import os
             if os.environ.get('EMAIL_PASSWORD'):
                 logger.info("✓ Variable EMAIL_PASSWORD configurada")
@@ -687,6 +960,7 @@ Ejemplos de uso:
         
         sys.exit(0)
     
+    # Determinar si aplicar corrección
     params_correccion = config.get('parametros_correccion', {})
     correccion_habilitada = params_correccion.get('habilitar_correccion', True)
     aplicar_correccion = correccion_habilitada and not args.sin_correccion
@@ -694,6 +968,7 @@ Ejemplos de uso:
     if args.con_correccion:
         aplicar_correccion = True
     
+    # Determinar si enviar emails
     email_config = config.get('email', {})
     email_habilitado = email_config.get('habilitar_envio', True)
     enviar_email = email_habilitado and not args.sin_email
@@ -701,15 +976,18 @@ Ejemplos de uso:
     logger.info(f"Modo de ejecución: {'FASE 1 + FASE 2' if aplicar_correccion else 'Solo FASE 1'}")
     logger.info(f"Envío de emails: {'Sí' if enviar_email else 'No'}")
     
+    # Inicializar StateManager
     state_manager = StateManager(config)
     state_manager.cargar_estado()
     
+    # Si se pide resetear el estado
     if args.reset:
         logger.info("Reseteando estado del sistema...")
         state_manager.resetear_estado()
         logger.info("Estado reseteado correctamente.")
         sys.exit(0)
     
+    # Si se pide mostrar el estado
     if args.status:
         logger.info("\nESTADO DEL SISTEMA:")
         logger.info(state_manager.obtener_resumen_estado())
@@ -725,13 +1003,16 @@ Ejemplos de uso:
         
         sys.exit(0)
     
+    # Determinar semana a procesar
     scheduler = SchedulerService(config)
     ultima_procesada = state_manager.obtener_ultima_semana_procesada()
     
     if args.semana:
+        # Semana forzada por argumento
         semana = args.semana
         logger.info(f"Semana forzada por argumento: {semana}")
     elif args.continuo:
+        # Modo continuo: esperar hasta el horario de ejecución
         logger.info("Modo continuo activado. Esperando horario de ejecución...")
         
         while True:
@@ -742,8 +1023,9 @@ Ejemplos de uso:
             
             logger.info(mensaje)
             import time
-            time.sleep(60)
+            time.sleep(60)  # Esperar 1 minuto
             
+            # Verificar si hay semana pendiente
             semana_a_proc, _ = scheduler.calcular_semana_a_procesar(ultima_procesada)
             if semana_a_proc is None:
                 logger.info("No hay semanas pendientes de procesamiento.")
@@ -751,12 +1033,14 @@ Ejemplos de uso:
         
         semana = semana_a_proc
     else:
+        # Ejecución normal: verificar horario y calcular semana
         es_horario, mensaje = scheduler.verificar_horario_ejecucion()
         
         if not es_horario:
             logger.warning(f"No es el horario de ejecución: {mensaje}")
             logger.info(scheduler.simular_proxima_ejecucion())
             
+            # Verificar si hay semana pendiente
             semana_a_proc, msg_semana = scheduler.calcular_semana_a_procesar(ultima_procesada)
             
             if semana_a_proc is None:
@@ -767,6 +1051,7 @@ Ejemplos de uso:
             logger.info("Use --continuo para esperar hasta el horario de ejecución.")
             sys.exit(0)
         
+        # Calcular semana a procesar
         semana, msg_semana = scheduler.calcular_semana_a_procesar(ultima_procesada)
         
         if semana is None:
@@ -775,11 +1060,13 @@ Ejemplos de uso:
         
         logger.info(msg_semana)
     
+    # Verificar si la semana ya fue procesada
     if state_manager.verificar_semana_procesada(semana) and not args.semana:
         logger.warning(f"La semana {semana} ya fue procesada anteriormente.")
         logger.info("Use --semana para forzar el reprocesamiento.")
         sys.exit(0)
     
+    # Procesar el pedido (FASE 1 + FASE 2 opcional)
     exito, archivo, articulos, importe, metricas_correccion, resultado_email = procesar_pedido_semana(
         semana, config, state_manager, 
         forzar=args.semana is not None,
@@ -803,6 +1090,11 @@ Ejemplos de uso:
     else:
         logger.error("\nERROR: No se pudo generar el pedido.")
         sys.exit(1)
+
+
+# ============================================
+# PUNTO DE ENTRADA
+# ============================================
 
 if __name__ == "__main__":
     main()
