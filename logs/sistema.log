@@ -5741,3 +5741,18 @@ KeyError: 'Unidades_Vendidas'
 2026-02-02 23:19:57 - INFO - Archivo principal: .\./data/output\Pedido_Semana_15_2026-02-02_maf.xlsx
 2026-02-02 23:19:57 - INFO - Articulos: 1171
 2026-02-02 23:19:57 - INFO - Importe: 33939.91€
+2026-02-03 01:16:34 - INFO - ======================================================================
+2026-02-03 01:16:34 - INFO - SISTEMA DE PEDIDOS DE COMPRA - VIVERO ARANJUEZ V2
+2026-02-03 01:16:34 - INFO - Fecha de ejecución: 2026-02-03 01:16:34
+2026-02-03 01:16:34 - INFO - ======================================================================
+2026-02-03 01:16:34 - INFO - 
+VERIFICANDO CONFIGURACIÓN DE EMAIL:
+2026-02-03 01:16:34 - INFO - ----------------------------------------
+2026-02-03 01:16:34 - INFO - EmailService inicializado correctamente
+2026-02-03 01:16:34 - ERROR - La variable de entorno 'EMAIL_PASSWORD' no está configurada. Por favor, configúrala antes de enviar emails.
+2026-02-03 01:16:34 - WARNING - Problemas de configuración detectados:
+2026-02-03 01:16:34 - WARNING -   - La variable de entorno 'EMAIL_PASSWORD' no está configurada
+2026-02-03 01:16:34 - INFO - ✓ Configuración de email válida
+2026-02-03 01:16:34 - WARNING - ✗ Variable EMAIL_PASSWORD NO configurada
+2026-02-03 01:16:34 - INFO -   Para configurarla, ejecuta:
+2026-02-03 01:16:34 - INFO -   export EMAIL_PASSWORD='tu_contraseña'

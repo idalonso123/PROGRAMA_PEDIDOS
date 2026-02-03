@@ -532,11 +532,19 @@ if __name__ == "__main__":
                 'nombre': 'Sistema de Pedidos VIVEVERDE'
             },
             'destinatarios': {
-                'maf': 'exterior@viveverde.es',
-                'interior': 'interior@viveverde.es',
+                'maf': 'ivan.delgado@viveverde.es',
+                'vivero': 'ivan.delgado@viveverde.es',
+                'interior': 'ivan.delgado@viveverde.es',
+                'mascotas_manufacturado': 'ivan.delgado@viveverde.es',
+                'mascotas_vivo': 'ivan.delgado@viveverde.es',
+                'deco.exterior': 'ivan.delgado@viveverde.es',
+                'tierras_aridos': 'ivan.delgado@viveverde.es',
+                'fitos': 'ivan.delgado@viveverde.es',
+                'semillas': 'ivan.delgado@viveverde.es',
+                'utiles_jardin': 'ivan.delgado@viveverde.es',
                 'deco_interior': [
-                    'decoracion@viveverde.es',
-                    'sandra.delgado@viveverde.es'
+                    'ivan.delgado@viveverde.es',
+                    'ivan.delgado@viveverde.es'
                 ]
             },
             'plantillas': {
