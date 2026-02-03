@@ -198,6 +198,22 @@
         "clasificacion_abc": "CLASIFICACION_ABC+D_*.xlsx"
     },
     
+    "archivos_correccion": {
+        "stock_actual": "Stock_actual.xlsx"
+    },
+    
+    "parametros_correccion": {
+        "habilitar_correccion": true,
+        "stock_minimo_por_categoria": {
+            "A": 1.5,
+            "B": 1.0,
+            "C": 0.5,
+            "D": 0.0
+        },
+        "umbral_alerta_stock": 5,
+        "permitir_pedidos_negativos": false
+    },
+    
     "formato_salida": {
         "prefijo_archivo": "Pedido_Semana",
         "incluir_fecha_en_nombre": true
@@ -205,5 +221,45 @@
     
     "codigos_mascotas_vivo": [
         "2104", "2204", "2305", "2405", "2504", "2606", "2705", "2707", "2708", "2805", "2806", "2906"
-    ]
+    ],
+    
+    "email": {
+        "smtp": {
+            "servidor": "smtp.serviciodecorreo.es",
+            "puerto": 465,
+            "usar_ssl": true,
+            "usar_tls": false
+        },
+        "remitente": {
+            "email": "ivan.delgado@viveverde.es",
+            "nombre": "Sistema de Pedidos VIVEVERDE"
+        },
+        "plantillas": {
+            "asunto": "VIVEVERDE: Pedido de compra - Semana {semana} - {seccion}",
+            "cuerpo": "Buenos días {nombre_encargado}. \nTe adjunto el pedido de compra generado para la semana {semana} de la sección {seccion}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE."
+        },
+        "destinatarios": {
+            "maf": "ivan.delgado@viveverde.es",
+            "interior": "ivan.delgado@viveverde.es",
+            "mascotas_vivo": "ivan.delgado@viveverde.es",
+            "mascotas_manufacturado": "ivan.delgado@viveverde.es",
+            "deco_interior": [
+                "ivan.delgado@viveverde.es",
+                "ivan.delgado@viveverde.es"
+            ],
+            "deco_exterior": "ivan.delgado@viveverde.es",
+            "tierras_aridos": "ivan.delgado@viveverde.es",
+            "fitos": "ivan.delgado@viveverde.es",
+            "semillas": "ivan.delgado@viveverde.es",
+            "utiles_jardin": "ivan.delgado@viveverde.es",
+            "vivero": "ivan.delgado@viveverde.es"
+        },
+        "email_centralizado": null,
+        "habilitar_envio": true,
+        "adjuntar_resumen": true
+    },
+    
+    "env_email": {
+        "password_var": "EMAIL_PASSWORD"
+    }
 }
