@@ -3,7 +3,7 @@
         "version": "2.0.0",
         "fecha_creacion": "2026-01-31T00:00:00",
         "ultima_actualizacion": null,
-        "ultima_ejecucion_exitosa": "2026-02-04T18:07:04.696005",
+        "ultima_ejecucion_exitosa": "2026-02-04T18:43:02.364797",
         "ultima_semana_procesada": 14,
         "año_en_curso": 2026
     },
@@ -1939,6 +1939,15 @@
             "importe": 48113.87,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T18:43:02.364742",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
         }
     ],
     "pedidos_generados": [
@@ -2073,12 +2082,18 @@
             "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
             "fecha": "2026-02-04",
             "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
         }
     ],
     "metricas": {
-        "total_ejecuciones": 22,
-        "total_articulos_procesados": 28307,
-        "total_importe_pedidos": 899675.5599999999,
+        "total_ejecuciones": 23,
+        "total_articulos_procesados": 29817,
+        "total_importe_pedidos": 947789.4299999999,
         "ultima_semana_procesada_exitosamente": 14
     },
     "errores_pendientes": [],

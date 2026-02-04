@@ -12,6 +12,7 @@ import json
 import logging
 import argparse
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, Dict, Any, Tuple, List
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -324,62 +325,6 @@ def enviar_emails_pedidos(
         logger.error(traceback.format_exc())
         return {'exito': False, 'error': str(e)}
 
-def enviar_email_resumen(
-    semana: int,
-    config: Dict[str, Any],
-    archivos_generados: List[str]
-) -> Dict[str, Any]:
-    """
-    Envía un email de resumen consolidado a los responsables principales (Sandra, Ivan, Pedro).
-    
-    Args:
-        semana (int): Número de semana
-        config (Dict[str, Any]): Configuración del sistema
-        archivos_generados (List[str]): Lista de archivos generados
-        
-    Returns:
-        Dict[str, Any]: Resultado del envío
-    """
-    logger.info("\n" + "=" * 60)
-    logger.info("ENVÍO DE EMAIL DE RESUMEN")
-    logger.info("=" * 60)
-    
-    email_config = config.get('email', {})
-    if not email_config.get('habilitar_envio', True):
-        logger.info("Envío de emails deshabilitado en configuración.")
-        return {'exito': False, 'razon': 'deshabilitado'}
-    
-    try:
-        # Buscar el archivo de resumen consolidado
-        archivo_resumen = None
-        for archivo in archivos_generados:
-            if archivo and 'RESUMEN' in Path(archivo).name.upper() and 'CONSOLIDADO' in Path(archivo).name.upper():
-                archivo_resumen = archivo
-                break
-        
-        if not archivo_resumen:
-            logger.warning("No se encontró archivo de resumen consolidado para enviar")
-            return {'exito': False, 'razon': 'sin_archivo_resumen'}
-        
-        logger.info(f"Archivo de resumen encontrado: {Path(archivo_resumen).name}")
-        
-        email_service = crear_email_service(config)
-        
-        resultado = email_service.enviar_resumen_pedidos(semana, archivo_resumen)
-        
-        if resultado.get('enviado', False):
-            logger.info(f"✓ Email de resumen enviado a {len(resultado.get('destinatarios', []))} destinatarios")
-        else:
-            logger.warning(f"✗ Error al enviar email de resumen: {resultado.get('error', 'Error desconocido')}")
-        
-        return resultado
-        
-    except Exception as e:
-        logger.error(f"Error al enviar email de resumen: {str(e)}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return {'exito': False, 'error': str(e)}
-
 def agrupar_archivos_por_seccion(
     archivos_generados: List[str],
     config: Dict[str, Any]
@@ -625,7 +570,7 @@ def procesar_pedido_semana(
     )
     
     resultado_email = {'exito': False, 'razon': 'no_enviado'}
-    resultado_resumen = {'exito': False, 'razon': 'no_enviado'}
+    resultado_resumen_gestion = {'enviado': False, 'razon': 'no_enviado'}
     
     if enviar_email and archivos_generados:
         logger.info("\n" + "=" * 60)
@@ -637,10 +582,29 @@ def procesar_pedido_semana(
         
         resultado_email = enviar_emails_pedidos(semana, config, archivos_por_seccion)
         
-        # Enviar email de resumen a Sandra, Ivan y Pedro
-        logger.info("\n" + "-" * 40)
-        logger.info("Enviando email de resumen consolidado...")
-        resultado_resumen = enviar_email_resumen(semana, config, archivos_generados)
+        # Enviar resumen a los responsables de gestión (Sandra, Ivan, Pedro)
+        if resultado_email.get('exito'):
+            logger.info("\n" + "=" * 60)
+            logger.info("PREPARANDO ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN")
+            logger.info("=" * 60)
+            
+            # Buscar el archivo de resumen consolidado (excluir archivos antiguos)
+            archivo_resumen = None
+            for archivo in archivos_generados:
+                if archivo and 'RESUMEN' in Path(archivo).name.upper():
+                    # Excluir archivos antiguos (que empiezan con número o contienen 'old')
+                    nombre = Path(archivo).name
+                    if not nombre[0].isdigit() and 'old' not in nombre.lower():
+                        archivo_resumen = archivo
+                        break
+            
+            if archivo_resumen:
+                logger.info(f"Archivo de resumen encontrado: {Path(archivo_resumen).name}")
+                email_service = crear_email_service(config)
+                resultado_resumen_gestion = email_service.enviar_resumen_gestion(semana, archivo_resumen)
+            else:
+                logger.warning("No se encontró archivo de resumen consolidado")
+                logger.info("Omitiendo envío de resumen a responsables de gestión")
     
     logger.info("\n" + "=" * 70)
     logger.info("RESUMEN DE EJECUCION")
@@ -663,7 +627,7 @@ def procesar_pedido_semana(
         logger.info(f"  Diferencia neta: {int(diferencia_total):+d} unidades")
     
     if resultado_email.get('exito'):
-        logger.info(f"\n✓ EMAILS ENVIADOS: {resultado_email.get('emails_enviados', 0)}")
+        logger.info(f"\n✓ EMAILS ENVIADOS A ENCARGADOS: {resultado_email.get('emails_enviados', 0)}")
     elif resultado_email.get('razon') == 'deshabilitado':
         logger.info("\nEmails deshabilitados")
     elif resultado_email.get('razon') == 'sin_password':
@@ -671,18 +635,17 @@ def procesar_pedido_semana(
     elif not resultado_email.get('exito') and resultado_email.get('emails_fallidos', 0) > 0:
         logger.warning(f"\n✗ EMAILS FALLIDOS: {resultado_email.get('emails_fallidos', 0)}")
     
-    # Mostrar resultado del email de resumen
-    if resultado_resumen.get('enviado'):
-        destinatarios_enviados = len([d for d in resultado_resumen.get('destinatarios', []) if d.get('enviado', False)])
-        logger.info(f"\n✓ EMAIL DE RESUMEN ENVIADO: {destinatarios_enviados}/3 destinatarios")
-    elif resultado_resumen.get('razon') == 'sin_archivo_resumen':
-        logger.info("\nEmail de resumen: No se encontró archivo de resumen")
-    elif resultado_resumen.get('error'):
-        logger.warning(f"\n✗ EMAIL DE RESUMEN: Error - {resultado_resumen.get('error')}")
+    # Mostrar resultado del resumen de gestión
+    if resultado_resumen_gestion.get('enviado'):
+        logger.info(f"\n✓ RESUMEN ENVIADO A RESPONSABLES DE GESTIÓN: {resultado_resumen_gestion.get('emails_enviados', 0)}/3")
+    elif resultado_resumen_gestion.get('razon') == 'archivo_no_encontrado':
+        logger.info("\nResumen de gestión no enviado (archivo no encontrado)")
+    elif resultado_resumen_gestion.get('emails_fallidos', 0) > 0:
+        logger.warning(f"\n✗ RESUMEN FALLIDO A RESPONSABLES: {resultado_resumen_gestion.get('emails_fallidos', 0)}/3")
     
     logger.info("=" * 70)
     
-    return len(archivos_generados) > 0, archivo_principal, articulos_totales, importe_total, metricas_correccion_total, resultado_email, resultado_resumen
+    return len(archivos_generados) > 0, archivo_principal, articulos_totales, importe_total, metricas_correccion_total, resultado_email, resultado_resumen_gestion
 
 def main():
     parser = argparse.ArgumentParser(
@@ -851,7 +814,7 @@ Ejemplos de uso:
         logger.info("Use --semana para forzar el reprocesamiento.")
         sys.exit(0)
     
-    exito, archivo, articulos, importe, metricas_correccion, resultado_email, resultado_resumen = procesar_pedido_semana(
+    exito, archivo, articulos, importe, metricas_correccion, resultado_email, resultado_resumen_gestion = procesar_pedido_semana(
         semana, config, state_manager, 
         forzar=args.semana is not None,
         aplicar_correccion=aplicar_correccion,
@@ -868,7 +831,12 @@ Ejemplos de uso:
             logger.info(f"\nFASE 2 completada: {len(metricas_correccion)} secciones corregidas")
         
         if resultado_email.get('exito'):
-            logger.info(f"\nEmails enviados: {resultado_email.get('emails_enviados', 0)}")
+            logger.info(f"\nEmails enviados a encargados: {resultado_email.get('emails_enviados', 0)}")
+        
+        if resultado_resumen_gestion.get('enviado'):
+            logger.info(f"Resumen enviado a responsables de gestión: {resultado_resumen_gestion.get('emails_enviados', 0)}/3")
+        elif resultado_resumen_gestion.get('emails_fallidos', 0) > 0:
+            logger.warning(f"Resumen fallido a responsables de gestión: {resultado_resumen_gestion.get('emails_fallidos', 0)}/3")
         
         sys.exit(0)
     else:
