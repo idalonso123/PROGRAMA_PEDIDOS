@@ -166,6 +166,11 @@ def aplicar_correccion_pedido(
         metricas['correccion_aplicada'] = True
         metricas['datos_cargados'] = datos_cargados
         
+        # Métricas adicionales de tendencia
+        if 'articulos_tendencia' in metricas:
+            metricas['articulos_tendencia'] = metricas.get('articulos_tendencia', 0)
+            metricas['incremento_tendencia_total'] = metricas.get('incremento_tendencia_total', 0)
+        
         alertas = engine.generar_alertas(pedido_corregido)
         if alertas:
             metricas['alertas'] = alertas
@@ -178,6 +183,13 @@ def aplicar_correccion_pedido(
         logger.info(f"  Porcentaje corregido: {metricas['porcentaje_corregidos']:.1f}%")
         logger.info(f"  Diferencia unidades: {int(metricas['diferencia_unidades']):+d}")
         logger.info(f"  Porcentaje cambio: {metricas['porcentaje_cambio']:+.1f}%")
+        
+        # Mostrar métricas de tendencia de ventas (NUEVA VARIABLE)
+        if 'articulos_tendencia' in metricas and metricas['articulos_tendencia'] > 0:
+            logger.info(f"\n  CORRECCIÓN POR TENDENCIA DE VENTAS:")
+            logger.info(f"    Artículos con tendencia: {metricas['articulos_tendencia']}")
+            logger.info(f"    Incremento total aplicado: {metricas['incremento_tendencia_total']} unidades")
+            logger.info(f"    Incremento promedio: {metricas.get('incremento_tendencia_promedio', 0):.1f} unidades")
         
         return pedido_corregido, metricas
         
@@ -229,15 +241,19 @@ def generar_archivo_pedido_corregido(
             if col_vieja in df_exportar.columns:
                 df_exportar.rename(columns={col_vieja: col_nueva}, inplace=True)
         
-        columnas_orden = [
+        # Columnas de tendencia (NUEVA VARIABLE) - mantener nombres originales
+        columnas_tendencia = ['Porcentaje_Consumido_Stock', 'Incremento_Tendencia', 'Tendencia_Aplicada']
+        columnas_finales = [
             'Código artículo', 'Nombre artículo', 'Talla', 'Color', 'Categoria',
             'Pedido_Teorico', 'Stock_Minimo', 'Stock_Real', 'Ajuste_Stock',
             'Pedido_Final', 'Correccion_Aplicada', 'Escenario',
             'Ventas_Reales', 'Ventas_Objetivo', 'Compras_Recibidas',
-            'PVP', 'Coste', 'Proveedor', 'Unidades_ABC', 'Ventas_Objetivo'
+            'PVP', 'Coste', 'Proveedor', 'Unidades_ABC', 'Ventas_Objetivo',
+            # Nuevas columnas de tendencia
+            'Porcentaje_Consumido_Stock', 'Incremento_Tendencia', 'Tendencia_Aplicada'
         ]
         
-        columnas_finales = [col for col in columnas_orden if col in df_exportar.columns]
+        columnas_finales = [col for col in columnas_finales if col in df_exportar.columns]
         df_exportar = df_exportar[columnas_finales]
         
         df_exportar.to_excel(ruta_archivo, index=False, sheet_name=seccion.capitalize())
@@ -631,12 +647,24 @@ def procesar_pedido_semana(
         logger.info("-" * 40)
         articulos_corregidos_total = 0
         diferencia_total = 0
+        articulos_tendencia_total = 0
+        incremento_tendencia_total = 0
+        
         for seccion, metricas in metricas_correccion_total.items():
             articulos_corregidos_total += metricas.get('articulos_corregidos', 0)
             diferencia_total += metricas.get('diferencia_unidades', 0)
+            articulos_tendencia_total += metricas.get('articulos_tendencia', 0)
+            incremento_tendencia_total += metricas.get('incremento_tendencia_total', 0)
             logger.info(f"  {seccion}: {metricas.get('articulos_corregidos', 0)} artículos corregidos")
+        
         logger.info(f"  TOTAL: {articulos_corregidos_total} artículos corregidos")
         logger.info(f"  Diferencia neta: {int(diferencia_total):+d} unidades")
+        
+        # Mostrar métricas de tendencia (NUEVA VARIABLE)
+        if articulos_tendencia_total > 0:
+            logger.info(f"\nCORRECCIÓN POR TENDENCIA DE VENTAS:")
+            logger.info(f"  Artículos con tendencia detectada: {articulos_tendencia_total}")
+            logger.info(f"  Incremento total aplicado: {incremento_tendencia_total} unidades")
     
     if resultado_email.get('exito'):
         logger.info(f"\n✓ EMAILS ENVIADOS A ENCARGADOS: {resultado_email.get('emails_enviados', 0)}")
@@ -841,6 +869,14 @@ Ejemplos de uso:
         
         if metricas_correccion:
             logger.info(f"\nFASE 2 completada: {len(metricas_correccion)} secciones corregidas")
+            
+            # Mostrar métricas de tendencia si existen
+            if any('articulos_tendencia' in m for m in metricas_correccion.values()):
+                total_tendencia = sum(m.get('articulos_tendencia', 0) for m in metricas_correccion.values())
+                total_incremento = sum(m.get('incremento_tendencia_total', 0) for m in metricas_correccion.values())
+                if total_tendencia > 0:
+                    logger.info(f"  - Tendencia de ventas: {total_tendencia} artículos con incremento adicional")
+                    logger.info(f"  - Incremento total aplicado: {total_incremento} unidades")
         
         if resultado_email.get('exito'):
             logger.info(f"\nEmails enviados a encargados: {resultado_email.get('emails_enviados', 0)}")
