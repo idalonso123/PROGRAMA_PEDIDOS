@@ -1,0 +1,22 @@
+# Sistema de Pedidos de Compra - Vivero Aranjuez V2
+# Dependencias de Python
+
+# Manipulacion de datos
+pandas>=1.5.0
+numpy>=1.23.0
+
+# Lectura y escritura de archivos Excel
+openpyxl>=3.0.0
+
+# Manejo de fechas y tiempos
+python-dateutil>=2.8.0
+
+# Opcional: Para variables de entorno desde archivo .env
+# Descomentar si se desea usar archivo .env para la contraseña
+# python-dotenv>=1.0.0
+
+# Opcional: Para scheduling avanzado
+# schedule>=1.2.0
+
+# Opcional: Para logging avanzado
+# colorlog>=6.0.0
