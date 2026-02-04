@@ -9,7 +9,6 @@ Este script combina:
 - Lógica corregida de riesgo
 - Fechas configurables al inicio del script
 - Procesamiento de múltiples secciones
-- Envío automático de emails a los encargados de cada sección
 
 MODO DE USO:
 - Sin parámetros: Procesa TODOS los datos y genera un archivo por cada sección
@@ -25,9 +24,6 @@ Los datos se leen de 4 archivos separados:
 - Ventas.xlsx: Datos de ventas del período
 - Stock.xlsx: Datos de stock actual
 - Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
-
-Al generar cada archivo de clasificación, se envía automáticamente un email
-al encargado de la sección con el archivo adjunto.
 """
 
 import pandas as pd
@@ -39,14 +35,6 @@ from openpyxl.styles import Font, Fill, PatternFill, Border, Side, Alignment
 import sys
 import argparse
 import warnings
-import smtplib
-import ssl
-import os
-from email import encoders
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from pathlib import Path
 warnings.filterwarnings('ignore')
 
 # ============================================================================
@@ -410,155 +398,6 @@ IVA_SUBFAMILIA = {
     # Familia 29 - JARDÍN ACUÁTICO
     '2906': 21,  # INSECTO VIVO
 }
-
-# ============================================================================
-# TABLA DE ENCARGADOS POR SECCIÓN (HARDCODED - SIN VINCULACIÓN A EXCEL)
-# ============================================================================
-
-# Datos extraídos de encargados.xlsx - Mapeo de secciones a encargados y sus emails
-ENCARGADOS = {
-    'interior': {
-        'nombre': 'Iris',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'mascotas_manufacturado': {
-        'nombre': 'María',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'mascotas_vivo': {
-        'nombre': 'María',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'deco_exterior': {
-        'nombre': 'Pablo',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'tierras_aridos': {
-        'nombre': 'Pablo',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'fitos': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'semillas': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'utiles_jardin': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'deco_interior': {
-        'nombre': 'Rocío',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'maf': {
-        'nombre': 'Jose',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'vivero': {
-        'nombre': 'Jose',
-        'email': 'ivan.delgado@viveverde.es'
-    }
-}
-
-# Configuración del servidor SMTP
-SMTP_CONFIG = {
-    'servidor': 'smtp.serviciodecorreo.es',
-    'puerto': 465,
-    'remitente_email': 'ivan.delgado@viveverde.es',
-    'remitente_nombre': 'Sistema de Pedidos automáticos VIVEVERDE'
-}
-
-# ============================================================================
-# FUNCIÓN PARA ENVIAR EMAIL CON ARCHIVO ADJUNTO
-# ============================================================================
-
-def enviar_email_clasificacion(seccion: str, archivo: str, periodo: str) -> bool:
-    """
-    Envía un email con el archivo de clasificación ABC+D adjunto al encargado de la sección.
-    
-    Args:
-        seccion: Nombre de la sección procesada
-        archivo: Ruta completa del archivo Excel generado
-        periodo: Período del análisis (formato: "dd/mm/yyyy - dd/mm/yyyy")
-    
-    Returns:
-        bool: True si el email fue enviado exitosamente, False en caso contrario
-    """
-    # Obtener información del encargado
-    encargado = ENCARGADOS.get(seccion.lower())
-    
-    if not encargado:
-        print(f"  AVISO: No hay encargado configurado para la sección '{seccion}'. No se enviará email.")
-        return False
-    
-    nombre_encargado = encargado['nombre']
-    email_destinatario = encargado['email']
-    
-    # Verificar que el archivo existe
-    if not Path(archivo).exists():
-        print(f"  AVISO: El archivo '{archivo}' no existe. No se enviará email.")
-        return False
-    
-    # Verificar contraseña en variable de entorno
-    password = os.environ.get('EMAIL_PASSWORD')
-    if not password:
-        print(f"  AVISO: Variable de entorno 'EMAIL_PASSWORD' no configurada. No se enviará email a {nombre_encargado}.")
-        return False
-    
-    try:
-        # Crear mensaje MIME
-        msg = MIMEMultipart()
-        msg['From'] = f"{SMTP_CONFIG['remitente_nombre']} <{SMTP_CONFIG['remitente_email']}>"
-        msg['To'] = email_destinatario
-        msg['Subject'] = f"VIVEVERDE: listado ClasificacionABC+D de {seccion} del periodo {periodo}"
-        
-        # Cuerpo del email
-        cuerpo = f"""Buenos días {nombre_encargado},
-
-Te adjunto en este correo el listado Clasificación ABC+D de {seccion} para que lo analices y te aprendas cuales son los artículos de cada categoría:
-
-- Artículos que no te deben faltar nunca (Categoria A).
-- Artículos que confeccionan el complemento de gama (Categoría B).
-- Artículos que tienen una presencia mínima en las ventas de tu sección (Categoría C).
-- Artículos que no debemos tener en tienda (Categoria D).
-
-Pon en práctica el listado.
-
-Atentamente,
-
-Sistema de Pedidos automáticos VIVEVERDE."""
-        
-        msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
-        
-        # Adjuntar archivo Excel
-        filename = Path(archivo).name
-        with open(archivo, 'rb') as f:
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(f.read())
-        
-        encoders.encode_base64(part)
-        part.add_header('Content-Disposition', f'attachment; filename= "{filename}"')
-        part.add_header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        msg.attach(part)
-        
-        # Enviar email mediante SSL
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_CONFIG['servidor'], SMTP_CONFIG['puerto'], context=context) as server:
-            server.login(SMTP_CONFIG['remitente_email'], password)
-            server.sendmail(SMTP_CONFIG['remitente_email'], email_destinatario, msg.as_string())
-        
-        print(f"  Email enviado a {nombre_encargado} ({email_destinatario})")
-        return True
-        
-    except smtplib.SMTPException as e:
-        print(f"  ERROR SMTP al enviar email a {nombre_encargado}: {e}")
-        return False
-    except Exception as e:
-        print(f"  ERROR al enviar email a {nombre_encargado}: {e}")
-        return False
 
 # ============================================================================
 # FUNCIÓN PARA OBTENER IVA DE UN ARTÍCULO
@@ -1232,14 +1071,6 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     
     wb.save(nombre_archivo)
     
-    print(f"\nEnviando email al encargado de la sección...")
-    
-    # Formatear período para el email
-    periodo_str = f"{FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}"
-    
-    # Enviar email con el archivo adjunto
-    email_enviado = enviar_email_clasificacion(nombre_seccion, nombre_archivo, periodo_str)
-    
     # Retornar estadísticas
     return {
         'seccion': nombre_seccion,
@@ -1249,7 +1080,6 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
         'categoria_b': len(df_categoria_b),
         'categoria_c': len(df_categoria_c),
         'categoria_d': len(df_categoria_d),
-        'email_enviado': email_enviado,
     }
 
 # ============================================================================
