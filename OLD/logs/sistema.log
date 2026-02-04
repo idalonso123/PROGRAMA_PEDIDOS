@@ -29201,3 +29201,306 @@ Enviando email para sección: deco_exterior
 2026-02-03 23:29:13 - INFO - Archivo principal: .\./data/output\Pedido_Semana_14_2026-02-03_maf.xlsx
 2026-02-03 23:29:13 - INFO - Artículos: 1510
 2026-02-03 23:29:13 - INFO - Importe: 48113.87€
+2026-02-04 00:58:58 - INFO - ======================================================================
+2026-02-04 00:58:58 - INFO - SISTEMA DE PEDIDOS DE COMPRA - VIVERO ARANJUEZ V2
+2026-02-04 00:58:58 - INFO - Fecha de ejecución: 2026-02-04 00:58:58
+2026-02-04 00:58:58 - INFO - ======================================================================
+2026-02-04 00:58:58 - INFO - Modo de ejecución: FASE 1 + FASE 2
+2026-02-04 00:58:58 - INFO - Envío de emails: Sí
+2026-02-04 00:58:58 - INFO - StateManager inicializado. Archivo de estado: .\./data\state.json
+2026-02-04 00:58:58 - INFO - Cargando estado desde: .\./data\state.json
+2026-02-04 00:58:58 - INFO - Estado cargado correctamente
+2026-02-04 00:58:58 - INFO - SchedulerService inicializado correctamente
+2026-02-04 00:58:58 - INFO - Horario configurado: sunday a las 15:00
+2026-02-04 00:58:58 - INFO - Semana forzada por argumento: 14
+2026-02-04 00:58:58 - INFO - ======================================================================
+2026-02-04 00:58:58 - INFO - PROCESANDO PEDIDO PARA SEMANA 14
+2026-02-04 00:58:58 - INFO - ======================================================================
+2026-02-04 00:58:58 - INFO - MODO: FASE 1 (Forecast) + FASE 2 (Corrección)
+2026-02-04 00:58:58 - INFO - DataLoader inicializado correctamente
+2026-02-04 00:58:58 - INFO - ForecastEngine inicializado correctamente
+2026-02-04 00:58:58 - INFO - OrderGenerator inicializado correctamente
+2026-02-04 00:58:58 - INFO - SchedulerService inicializado correctamente
+2026-02-04 00:58:58 - INFO - Horario configurado: sunday a las 15:00
+2026-02-04 00:58:58 - INFO - Período de la semana: 2026-03-30 al 2026-04-05
+2026-02-04 00:58:58 - INFO - Stock acumulado cargado: 2633 artículos
+2026-02-04 00:58:58 - INFO - 
+==================================================
+2026-02-04 00:58:58 - INFO - SECCION: MAF
+2026-02-04 00:58:58 - INFO - ==================================================
+2026-02-04 00:58:58 - INFO - === LEYENDO DATOS PARA SECCIÓN: MAF ===
+2026-02-04 00:58:58 - INFO - Archivo ABC encontrado para 'maf': .\./data/input\CLASIFICACION_ABC+D_maf.xlsx
+2026-02-04 00:58:58 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_maf.xlsx
+2026-02-04 00:58:58 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-04 00:58:58 - INFO - Clasificación ABC cargada para 'maf': 499 registros
+2026-02-04 00:58:58 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-04 00:59:01 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:01 - INFO - Usando hoja: Ventas por vendedor
+2026-02-04 00:59:01 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-04 00:59:01 - INFO - Ventas cargadas: 44082 registros
+2026-02-04 00:59:01 - INFO - Filtrados 10970 registros de sección 'maf' de 44082 total
+2026-02-04 00:59:01 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-04 00:59:03 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:03 - INFO - Costes cargados: 22145 registros
+2026-02-04 00:59:03 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MAF ===
+2026-02-04 00:59:03 - INFO -   ABC: 499 registros
+2026-02-04 00:59:03 - INFO -   Ventas: 10970 registros
+2026-02-04 00:59:03 - INFO -   Costes: 22145 registros
+2026-02-04 00:59:03 - INFO - Datos de ventas: 1011 registros
+2026-02-04 00:59:03 - INFO - Calculando pedido para semana 14 (1011 registros)
+2026-02-04 00:59:04 - INFO -   Objetivo: 7050.65€, Actual (ABC): 5843.77€
+2026-02-04 00:59:04 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-04 00:59:04 - INFO -   Factor total: 1.3125
+2026-02-04 00:59:04 - INFO -   Factor escalado: 1.5836
+2026-02-04 00:59:04 - INFO -   Ventas preliminares (con ceil): 9931.01€
+2026-02-04 00:59:04 - INFO -   Objetivo final: 9253.98€
+2026-02-04 00:59:04 - INFO -   Delta: 677.03€
+2026-02-04 00:59:04 - INFO -   Ventas finales: 9259.59€
+2026-02-04 00:59:04 - INFO - 
+============================================================
+2026-02-04 00:59:04 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-04 00:59:04 - INFO - ============================================================
+2026-02-04 00:59:04 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-04 00:59:04 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-04 00:59:04 - INFO - DataLoader inicializado correctamente
+2026-02-04 00:59:04 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-04 00:59:04 - INFO - ============================================================
+2026-02-04 00:59:04 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-04 00:59:04 - INFO - ============================================================
+2026-02-04 00:59:04 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-04 00:59:04 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-04 00:59:04 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:04 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:04 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:04 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:04 - INFO - Stock actual cargado: 30 registros
+2026-02-04 00:59:04 - INFO -   Stock: 30 registros
+2026-02-04 00:59:04 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-04 00:59:04 - INFO - Fusión completada: 222 registros
+2026-02-04 00:59:04 - INFO - CorrectionEngine inicializado correctamente
+2026-02-04 00:59:04 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-04 00:59:04 - INFO - Corrección completada:
+2026-02-04 00:59:04 - INFO -   - Artículos corregidos: 191/222
+2026-02-04 00:59:04 - INFO -   - Artículos aumentados: 191
+2026-02-04 00:59:04 - INFO -   - Artículos reducidos: 0
+2026-02-04 00:59:04 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-04 00:59:04 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\main.py", line 168, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\src\correction_engine.py", line 590, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-04 00:59:04 - INFO - Usando pedido teórico (sin corrección)
+2026-02-04 00:59:04 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_2026-02-04_maf.xlsx
+2026-02-04 00:59:04 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_2026-02-04_maf.xlsx
+2026-02-04 00:59:04 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_2026-02-04_maf.xlsx
+2026-02-04 00:59:04 - INFO -   Articulos: 191
+2026-02-04 00:59:04 - INFO -   Importe: 9259.59€
+2026-02-04 00:59:04 - INFO - 
+==================================================
+2026-02-04 00:59:04 - INFO - SECCION: DECO_INTERIOR
+2026-02-04 00:59:04 - INFO - ==================================================
+2026-02-04 00:59:04 - INFO - === LEYENDO DATOS PARA SECCIÓN: DECO_INTERIOR ===
+2026-02-04 00:59:04 - INFO - Archivo ABC encontrado para 'deco_interior': .\./data/input\CLASIFICACION_ABC+D_deco_interior.xlsx
+2026-02-04 00:59:04 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_deco_interior.xlsx
+2026-02-04 00:59:05 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-04 00:59:05 - INFO - Clasificación ABC cargada para 'deco_interior': 1827 registros
+2026-02-04 00:59:05 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-04 00:59:08 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:08 - INFO - Usando hoja: Ventas por vendedor
+2026-02-04 00:59:08 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-04 00:59:08 - INFO - Ventas cargadas: 44082 registros
+2026-02-04 00:59:08 - INFO - Filtrados 2468 registros de sección 'deco_interior' de 44082 total
+2026-02-04 00:59:08 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-04 00:59:10 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:10 - INFO - Costes cargados: 22145 registros
+2026-02-04 00:59:10 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA DECO_INTERIOR ===
+2026-02-04 00:59:10 - INFO -   ABC: 1827 registros
+2026-02-04 00:59:10 - INFO -   Ventas: 2468 registros
+2026-02-04 00:59:10 - INFO -   Costes: 22145 registros
+2026-02-04 00:59:10 - INFO - Datos de ventas: 180 registros
+2026-02-04 00:59:10 - INFO - Calculando pedido para semana 14 (180 registros)
+2026-02-04 00:59:11 - INFO -   Objetivo: 1962.99€, Actual (ABC): 1636.15€
+2026-02-04 00:59:11 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-04 00:59:11 - INFO -   Factor total: 1.3125
+2026-02-04 00:59:11 - INFO -   Factor escalado: 1.5747
+2026-02-04 00:59:11 - INFO -   Ventas preliminares (con ceil): 2950.01€
+2026-02-04 00:59:11 - INFO -   Objetivo final: 2576.42€
+2026-02-04 00:59:11 - INFO -   Delta: 373.59€
+2026-02-04 00:59:11 - INFO -   Ventas finales: 2580.73€
+2026-02-04 00:59:11 - INFO - 
+============================================================
+2026-02-04 00:59:11 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-04 00:59:11 - INFO - ============================================================
+2026-02-04 00:59:11 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-04 00:59:11 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-04 00:59:11 - INFO - DataLoader inicializado correctamente
+2026-02-04 00:59:11 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-04 00:59:11 - INFO - ============================================================
+2026-02-04 00:59:11 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-04 00:59:11 - INFO - ============================================================
+2026-02-04 00:59:11 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-04 00:59:11 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-04 00:59:11 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:11 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:11 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:11 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:11 - INFO - Stock actual cargado: 30 registros
+2026-02-04 00:59:11 - INFO -   Stock: 30 registros
+2026-02-04 00:59:11 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-04 00:59:11 - INFO - Fusión completada: 139 registros
+2026-02-04 00:59:11 - INFO - CorrectionEngine inicializado correctamente
+2026-02-04 00:59:11 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-04 00:59:11 - INFO - Corrección completada:
+2026-02-04 00:59:11 - INFO -   - Artículos corregidos: 135/139
+2026-02-04 00:59:11 - INFO -   - Artículos aumentados: 135
+2026-02-04 00:59:11 - INFO -   - Artículos reducidos: 0
+2026-02-04 00:59:11 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-04 00:59:11 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\main.py", line 168, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\src\correction_engine.py", line 590, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-04 00:59:11 - INFO - Usando pedido teórico (sin corrección)
+2026-02-04 00:59:11 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_2026-02-04_deco_interior.xlsx
+2026-02-04 00:59:11 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_2026-02-04_deco_interior.xlsx
+2026-02-04 00:59:11 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_2026-02-04_deco_interior.xlsx
+2026-02-04 00:59:11 - INFO -   Articulos: 135
+2026-02-04 00:59:11 - INFO -   Importe: 2580.73€
+2026-02-04 00:59:11 - INFO - 
+==================================================
+2026-02-04 00:59:11 - INFO - SECCION: SEMILLAS
+2026-02-04 00:59:11 - INFO - ==================================================
+2026-02-04 00:59:11 - INFO - === LEYENDO DATOS PARA SECCIÓN: SEMILLAS ===
+2026-02-04 00:59:11 - INFO - Archivo ABC encontrado para 'semillas': .\./data/input\CLASIFICACION_ABC+D_semillas.xlsx
+2026-02-04 00:59:11 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_semillas.xlsx
+2026-02-04 00:59:11 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-04 00:59:11 - INFO - Clasificación ABC cargada para 'semillas': 218 registros
+2026-02-04 00:59:11 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-04 00:59:15 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:15 - INFO - Usando hoja: Ventas por vendedor
+2026-02-04 00:59:15 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-04 00:59:15 - INFO - Ventas cargadas: 44082 registros
+2026-02-04 00:59:15 - INFO - Filtrados 1180 registros de sección 'semillas' de 44082 total
+2026-02-04 00:59:15 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-04 00:59:18 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:18 - INFO - Costes cargados: 22145 registros
+2026-02-04 00:59:18 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA SEMILLAS ===
+2026-02-04 00:59:18 - INFO -   ABC: 218 registros
+2026-02-04 00:59:18 - INFO -   Ventas: 1180 registros
+2026-02-04 00:59:18 - INFO -   Costes: 22145 registros
+2026-02-04 00:59:18 - INFO - Datos de ventas: 136 registros
+2026-02-04 00:59:18 - INFO - Calculando pedido para semana 14 (136 registros)
+2026-02-04 00:59:18 - INFO -   Objetivo: 694.34€, Actual (ABC): 455.14€
+2026-02-04 00:59:18 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-04 00:59:18 - INFO -   Factor total: 1.3125
+2026-02-04 00:59:18 - INFO -   Factor escalado: 2.0023
+2026-02-04 00:59:18 - INFO -   Ventas preliminares (con ceil): 1129.15€
+2026-02-04 00:59:18 - INFO -   Objetivo final: 911.32€
+2026-02-04 00:59:18 - INFO -   Delta: 217.83€
+2026-02-04 00:59:18 - INFO -   Ventas finales: 911.60€
+2026-02-04 00:59:18 - INFO - 
+============================================================
+2026-02-04 00:59:18 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-04 00:59:18 - INFO - ============================================================
+2026-02-04 00:59:18 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-04 00:59:18 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-04 00:59:18 - INFO - DataLoader inicializado correctamente
+2026-02-04 00:59:18 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-04 00:59:18 - INFO - ============================================================
+2026-02-04 00:59:18 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-04 00:59:18 - INFO - ============================================================
+2026-02-04 00:59:18 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-04 00:59:18 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-04 00:59:18 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:18 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:18 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-04 00:59:18 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-04 00:59:18 - INFO - Stock actual cargado: 30 registros
+2026-02-04 00:59:18 - INFO -   Stock: 30 registros
+2026-02-04 00:59:18 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-04 00:59:18 - INFO - Fusión completada: 84 registros
+2026-02-04 00:59:18 - INFO - CorrectionEngine inicializado correctamente
+2026-02-04 00:59:18 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-04 00:59:18 - INFO - Corrección completada:
+2026-02-04 00:59:18 - INFO -   - Artículos corregidos: 84/84
+2026-02-04 00:59:18 - INFO -   - Artículos aumentados: 84
+2026-02-04 00:59:18 - INFO -   - Artículos reducidos: 0
+2026-02-04 00:59:18 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-04 00:59:18 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\main.py", line 168, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\vivero_pedidos\PROGRAMA_PEDIDOS\OLD\src\correction_engine.py", line 590, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-04 00:59:18 - INFO - Usando pedido teórico (sin corrección)
+2026-02-04 00:59:18 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_2026-02-04_semillas.xlsx
+2026-02-04 00:59:18 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_2026-02-04_semillas.xlsx
+2026-02-04 00:59:18 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_2026-02-04_semillas.xlsx
+2026-02-04 00:59:18 - INFO -   Articulos: 84
+2026-02-04 00:59:18 - INFO -   Importe: 911.60€
+2026-02-04 00:59:18 - INFO - 
+==================================================
+2026-02-04 00:59:18 - INFO - SECCION: MASCOTAS_VIVO
+2026-02-04 00:59:18 - INFO - ==================================================
+2026-02-04 00:59:18 - INFO - === LEYENDO DATOS PARA SECCIÓN: MASCOTAS_VIVO ===
+2026-02-04 00:59:18 - INFO - Archivo ABC encontrado para 'mascotas_vivo': .\./data/input\CLASIFICACION_ABC+D_mascotas_vivo.xlsx
+2026-02-04 00:59:18 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_mascotas_vivo.xlsx
+2026-02-04 00:59:18 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-04 00:59:18 - INFO - Clasificación ABC cargada para 'mascotas_vivo': 205 registros
+2026-02-04 00:59:18 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
