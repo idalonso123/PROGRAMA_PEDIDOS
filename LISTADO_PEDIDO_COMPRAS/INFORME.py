@@ -24,7 +24,7 @@ DIAS_PERIODO = 59
 def obtener_archivos_clasificacion():
     """Busca todos los archivos de clasificación ABC+D por sección."""
     patrones = [
-        "CLASIFICACION_ABC+D_*.xlsx",
+        "data/input/CLASIFICACION_ABC+D_*.xlsx",
     ]
     
     archivos_encontrados = []
@@ -106,14 +106,14 @@ def normalizar_articulo(valor):
     except Exception:
         return None
 
-def leer_capital_inmovilizado_stock(df_seccion, ruta_stock="stock.xlsx"):
+def leer_capital_inmovilizado_stock(df_seccion, ruta_stock="data/input/stock.xlsx"):
     """
     Lee el archivo de stock y calcula el capital inmovilizado real de los artículos
     de la sección específica, sumando la columna 'Total' solo para esos artículos.
     
     Args:
         df_seccion: DataFrame con los artículos de la sección (del archivo CLASIFICACION_ABC+D)
-        ruta_stock: Ruta al archivo de stock (stock.xlsx)
+        ruta_stock: Ruta al archivo de stock (data/input/stock.xlsx)
     
     Returns:
         float: Capital inmovilizado total para los artículos de la sección
@@ -1115,7 +1115,7 @@ def procesar_seccion(ruta_archivo, nombre_seccion):
         
         # Usar el capital inmovilizado real del archivo stock.xlsx en lugar del estimado
         # Pasar df_completo para filtrar solo los artículos de esta sección
-        capital_inmovilizado_real = leer_capital_inmovilizado_stock(df_completo, "stock.xlsx")
+        capital_inmovilizado_real = leer_capital_inmovilizado_stock(df_completo, "data/input/stock.xlsx")
         if capital_inmovilizado_real is not None:
             capital_inmovilizado = round(capital_inmovilizado_real, 2)
         else:
@@ -1151,7 +1151,7 @@ def procesar_seccion(ruta_archivo, nombre_seccion):
         html_informe = generar_html_informe(datos, df_completo, nombre_seccion)
         
         # Guardar archivo HTML
-        nombre_salida = f"INFORME_FINAL_{nombre_seccion}.html"
+        nombre_salida = f"data/output/INFORME_FINAL_{nombre_seccion}.html"
         
         with open(nombre_salida, 'w', encoding='utf-8') as f:
             f.write(html_informe)
