@@ -987,7 +987,7 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # GUARDAR ARCHIVO EXCEL
     # =========================================================================
     
-    nombre_archivo = f"CLASIFICACION_ABC+D_{nombre_seccion.upper()}.xlsx"
+    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}.xlsx"
     
     with pd.ExcelWriter(nombre_archivo, engine='openpyxl') as writer:
         df_categoria_a.to_excel(writer, sheet_name='CATEGORIA A – BASICOS', index=False)
@@ -1143,10 +1143,10 @@ Secciones disponibles:
     print("=" * 80)
     
     try:
-        compras_df = pd.read_excel('compras.xlsx')
-        ventas_df = pd.read_excel('Ventas.xlsx')
-        stock_df = pd.read_excel('stock.xlsx')
-        coste_df = pd.read_excel('Coste.xlsx')
+        compras_df = pd.read_excel('data/input/compras.xlsx')
+        ventas_df = pd.read_excel('data/input/Ventas.xlsx')
+        stock_df = pd.read_excel('data/input/stock.xlsx')
+        coste_df = pd.read_excel('data/input/Coste.xlsx')
     except FileNotFoundError as e:
         print(f"ERROR: No se encontró el archivo: {e.filename}")
         sys.exit(1)
@@ -1189,8 +1189,8 @@ Secciones disponibles:
     print(f"VENTAS: {filas_ventas_total} filas totales → {len(ventas_df)} filas de Detalle")
     
     # Normalizar claves de unión en Coste
-    coste_df_sorted = coste_df.sort_values('Últ. compra', ascending=False)
-    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Artículo', 'Talla', 'Color'], keep='first').copy()
+    coste_df_sorted = coste_df.sort_values('Fecha ultcom', ascending=False)
+    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Codigo', 'Talla', 'Color'], keep='first').copy()
     
     def normalize_keys(df):
         df = df.copy()
@@ -1199,13 +1199,24 @@ Secciones disponibles:
         df['Color'] = df['Color'].fillna('').astype(str).str.strip()
         return df
     
+    def normalize_keys_coste(df):
+        """Normalizar claves para el archivo Coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
+        df = df.copy()
+        df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
+        df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()
+        df['Color'] = df['Color'].fillna('').astype(str).str.strip()
+        return df
+    
     ventas_normalized = normalize_keys(ventas_df)
-    coste_normalized = normalize_keys(coste_df_latest)
+    coste_normalized = normalize_keys_coste(coste_df_latest)
+    
+    # Seleccionar solo las columnas necesarias de coste (ya renombrado a Artículo)
+    coste_for_merge = coste_normalized[['Artículo', 'Talla', 'Color', 'Coste']].copy()
     
     # Merge de ventas con costes
     ventas_with_costs = pd.merge(
         ventas_normalized,
-        coste_normalized[['Artículo', 'Talla', 'Color', 'Coste']],
+        coste_for_merge,
         on=['Artículo', 'Talla', 'Color'],
         how='left'
     )
