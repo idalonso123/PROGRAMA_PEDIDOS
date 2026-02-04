@@ -3,7 +3,7 @@
 Módulo EmailService - Servicio de envío de correos electrónicos
 Este módulo gestiona el envío de correos electrónicos con archivos adjuntos
 utilizando SMTP. Los destinatarios se configuran exclusivamente en config.json
-y los nombres de encargados están definidos directamente en este archivo.
+y el archivo encargado.xlsx solo se utiliza para obtener los nombres.
 Autor: Sistema de Pedidos Vivero V2
 Fecha: 2026-02-04
 """
@@ -23,23 +23,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-# Datos de encargados hardcodeados (leídos de encargado.xlsx)
-# Esta estructura evita problemas de formato del Excel
-ENCARGADOS_POR_SECCION = {
-    'interior': 'Iris',
-    'mascotas_manufacturado': 'María',
-    'mascotas_vivo': 'María',
-    'deco_exterior': 'Pablo',
-    'tierras_aridos': 'Pablo',
-    'fitos': 'Ivan',
-    'semillas': 'Ivan',
-    'utiles_jardin': 'Ivan',
-    'deco_interior': 'Sandra',
-    'maf': 'Jose',
-    'vivero': 'Jose',
-}
-
-
 class EmailService:
     """
     Servicio de envío de correos electrónicos para el sistema de pedidos.
@@ -49,7 +32,8 @@ class EmailService:
     y envío de adjuntos.
     
     Los destinatarios se configuran exclusivamente en config.json.
-    Los nombres de encargados están definidos en el diccionario ENCARGADOS_POR_SECCION.
+    El archivo encargado.xlsx solo se utiliza para obtener los nombres
+    de los encargados de cada sección.
     
     Attributes:
         config (dict): Configuración del sistema
@@ -79,10 +63,8 @@ class EmailService:
         # Cargar configuración
         self._cargar_configuracion()
         
-        # Usar diccionario hardcodeado de encargados (más confiable que Excel)
-        self.encargados_por_seccion = ENCARGADOS_POR_SECCION.copy()
-        logger.info(f"Encargados cargados: {len(self.encargados_por_seccion)} secciones")
-        logger.info(f"Mapping: {self.encargados_por_seccion}")
+        # Cargar nombres de encargados desde Excel (solo nombres, sin correos)
+        self._cargar_encargados()
         
         logger.info("EmailService inicializado correctamente")
         logger.info(f"Remitente: {self.remitente.get('email', 'No configurado')}")
@@ -126,6 +108,95 @@ class EmailService:
         )
         
         logger.debug("Configuración de email cargada desde config.json")
+    
+    def _cargar_encargados(self):
+        """
+        Carga información de encargados desde archivo Excel.
+        NOTA: Este método ahora solo carga los NOMBRES de los encargado Los correos electrónicos se gestionan exclusivamente desde config.json.
+        
+        Lee el archivo especificado en 'archivo_encargados' con columnas:
+        - 'Nombre Encargado': Nombre del responsable
+        - 'seccion/es': Sección(es) a cargo (pueden estar separadas por comas)
+        
+        El archivo tiene un formato especial con filas vacías al inicio,
+        por lo que se busca automáticamente la fila con los headers.
+        """
+        archivos_entrada = self.config.get('archivos_entrada', {})
+        archivo_encargados = archivos_entrada.get('archivo_encargados', 'encargados.xlsx')
+        
+        if archivo_encargados is None:
+            logger.info("No se cargará archivo de encargados (configurado como null)")
+            return
+        
+        # Construir ruta completa
+        directorio_base = self.config.get('rutas', {}).get('directorio_base', '.')
+        ruta_archivo = Path(directorio_base) / archivo_encargados
+        
+        if not ruta_archivo.exists():
+            logger.warning(f"Archivo de encargados no encontrado: {ruta_archivo}")
+            return
+        
+        try:
+            # El archivo tiene un formato especial con filas vacías al inicio
+            # Necesitamos encontrar la fila que contiene los headers
+            df_raw = pd.read_excel(ruta_archivo, header=None)
+            
+            # Buscar la fila que contiene "Nombre Encargado" o "seccion"
+            header_row = None
+            for idx, row in df_raw.iterrows():
+                row_str = ' '.join([str(val) for val in row.values if pd.notna(val)])
+                if 'nombre encargado' in row_str.lower() and 'seccion' in row_str.lower():
+                    header_row = idx
+                    break
+            
+            if header_row is None:
+                logger.warning("No se encontró fila de headers en archivo de encargados")
+                return
+            
+            # Leer el archivo usando la fila encontrada como header
+            df = pd.read_excel(ruta_archivo, header=header_row)
+            
+            # Normalizar nombres de columnas (strip y lower)
+            df.columns = [str(col).strip() for col in df.columns]
+            
+            # Buscar columnas relevantes
+            columnas_nombre = [col for col in df.columns if 'nombre' in col.lower() and 'encargado' in col.lower()]
+            columnas_seccion = [col for col in df.columns if 'seccion' in col.lower()]
+            
+            if not columnas_nombre or not columnas_seccion:
+                logger.warning(f"Formato de archivo de encargado.xlsx incorrecto. "
+                              f"Columnas encontradas: {list(df.columns)}")
+                logger.warning("Se necesitan columnas: 'Nombre Encargado' y 'seccion/es'")
+                return
+            
+            nombre_col = columnas_nombre[0]
+            seccion_col = columnas_seccion[0]
+            
+            logger.debug(f"Columnas usadas: nombre='{nombre_col}', seccion='{seccion_col}'")
+            
+            # Procesar cada fila
+            self.encargados_por_seccion = {}
+            
+            for idx, row in df.iterrows():
+                nombre = str(row[nombre_col]).strip() if pd.notna(row[nombre_col]) else ""
+                secciones = str(row[seccion_col]).strip() if pd.notna(row[seccion_col]) else ""
+                
+                if nombre and secciones:
+                    # Las secciones pueden estar separadas por comas
+                    lista_secciones = [s.strip() for s in secciones.split(',')]
+                    
+                    for seccion in lista_secciones:
+                        seccion_normalizada = self._normalizar_seccion(seccion)
+                        if seccion_normalizada:
+                            self.encargados_por_seccion[seccion_normalizada] = nombre
+            
+            logger.info(f"Encargados cargados desde {ruta_archivo}: {len(self.encargados_por_seccion)} secciones")
+            logger.debug(f"Mapping de encargados: {self.encargados_por_seccion}")
+            
+        except Exception as e:
+            logger.error(f"Error al leer archivo de encargados: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
     
     def _normalizar_seccion(self, seccion: str) -> str:
         """
@@ -316,7 +387,7 @@ class EmailService:
         Obtiene la lista de destinatarios para una sección específica.
         
         Los correos electrónicos se obtienen EXCLUSIVAMENTE desde config.json.
-        Los nombres se obtienen desde el diccionario ENCARGADOS_POR_SECCION.
+        Los nombres se obtienen desde config.json o desde encargado.xlsx.
         
         Args:
             seccion (str): Nombre de la sección
@@ -336,18 +407,10 @@ class EmailService:
             logger.warning(f"No hay destinatarios configurados para la sección: {seccion}")
             return []
         
-        # Obtener nombre del encargado desde el diccionario
+        # Obtener nombre del encargado desde encargado.xlsx
         nombre_encargado = self.encargados_por_seccion.get(seccion_normalizada, "")
         
-        # Si no hay nombre, buscar con variaciones comunes
-        if not nombre_encargado:
-            # Intentar con variaciones de nombre de sección
-            for clave, nombre in self.encargados_por_seccion.items():
-                if seccion_normalizada in clave or clave in seccion_normalizada:
-                    nombre_encargado = nombre
-                    break
-        
-        # Si sigue sin encontrar, usar un nombre genérico
+        # Si no hay nombre en encargado.xlsx, usar un nombre genérico
         if not nombre_encargado:
             nombre_encargado = "Encargado"
         
@@ -534,6 +597,93 @@ class EmailService:
             resultado['problemas'].append("Contraseña no configurada (variable EMAIL_PASSWORD)")
         
         return resultado
+    
+    def enviar_email_resumen(self, semana: int, archivo_resumen: str) -> Dict[str, Any]:
+        """
+        Envía el correo de resumen a los destinatarios configurados en email_resumen.
+        
+        Args:
+            semana (int): Número de semana
+            archivo_resumen (str): Ruta del archivo de resumen a adjuntar
+            
+        Returns:
+            Dict[str, Any]: Resultado del envío con detalles
+        """
+        email_config = self.config.get('email', {})
+        config_resumen = email_config.get('email_resumen', {})
+        
+        # Verificar si está habilitado
+        if not config_resumen.get('habilitar', False):
+            logger.info("Envío de email de resumen deshabilitado en configuración")
+            return {'enviado': False, 'razon': 'deshabilitado'}
+        
+        # Obtener destinatarios
+        destinatarios_config = config_resumen.get('destinatarios', [])
+        if not destinatarios_config:
+            logger.warning("No hay destinatarios configurados para el email de resumen")
+            return {'enviado': False, 'razon': 'sin_destinatarios'}
+        
+        # Obtener plantillas
+        plantilla_asunto = config_resumen.get(
+            'asunto', 
+            'Viveverde: Resumen de pedidos de compra de las secciones semana {semana}.'
+        )
+        plantilla_cuerpo = config_resumen.get(
+            'cuerpo',
+            'Buenos días {nombre}.\n\nTe adjunto el resumen de los pedidos de compra de cada '
+            'sección de la semana {semana}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE.'
+        )
+        
+        # Verificar que el archivo de resumen existe
+        if archivo_resumen and not Path(archivo_resumen).exists():
+            logger.warning(f"Archivo de resumen no encontrado: {archivo_resumen}")
+            archivo_resumen = None
+        
+        archivos_adjuntos = [archivo_resumen] if archivo_resumen else []
+        
+        resultados = []
+        emails_enviados = 0
+        emails_fallidos = 0
+        
+        for destinatario in destinatarios_config:
+            nombre = destinatario.get('nombre', '')
+            email = destinatario.get('email', '')
+            
+            if not nombre or not email:
+                logger.warning(f"Destinatario de resumen inválido: {destinatario}")
+                continue
+            
+            # Generar asunto y cuerpo personalizados
+            asunto = plantilla_asunto.format(semana=semana)
+            cuerpo = plantilla_cuerpo.format(nombre=nombre, semana=semana)
+            
+            # Crear y enviar mensaje
+            msg = self._crear_mensaje([email], asunto, cuerpo, archivos_adjuntos)
+            enviado = self._enviar_email(msg)
+            
+            if enviado:
+                emails_enviados += 1
+                logger.info(f"Email de resumen enviado a {nombre} ({email})")
+            else:
+                emails_fallidos += 1
+                logger.error(f"Error al enviar email de resumen a {nombre} ({email})")
+            
+            resultados.append({
+                'nombre': nombre,
+                'email': email,
+                'enviado': enviado
+            })
+        
+        logger.info(f"\nRESUMEN DE ENVÍO DE EMAILS DE RESUMEN:")
+        logger.info(f"  Enviados: {emails_enviados}")
+        logger.info(f"  Fallidos: {emails_fallidos}")
+        
+        return {
+            'enviado': emails_enviados > 0,
+            'emails_enviados': emails_enviados,
+            'emails_fallidos': emails_fallidos,
+            'resultados': resultados
+        }
 
 
 def crear_email_service(config: dict) -> EmailService:
@@ -577,7 +727,7 @@ def verificar_configuracion_email(config: dict) -> Dict[str, Any]:
             'remitente': email_config.get('remitente', {}).get('email', 'No configurado'),
             'smtp': email_config.get('servidor', 'No configurado'),
             'mensaje': ('Configuración verificada. Los correos se leen desde config.json. '
-                       'Los nombres de encargados están definidos en el código.')
+                       'El archivo encargado.xlsx solo proporciona nombres.')
         }
     except Exception as e:
         return {

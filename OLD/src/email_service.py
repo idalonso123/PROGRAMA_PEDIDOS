@@ -1,27 +1,17 @@
 #!/usr/bin/env python3
 """
-Módulo EmailService - Servicio de envío de emails con adjuntos
-
-Este módulo proporciona funcionalidad completa para enviar emails con archivos
-adjuntos utilizando SMTP. Implementa toda la lógica de configuración, templating
-de mensajes y manejo de adjuntos.
-
-Características:
-- Configuración externa desde JSON (no hardcodeado)
-- Soporte para múltiples destinatarios por sección
-- Templates de asunto y cuerpo configurables
-- Adjunto automático de archivos generados
-- Manejo de errores robusto
-- Logging detallado
-
+Módulo EmailService - Servicio de envío de correos electrónicos
+Este módulo gestiona el envío de correos electrónicos con archivos adjuntos
+utilizando SMTP. Los destinatarios se configuran exclusivamente en config.json
+y los nombres de encargados están definidos directamente en este archivo.
 Autor: Sistema de Pedidos Vivero V2
-Fecha: 2026-02-03
+Fecha: 2026-02-04
 """
-
 import smtplib
 import ssl
 import os
 import logging
+import pandas as pd
 from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -33,21 +23,42 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+# Datos de encargados hardcodeados (leídos de encargado.xlsx)
+# Esta estructura evita problemas de formato del Excel
+ENCARGADOS_POR_SECCION = {
+    'interior': 'Iris',
+    'mascotas_manufacturado': 'María',
+    'mascotas_vivo': 'María',
+    'deco_exterior': 'Pablo',
+    'tierras_aridos': 'Pablo',
+    'fitos': 'Ivan',
+    'semillas': 'Ivan',
+    'utiles_jardin': 'Ivan',
+    'deco_interior': 'Sandra',
+    'maf': 'Jose',
+    'vivero': 'Jose',
+}
+
+
 class EmailService:
     """
-    Servicio de envío de emails para el sistema de pedidos.
+    Servicio de envío de correos electrónicos para el sistema de pedidos.
     
-    Esta clase encapsula toda la lógica necesaria para enviar emails
-    con archivos adjuntos, incluyendo configuración SMTP, templates
-    de mensajes y gestión de destinatarios por sección.
+    Esta clase encapsula toda la lógica relacionada con el envío de correos:
+    configuración SMTP, gestión de destinatarios, generación de mensajes
+    y envío de adjuntos.
+    
+    Los destinatarios se configuran exclusivamente en config.json.
+    Los nombres de encargados están definidos en el diccionario ENCARGADOS_POR_SECCION.
     
     Attributes:
         config (dict): Configuración del sistema
         smtp_config (dict): Configuración del servidor SMTP
         remitente (dict): Información del remitente
-        destinatarios (dict): Mapeo sección -> lista de destinatarios
+        destinatarios (dict): Mapeo sección -> lista de destinatarios desde config.json
         plantilla_asunto (str): Template del asunto del email
         plantilla_cuerpo (str): Template del cuerpo del email
+        encargados_por_seccion (dict): Mapeo de secciones a nombres de encargados
     """
     
     def __init__(self, config: dict):
@@ -58,51 +69,75 @@ class EmailService:
             config (dict): Diccionario con la configuración del sistema
         """
         self.config = config
+        self.smtp_config = {}
+        self.remitente = {}
+        self.destinatarios = {}
+        self.plantilla_asunto = ""
+        self.plantilla_cuerpo = ""
+        self.encargados_por_seccion = {}
+        
+        # Cargar configuración
         self._cargar_configuracion()
+        
+        # Usar diccionario hardcodeado de encargados (más confiable que Excel)
+        self.encargados_por_seccion = ENCARGADOS_POR_SECCION.copy()
+        logger.info(f"Encargados cargados: {len(self.encargados_por_seccion)} secciones")
+        logger.info(f"Mapping: {self.encargados_por_seccion}")
+        
         logger.info("EmailService inicializado correctamente")
+        logger.info(f"Remitente: {self.remitente.get('email', 'No configurado')}")
+        logger.info(f"Secciones con destinatarios: {list(self.destinatarios.keys())}")
     
     def _cargar_configuracion(self):
         """
         Carga la configuración del email desde el diccionario config.
-        
-        Extrae la configuración SMTP, remitente, destinatarios y templates
-        desde la configuración global. Todos los datos son externos y
-        configurables, sin hardcoding.
+        Extrae configuración SMTP, remitente, destinatarios y templates.
+        Los destinatarios se leen exclusivamente desde config.json.
         """
-        # Configuración del servidor SMTP
         email_config = self.config.get('email', {})
-        self.smtp_config = email_config.get('smtp', {
-            'servidor': 'smtp.serviciodecorreo.es',
-            'puerto': 465,
-            'usar_tls': True,
-            'usar_ssl': True
-        })
         
-        # Información del remitente
-        self.remitente = email_config.get('remitente', {
-            'email': 'ivan.delgado@viveverde.es',
-            'nombre': 'Sistema de Pedidos VIVEVERDE'
-        })
+        # Configuración SMTP
+        self.smtp_config = {
+            'servidor': email_config.get('servidor', 'smtp.serviciodecorreo.es'),
+            'puerto': email_config.get('puerto', 465),
+            'usar_ssl': email_config.get('usar_ssl', True),
+            'usar_tls': email_config.get('usar_tls', False)
+        }
         
-        # Destinatarios por sección (mapeo sección -> lista de destinatarios)
+        # Remitente
+        self.remitente = {
+            'email': email_config.get('remitente', {}).get('email', 'ivan.delgado@viveverde.es'),
+            'nombre': email_config.get('remitente', {}).get('nombre', 'Sistema de Pedidos VIVEVERDE')
+        }
+        
+        # Destinatarios - SE LEEN EXCLUSIVAMENTE DESDE CONFIG.JSON
         self.destinatarios = email_config.get('destinatarios', {})
         
-        # Templates de mensaje
+        # Plantillas
         self.plantilla_asunto = email_config.get('plantillas', {}).get(
-            'asunto',
+            'asunto', 
             'VIVEVERDE: Pedido de compra - Semana {semana} - {seccion}'
         )
         self.plantilla_cuerpo = email_config.get('plantillas', {}).get(
-            'cuerpo',
-            'Buenos días {nombre_encargado}. \n'
-            'Te adjunto el pedido de compra generado para la semana {semana} de la sección {seccion}.\n\n'
-            'Atentamente,\n'
+            'cuerpo', 
+            'Buenos días {nombre_encargado}. Te adjunto el pedido de compra generado '
+            'para la semana {semana} de la sección {seccion}. Atentamente, '
             'Sistema de Pedidos automáticos VIVEVERDE.'
         )
         
-        logger.debug(f"[DEBUG] SMTP configurado: {self.smtp_config}")
-        logger.debug(f"[DEBUG] Remitente: {self.remitente}")
-        logger.debug(f"[DEBUG] Destinatarios: {self.destinatarios}")
+        logger.debug("Configuración de email cargada desde config.json")
+    
+    def _normalizar_seccion(self, seccion: str) -> str:
+        """
+        Normaliza el nombre de una sección para buscar en el mapeo de encargados.
+        
+        Args:
+            seccion (str): Nombre de la sección a normalizar
+            
+        Returns:
+            str: Nombre de sección normalizado
+        """
+        return seccion.strip().lower().replace(' ', '_')
     
     def _obtener_password(self) -> str:
         """
@@ -114,13 +149,14 @@ class EmailService:
         Raises:
             ValueError: Si la variable de entorno no está configurada
         """
-        password = os.environ.get('EMAIL_PASSWORD')
+        email_config = self.config.get('email', {})
+        password_var = email_config.get('password_var', 'EMAIL_PASSWORD')
+        
+        password = os.environ.get(password_var)
         
         if not password:
-            error_msg = (
-                "La variable de entorno 'EMAIL_PASSWORD' no está configurada. "
-                "Por favor, configúrala antes de enviar emails."
-            )
+            error_msg = (f"Variable de entorno '{password_var}' no configurada. "
+                        "Configure la contraseña antes de enviar emails.")
             logger.error(error_msg)
             raise ValueError(error_msg)
         
@@ -146,10 +182,10 @@ class EmailService:
         Args:
             semana (int): Número de semana
             seccion (str): Nombre de la sección
-            nombre_encargado (str): Nombre del responsable
+            nombre_encargado (str): Nombre del encargado
             
         Returns:
-            str: Cuerpo formateado
+            str: Cuerpo del mensaje formateado
         """
         return self.plantilla_cuerpo.format(
             semana=semana,
@@ -157,26 +193,20 @@ class EmailService:
             nombre_encargado=nombre_encargado
         )
     
-    def _crear_mensaje(
-        self,
-        destinatarios: List[str],
-        asunto: str,
-        cuerpo: str,
-        archivos_adjuntos: List[str]
-    ) -> MIMEMultipart:
+    def _crear_mensaje(self, destinatarios: List[str], asunto: str, 
+                      cuerpo: str, archivos_adjuntos: List[str]) -> MIMEMultipart:
         """
         Crea el mensaje MIME con adjuntos.
         
         Args:
-            destinatarios (List[str]): Lista de direcciones email
-            asunto (str): Asunto del mensaje
+            destinatarios (List[str]): Lista de correos destinatarios
+            asunto (str): Asunto del email
             cuerpo (str): Cuerpo del mensaje
             archivos_adjuntos (List[str]): Lista de rutas de archivos a adjuntar
             
         Returns:
-            MIMEMultipart: Mensaje preparado para enviar
+            MIMEMultipart: Mensaje MIME listo para enviar
         """
-        # Crear mensaje multipart
         msg = MIMEMultipart()
         msg['From'] = f"{self.remitente['nombre']} <{self.remitente['email']}>"
         msg['To'] = ', '.join(destinatarios)
@@ -187,40 +217,44 @@ class EmailService:
         
         # Adjuntar archivos
         for archivo in archivos_adjuntos:
-            if os.path.exists(archivo):
-                try:
-                    # Determinar tipo MIME basado en extensión
-                    nombre_archivo = os.path.basename(archivo)
-                    if archivo.endswith('.xlsx') or archivo.endswith('.xls'):
-                        mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    elif archivo.endswith('.csv'):
-                        mime_type = 'text/csv'
-                    elif archivo.endswith('.pdf'):
-                        mime_type = 'application/pdf'
-                    else:
-                        mime_type = 'application/octet-stream'
-                    
-                    # Leer archivo y crear parte MIME
-                    with open(archivo, 'rb') as f:
-                        parte = MIMEBase(mime_type, 'octet-stream')
-                        parte.set_payload(f.read())
-                    
-                    # Codificar en Base64
-                    encoders.encode_base64(parte)
-                    
-                    # Añadir header del archivo
-                    parte.add_header(
-                        'Content-Disposition',
-                        f'attachment; filename= {nombre_archivo}'
-                    )
-                    
-                    msg.attach(parte)
-                    logger.info(f"Archivo adjuntado: {nombre_archivo}")
-                    
-                except Exception as e:
-                    logger.error(f"Error al adjuntar archivo {archivo}: {str(e)}")
-            else:
-                logger.warning(f"Archivo no encontrado para adjuntar: {archivo}")
+            if not Path(archivo).exists():
+                logger.warning(f"Archivo no encontrado: {archivo}")
+                continue
+            
+            try:
+                # Determinar tipo de archivo
+                extension = Path(archivo).suffix.lower()
+                
+                if extension in ['.xlsx', '.xls']:
+                    mime_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                elif extension == '.csv':
+                    mime_type = 'text/csv'
+                elif extension == '.pdf':
+                    mime_type = 'application/pdf'
+                else:
+                    mime_type = 'application/octet-stream'
+                
+                # Leer archivo
+                with open(archivo, 'rb') as f:
+                    part = MIMEBase('application', 'octet-stream')
+                    part.set_payload(f.read())
+                
+                # Codificar
+                encoders.encode_base64(part)
+                
+                # Añadir header
+                filename = Path(archivo).name
+                part.add_header(
+                    'Content-Disposition',
+                    f'attachment; filename= "{filename}"'
+                )
+                part.add_header('Content-Type', mime_type)
+                
+                msg.attach(part)
+                logger.debug(f"Adjunto añadido: {filename}")
+                
+            except Exception as e:
+                logger.error(f"Error al adjuntar archivo {archivo}: {e}")
         
         return msg
     
@@ -229,7 +263,7 @@ class EmailService:
         Envía el email a través del servidor SMTP.
         
         Args:
-            msg (MIMEMultipart): Mensaje preparado
+            msg (MIMEMultipart): Mensaje MIME a enviar
             
         Returns:
             bool: True si el envío fue exitoso, False en caso contrario
@@ -238,14 +272,14 @@ class EmailService:
             password = self._obtener_password()
             
             # Crear contexto SSL
-            contexto = ssl.create_default_context()
+            context = ssl.create_default_context()
             
-            # Conectar al servidor SMTP
+            # Conectar al servidor
             if self.smtp_config.get('usar_ssl', True):
                 with smtplib.SMTP_SSL(
                     self.smtp_config['servidor'],
                     self.smtp_config['puerto'],
-                    context=contexto
+                    context=context
                 ) as server:
                     server.login(self.remitente['email'], password)
                     server.sendmail(
@@ -258,7 +292,8 @@ class EmailService:
                     self.smtp_config['servidor'],
                     self.smtp_config['puerto']
                 ) as server:
-                    server.starttls(context=contexto)
+                    if self.smtp_config.get('usar_tls', False):
+                        server.starttls(context=context)
                     server.login(self.remitente['email'], password)
                     server.sendmail(
                         self.remitente['email'],
@@ -270,167 +305,167 @@ class EmailService:
             return True
             
         except smtplib.SMTPException as e:
-            logger.error(f"Error SMTP al enviar email: {str(e)}")
+            logger.error(f"Error SMTP al enviar email: {e}")
             return False
         except Exception as e:
-            logger.error(f"Error al enviar email: {str(e)}")
+            logger.error(f"Error al enviar email: {e}")
             return False
     
     def obtener_destinatarios_seccion(self, seccion: str) -> List[Dict[str, str]]:
         """
         Obtiene la lista de destinatarios para una sección específica.
         
+        Los correos electrónicos se obtienen EXCLUSIVAMENTE desde config.json.
+        Los nombres se obtienen desde el diccionario ENCARGADOS_POR_SECCION.
+        
         Args:
             seccion (str): Nombre de la sección
             
         Returns:
-            List[Dict]: Lista de diccionarios con 'email' y 'nombre' de cada destinatario
+            List[Dict[str, str]]: Lista de diccionarios con 'email' y 'nombre'
         """
-        destinatarios_config = self.destinatarios.get(seccion, [])
+        seccion_normalizada = self._normalizar_seccion(seccion)
         
-        # Si es string, convertir a lista
-        if isinstance(destinatarios_config, str):
-            destinatarios_config = [destinatarios_config]
+        # Obtener correos desde config.json (única fuente)
+        correos = self.destinatarios.get(seccion_normalizada, [])
         
-        # Si es lista de strings, convertir a formato con nombre genérico
-        resultado = []
-        for dest in destinatarios_config:
-            if isinstance(dest, str):
-                resultado.append({
-                    'email': dest,
-                    'nombre': 'Encargado'  # Nombre genérico
-                })
-            elif isinstance(dest, dict):
-                resultado.append(dest)
+        if isinstance(correos, str):
+            correos = [c.strip() for c in correos.split(',')]
         
-        logger.debug(f"[DEBUG] Destinatarios para {seccion}: {resultado}")
-        return resultado
+        if not correos:
+            logger.warning(f"No hay destinatarios configurados para la sección: {seccion}")
+            return []
+        
+        # Obtener nombre del encargado desde el diccionario
+        nombre_encargado = self.encargados_por_seccion.get(seccion_normalizada, "")
+        
+        # Si no hay nombre, buscar con variaciones comunes
+        if not nombre_encargado:
+            # Intentar con variaciones de nombre de sección
+            for clave, nombre in self.encargados_por_seccion.items():
+                if seccion_normalizada in clave or clave in seccion_normalizada:
+                    nombre_encargado = nombre
+                    break
+        
+        # Si sigue sin encontrar, usar un nombre genérico
+        if not nombre_encargado:
+            nombre_encargado = "Encargado"
+        
+        # Construir lista de destinatarios con nombres
+        destinatarios = []
+        for correo in correos:
+            destinatarios.append({
+                'email': correo.strip(),
+                'nombre': nombre_encargado
+            })
+        
+        logger.debug(f"Destinatarios para {seccion}: {destinatarios}")
+        return destinatarios
     
-    def enviar_pedido_por_seccion(
-        self,
-        semana: int,
-        seccion: str,
-        archivos: List[str]
-    ) -> Dict[str, Any]:
+    def enviar_pedido_por_seccion(self, semana: int, seccion: str, 
+                                  archivos: List[str]) -> Dict[str, Any]:
         """
         Envía los archivos de pedido por email al responsable de la sección.
         
         Args:
             semana (int): Número de semana
             seccion (str): Nombre de la sección
-            archivos (List[str]): Lista de rutas de archivos a enviar
+            archivos (List[str]): Lista de rutas de archivos a adjuntar
             
         Returns:
-            Dict: Resultado del envío con métricas
+            Dict[str, Any]: Resultado del envío con estado y detalles
         """
-        logger.info("=" * 60)
-        logger.info(f"ENVIANDO EMAIL PARA SECCIÓN: {seccion.upper()}")
-        logger.info("=" * 60)
+        resultado = {
+            'seccion': seccion,
+            'semana': semana,
+            'enviado': False,
+            'destinatarios': [],
+            'archivos_adjuntos': [],
+            'error': None
+        }
         
         # Obtener destinatarios
-        destinatarios_info = self.obtener_destinatarios_seccion(seccion)
+        destinatarios = self.obtener_destinatarios_seccion(seccion)
         
-        if not destinatarios_info:
-            logger.warning(f"No hay destinatarios configurados para la sección: {seccion}")
-            return {
-                'exito': False,
-                'seccion': seccion,
-                'error': 'sin_destinatarios',
-                'mensaje': f'No hay destinatarios configurados para {seccion}'
-            }
+        if not destinatarios:
+            resultado['error'] = "No hay destinatarios configurados"
+            logger.warning(f"No se puede enviar email para {seccion}: {resultado['error']}")
+            return resultado
         
-        # Extraer solo los emails
-        destinatarios = [d['email'] for d in destinatarios_info]
-        nombres = [d['nombre'] for d in destinatarios_info]
+        # Filtrar archivos existentes
+        archivos_existentes = [f for f in archivos if Path(f).exists()]
+        resultado['archivos_adjuntos'] = [Path(f).name for f in archivos_existentes]
         
-        logger.info(f"Destinatarios: {destinatarios}")
-        logger.info(f"Archivos a enviar: {archivos}")
+        if not archivos_existentes:
+            resultado['error'] = "No hay archivos para adjuntar"
+            logger.warning(f"No se puede enviar email para {seccion}: {resultado['error']}")
+            return resultado
         
         # Generar asunto y cuerpo
         asunto = self._generar_asunto(semana, seccion)
+        cuerpo = self._generar_cuerpo(semana, seccion, destinatarios[0]['nombre'])
         
-        # Usar el primer nombre o nombre genérico
-        nombre_encargado = nombres[0] if nombres else 'Encargado'
-        cuerpo = self._generar_cuerpo(semana, seccion, nombre_encargado)
+        # Extraer solo los correos
+        lista_correos = [d['email'] for d in destinatarios]
+        resultado['destinatarios'] = lista_correos
         
-        # Crear mensaje
-        msg = self._crear_mensaje(destinatarios, asunto, cuerpo, archivos)
+        # Crear y enviar mensaje
+        msg = self._crear_mensaje(lista_correos, asunto, cuerpo, archivos_existentes)
+        resultado['enviado'] = self._enviar_email(msg)
         
-        # Enviar email
-        exito = self._enviar_email(msg)
-        
-        # Preparar resultado
-        resultado = {
-            'exito': exito,
-            'seccion': seccion,
-            'semana': semana,
-            'destinatarios': destinatarios,
-            'archivos_enviados': archivos if exito else [],
-            'asunto': asunto
-        }
-        
-        if exito:
-            logger.info(f"✓ Email enviado exitosamente para {seccion}")
+        if resultado['enviado']:
+            logger.info(f"Email enviado para sección {seccion} (semana {semana})")
         else:
-            logger.error(f"✗ Error al enviar email para {seccion}")
-            resultado['error'] = 'error_envio'
+            resultado['error'] = "Error en el envío"
         
         return resultado
     
-    def enviar_resumen_centralizado(
-        self,
-        semana: int,
-        archivos: Dict[str, List[str]]
-    ) -> Dict[str, Any]:
+    def enviar_resumen_centralizado(self, semana: int, 
+                                    archivos: Dict[str, List[str]]) -> Dict[str, Any]:
         """
         Envía todos los pedidos de forma centralizada al responsable principal.
         
         Args:
             semana (int): Número de semana
-            archivos (Dict): Mapeo sección -> lista de archivos
+            archivos (Dict[str, List[str]]): Archivos por sección
             
         Returns:
-            Dict: Resultado del envío
+            Dict[str, Any]: Resultado del envío
         """
-        logger.info("=" * 60)
-        logger.info("ENVIANDO RESUMEN CENTRALIZADO")
-        logger.info("=" * 60)
+        email_config = self.config.get('email', {})
+        email_centralizado = email_config.get('email_centralizado')
         
-        # Obtener destinatario centralizado
-        email_central = self.config.get('email', {}).get('email_centralizado')
-        
-        if not email_central:
-            logger.warning("No hay email centralizado configurado")
-            return {
-                'exito': False,
-                'error': 'sin_email_centralizado'
-            }
+        if not email_centralizado:
+            logger.info("No hay configuración de email centralizado, omitiendo envío")
+            return {'enviado': False, 'razon': 'No configurado'}
         
         # Recopilar todos los archivos
         todos_archivos = []
-        for archivos_seccion in archivos.values():
+        for seccion, archivos_seccion in archivos.items():
             todos_archivos.extend(archivos_seccion)
         
-        # Generar asunto y cuerpo
+        if not todos_archivos:
+            return {'enviado': False, 'razon': 'No hay archivos'}
+        
+        # Generar cuerpo del resumen
+        cuerpo = f"Resumen de pedidos para la semana {semana}:\n\n"
+        for seccion in archivos.keys():
+            cuerpo += f"- {seccion}\n"
+        cuerpo += "\nArchivos adjuntos.\n"
+        
         asunto = f"VIVEVERDE: Resumen de Pedidos - Semana {semana}"
-        cuerpo = (
-            f"Buenos días.\n\n"
-            f"Se adjunta el resumen completo de pedidos de compra generados "
-            f"para la semana {semana} de todas las secciones.\n\n"
-            f"Secciones procesadas: {', '.join(archivos.keys())}\n\n"
-            f"Atentamente,\n"
-            f"Sistema de Pedidos automáticos VIVEVERDE."
-        )
+        
+        # Filtrar archivos existentes
+        archivos_existentes = [f for f in todos_archivos if Path(f).exists()]
         
         # Crear y enviar mensaje
-        msg = self._crear_mensaje([email_central], asunto, cuerpo, todos_archivos)
-        exito = self._enviar_email(msg)
+        msg = self._crear_mensaje([email_centralizado], asunto, cuerpo, archivos_existentes)
+        enviado = self._enviar_email(msg)
         
         return {
-            'exito': exito,
-            'semana': semana,
-            'destinatario': email_central,
-            'archivos_enviados': todos_archivos if exito else []
+            'enviado': enviado,
+            'destinatario': email_centralizado,
+            'archivos': len(archivos_existentes)
         }
     
     def verificar_configuracion(self) -> Dict[str, Any]:
@@ -438,50 +473,69 @@ class EmailService:
         Verifica que la configuración del email sea correcta.
         
         Returns:
-            Dict: Resultado de la verificación
+            Dict[str, Any]: Resultado de la verificación
         """
         resultado = {
             'valido': True,
+            'remitente': {},
+            'smtp': {},
+            'destinatarios': {},
             'problemas': []
         }
         
-        # Verificar configuración SMTP
-        if not self.smtp_config.get('servidor'):
-            resultado['valido'] = False
-            resultado['problemas'].append('Falta servidor SMTP')
-        
-        if not self.smtp_config.get('puerto'):
-            resultado['valido'] = False
-            resultado['problemas'].append('Falta puerto SMTP')
-        
         # Verificar remitente
-        if not self.remitente.get('email'):
+        if self.remitente.get('email'):
+            resultado['remitente'] = {
+                'email': self.remitente['email'],
+                'nombre': self.remitente.get('nombre', ''),
+                'configurado': True
+            }
+        else:
+            resultado['problemas'].append("Email del remitente no configurado")
             resultado['valido'] = False
-            resultado['problemas'].append('Falta email del remitente')
+        
+        # Verificar SMTP
+        resultado['smtp'] = {
+            'servidor': self.smtp_config.get('servidor', ''),
+            'puerto': self.smtp_config.get('puerto', ''),
+            'ssl': self.smtp_config.get('usar_ssl', True),
+            'tls': self.smtp_config.get('usar_tls', False)
+        }
         
         # Verificar destinatarios
-        if not self.destinatarios:
+        secciones_configuradas = []
+        for seccion, correos in self.destinatarios.items():
+            if isinstance(correos, str):
+                correos = [c.strip() for c in correos.split(',') if c.strip()]
+            elif isinstance(correos, list):
+                correos = [c.strip() for c in correos if c.strip()]
+            else:
+                correos = []
+            
+            if correos:
+                secciones_configuradas.append(seccion)
+                resultado['destinatarios'][seccion] = {
+                    'correos': correos,
+                    'nombre_encargado': self.encargados_por_seccion.get(seccion, 'No definido')
+                }
+        
+        resultado['secciones_configuradas'] = len(secciones_configuradas)
+        
+        if not secciones_configuradas:
+            resultado['problemas'].append("No hay destinatarios configurados en config.json")
             resultado['valido'] = False
-            resultado['problemas'].append('No hay destinatarios configurados')
         
-        # Verificar variable de entorno
+        # Verificar contraseña
         try:
-            self._obtener_password()
+            password = self._obtener_password()
+            resultado['password'] = {'configurado': True, 'variable': 'EMAIL_PASSWORD'}
         except ValueError:
-            resultado['problemas'].append(
-                "La variable de entorno 'EMAIL_PASSWORD' no está configurada"
-            )
-            # No invalidamos por esto, solo advertimos
-        
-        if resultado['problemas']:
-            logger.warning("Problemas de configuración detectados:")
-            for problema in resultado['problemas']:
-                logger.warning(f"  - {problema}")
+            resultado['password'] = {'configurado': False}
+            resultado['problemas'].append("Contraseña no configurada (variable EMAIL_PASSWORD)")
         
         return resultado
 
 
-# Funciones de utilidad para uso directo
 def crear_email_service(config: dict) -> EmailService:
     """
     Crea una instancia del EmailService.
@@ -503,17 +557,38 @@ def verificar_configuracion_email(config: dict) -> Dict[str, Any]:
         config (dict): Configuración del sistema
         
     Returns:
-        Dict: Resultado de la verificación
+        Dict[str, Any]: Resultado de la verificación
     """
-    service = EmailService(config)
-    return service.verificar_configuracion()
+    try:
+        email_config = config.get('email', {})
+        
+        # Verificar destinatarios desde config.json
+        destinatarios = email_config.get('destinatarios', {})
+        secciones_con_correo = []
+        
+        for seccion, correos in destinatarios.items():
+            if correos:
+                secciones_con_correo.append(seccion)
+        
+        return {
+            'valido': len(secciones_con_correo) > 0,
+            'secciones_configuradas': len(secciones_con_correo),
+            'secciones': secciones_con_correo,
+            'remitente': email_config.get('remitente', {}).get('email', 'No configurado'),
+            'smtp': email_config.get('servidor', 'No configurado'),
+            'mensaje': ('Configuración verificada. Los correos se leen desde config.json. '
+                       'Los nombres de encargados están definidos en el código.')
+        }
+    except Exception as e:
+        return {
+            'valido': False,
+            'error': str(e)
+        }
 
 
-# Ejemplo de uso y testing
 if __name__ == "__main__":
-    import json
-    
-    print("EmailService - Módulo de envío de emails")
+    # Ejemplo de uso
+    print("EmailService - Módulo de envío de correos")
     print("=" * 50)
     
     # Configurar logging
@@ -522,52 +597,59 @@ if __name__ == "__main__":
     # Ejemplo de configuración
     config_ejemplo = {
         'email': {
-            'smtp': {
-                'servidor': 'smtp.serviciodecorreo.es',
-                'puerto': 465,
-                'usar_ssl': True
-            },
+            'servidor': 'smtp.serviciodecorreo.es',
+            'puerto': 465,
+            'usar_ssl': True,
             'remitente': {
                 'email': 'ivan.delgado@viveverde.es',
                 'nombre': 'Sistema de Pedidos VIVEVERDE'
             },
-        "destinatarios": {
-            "maf": "exterior@viveverde.es",
-            "interior": "interior@viveverde.es",
-            "mascotas_vivo": "mascotas@viveverde.es",
-            "mascotas_manufacturado": "mascotas@viveverde.es",
-            "deco_interior": [
-                "decoracion@viveverde.es",
-                "sandra.delgado@viveverde.es"
-            ],
-            "deco_exterior": "deco.exterior@viveverde.es",
-            "tierras_aridos": "deco.exterior@viveverde.es",
-            "fitos": "ivan.delgado@viveverde.es",
-            "semillas": "ivan.delgado@viveverde.es",
-            "utiles_jardin": "ivan.delgado@viveverde.es",
-            "vivero": "exterior@viveverde.es"
+            'destinatarios': {
+                'maf': 'ivan.delgado@viveverde.es',
+                'interior': 'ivan.delgado@viveverde.es',
+                'mascotas_vivo': 'ivan.delgado@viveverde.es',
+                'mascotas_manufacturado': 'ivan.delgado@viveverde.es',
+                'deco_interior': 'ivan.delgado@viveverde.es',
+                'deco_exterior': 'ivan.delgado@viveverde.es',
+                'tierras_aridos': 'ivan.delgado@viveverde.es',
+                'fitos': 'ivan.delgado@viveverde.es',
+                'semillas': 'ivan.delgado@viveverde.es',
+                'utiles_jardin': 'ivan.delgado@viveverde.es',
+                'vivero': 'ivan.delgado@viveverde.es'
             },
             'plantillas': {
                 'asunto': 'VIVEVERDE: Pedido de compra - Semana {semana} - {seccion}',
-                'cuerpo': 'Buenos días {nombre_encargado}. \nTe adjunto el pedido de compra generado para la semana {semana} de la sección {seccion}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE.'
+                'cuerpo': 'Buenos días {nombre_encargado}. Te adjunto el pedido de compra '
+                         'generado para la semana {semana} de la sección {seccion}. '
+                         'Atentamente, Sistema de Pedidos automáticos VIVEVERDE.'
             }
+        },
+        'archivos_entrada': {
+            'archivo_encargados': 'encargados.xlsx'
+        },
+        'rutas': {
+            'directorio_base': '.'
         }
     }
     
-    # Crear servicio
-    service = crear_email_service(config_ejemplo)
-    
     # Verificar configuración
-    resultado = service.verificar_configuracion()
-    print(f"\nVerificación de configuración:")
-    print(f"  Válido: {resultado['valido']}")
-    if resultado['problemas']:
-        print(f"  Problemas: {resultado['problemas']}")
+    print("\nVerificación de configuración:")
+    verificacion = verificar_configuracion_email(config_ejemplo)
+    for clave, valor in verificacion.items():
+        print(f"  {clave}: {valor}")
     
-    # Obtener destinatarios de ejemplo
-    destinatarios = service.obtener_destinatarios_seccion('maf')
-    print(f"\nDestinatarios para 'maf': {destinatarios}")
+    # Crear servicio
+    print("\nCreando EmailService:")
+    email_service = crear_email_service(config_ejemplo)
     
-    print("\nEmailService listo para usar.")
-    print("\nNota: Asegúrate de configurar la variable de entorno EMAIL_PASSWORD")
-    print("      antes de enviar emails realmente.")
+    # Verificar configuración completa
+    print("\nVerificación completa:")
+    verif = email_service.verificar_configuracion()
+    for clave, valor in verif.items():
+        print(f"  {clave}: {valor}")
+    
+    # Ejemplo de destinatarios
+    print("\nEjemplo de destinatarios para sección 'maf':")
+    destinatarios = email_service.obtener_destinatarios_seccion('maf')
+    for d in destinatarios:
+        print(f"  - Email: {d['email']}, Nombre: {d['nombre']}")

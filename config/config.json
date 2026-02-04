@@ -257,7 +257,26 @@
         },
         "email_centralizado": null,
         "habilitar_envio": true,
-        "adjuntar_resumen": true
+        "adjuntar_resumen": true,
+        "email_resumen": {
+            "habilitar": true,
+            "destinatarios": [
+                {
+                    "nombre": "Sandra",
+                    "email": "ivan.delgado@viveverde.es"
+                },
+                {
+                    "nombre": "Ivan",
+                    "email": "ivan.delgado@viveverde.es"
+                },
+                {
+                    "nombre": "Pedro",
+                    "email": "ivan.delgado@viveverde.es"
+                }
+            ],
+            "asunto": "Viveverde: Resumen de pedidos de compra de las secciones semana {semana}.",
+            "cuerpo": "Buenos días {nombre}.\n\nTe adjunto el resumen de los pedidos de compra de cada sección de la semana {semana}.\n\nAtentamente,\nSistema de Pedidos automáticos VIVEVERDE."
+        }
     },
     
     "env_email": {

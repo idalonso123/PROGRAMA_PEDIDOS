@@ -195,7 +195,8 @@
     "archivos_entrada": {
         "ventas": "Ventas.xlsx",
         "coste": "Coste.xlsx",
-        "clasificacion_abc": "CLASIFICACION_ABC+D_*.xlsx"
+        "clasificacion_abc": "CLASIFICACION_ABC+D_*.xlsx",
+        "archivo_encargados": "encargados.xlsx"
     },
     
     "archivos_correccion": {
