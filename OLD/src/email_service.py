@@ -3,13 +3,14 @@
 Módulo EmailService - Servicio de envío de correos electrónicos
 Este módulo gestiona el envío de correos electrónicos con archivos adjuntos
 utilizando SMTP. Los destinatarios se configuran exclusivamente en config.json
-y los nombres de encargados están definidos directamente en este archivo.
+y los nombres de los encargados se leen desde config/encargados.json.
 Autor: Sistema de Pedidos Vivero V2
-Fecha: 2026-02-04
+Fecha: 2026-02-05
 """
 import smtplib
 import ssl
 import os
+import json
 import logging
 import pandas as pd
 from email import encoders
@@ -23,23 +24,6 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-# Datos de encargados hardcodeados (leídos de encargado.xlsx)
-# Esta estructura evita problemas de formato del Excel
-ENCARGADOS_POR_SECCION = {
-    'interior': 'Iris',
-    'mascotas_manufacturado': 'María',
-    'mascotas_vivo': 'María',
-    'deco_exterior': 'Pablo',
-    'tierras_aridos': 'Pablo',
-    'fitos': 'Ivan',
-    'semillas': 'Ivan',
-    'utiles_jardin': 'Ivan',
-    'deco_interior': 'Sandra',
-    'maf': 'Jose',
-    'vivero': 'Jose',
-}
-
-
 class EmailService:
     """
     Servicio de envío de correos electrónicos para el sistema de pedidos.
@@ -49,7 +33,7 @@ class EmailService:
     y envío de adjuntos.
     
     Los destinatarios se configuran exclusivamente en config.json.
-    Los nombres de encargados están definidos en el diccionario ENCARGADOS_POR_SECCION.
+    Los nombres de los encargados se leen desde config/encargados.json.
     
     Attributes:
         config (dict): Configuración del sistema
@@ -79,10 +63,8 @@ class EmailService:
         # Cargar configuración
         self._cargar_configuracion()
         
-        # Usar diccionario hardcodeado de encargados (más confiable que Excel)
-        self.encargados_por_seccion = ENCARGADOS_POR_SECCION.copy()
-        logger.info(f"Encargados cargados: {len(self.encargados_por_seccion)} secciones")
-        logger.info(f"Mapping: {self.encargados_por_seccion}")
+        # Cargar nombres de encargados desde archivo JSON
+        self._cargar_encargados()
         
         logger.info("EmailService inicializado correctamente")
         logger.info(f"Remitente: {self.remitente.get('email', 'No configurado')}")
@@ -126,6 +108,135 @@ class EmailService:
         )
         
         logger.debug("Configuración de email cargada desde config.json")
+    
+    def _cargar_encargados(self):
+        """
+        Carga información de encargados desde archivo JSON.
+        NOTA: Los nombres de los encargados ahora se leen desde config/encargados.json
+        en lugar del archivo Excel. Esto permite cambios futuros sin modificar código.
+        
+        El archivo JSON tiene la siguiente estructura:
+        {
+            "version": "1.0",
+            "descripcion": "Configuración de encargados por sección",
+            "encargados": {
+                "interior": "Iris",
+                "mascotas_manufacturado": "María",
+                ...
+            }
+        }
+        """
+        try:
+            # Construir ruta al archivo de configuración de encargados
+            directorio_base = self.config.get('rutas', {}).get('directorio_base', '.')
+            ruta_archivo = Path(directorio_base) / 'config' / 'encargados.json'
+            
+            # Verificar que el archivo existe
+            if not ruta_archivo.exists():
+                logger.warning(f"Archivo de encargados no encontrado: {ruta_archivo}")
+                logger.info("Se usarán nombres genéricos para los encargados")
+                return
+            
+            # Leer el archivo JSON
+            with open(ruta_archivo, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+            
+            # Extraer el diccionario de encargados
+            self.encargados_por_seccion = config_data.get('encargados', {})
+            
+            logger.info(f"Encargados cargados desde {ruta_archivo}: {len(self.encargados_por_seccion)} secciones")
+            logger.debug(f"Mapping de encargados: {self.encargados_por_seccion}")
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Error al parsear archivo de encargados (JSON inválido): {e}")
+            logger.info("Se usarán nombres genéricos para los encargados")
+        except Exception as e:
+            logger.error(f"Error al leer archivo de encargados: {e}")
+            logger.info("Se usarán nombres genéricos para los encargados")
+    
+    def enviar_resumen_gestion(self, semana: int, archivo_resumen: str) -> Dict[str, Any]:
+        """
+        Envía el resumen de pedidos de compra a los responsables de gestión.
+        
+        Destinatarios:
+        - Sandra: ivan.delgado@viveverde.es
+        - Ivan: ivan.delgado@viveverde.es
+        - Pedro: ivan.delgado@viveverde.es
+        
+        Args:
+            semana (int): Número de semana procesada
+            archivo_resumen (str): Ruta al archivo de resumen consolidado
+            
+        Returns:
+            Dict[str, Any]: Resultado del envío con estado y detalles
+        """
+        logger.info("\n" + "=" * 60)
+        logger.info("ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN")
+        logger.info("=" * 60)
+        
+        # Destinatarios del resumen de gestión
+        destinatarios_resumen = [
+            {'nombre': 'Sandra', 'email': 'sandra.delgado@viveverde.es'},
+            {'nombre': 'Ivan', 'email': 'ivan.delgado@viveverde.es'},
+            {'nombre': 'Pedro', 'email': 'pedro.delgado@viveverde.es'}
+        ]
+        
+        # Verificar que el archivo de resumen existe
+        if not Path(archivo_resumen).exists():
+            logger.warning(f"Archivo de resumen no encontrado: {archivo_resumen}")
+            logger.info("Omitiendo envío de resumen a responsables de gestión")
+            return {'enviado': False, 'razon': 'archivo_no_encontrado'}
+        
+        try:
+            # Generar asunto y cuerpo del email
+            asunto = f"Viveverde: Resumen de pedidos de compra de las secciones semana {semana}"
+            
+            resultados_envio = {}
+            emails_enviados = 0
+            emails_fallidos = 0
+            
+            for destinatario in destinatarios_resumen:
+                nombre = destinatario['nombre']
+                email = destinatario['email']
+                
+                # Generar cuerpo personalizado para cada destinatario
+                cuerpo = (f"Buenos días {nombre}.\n\n"
+                         f"Te adjunto el resumen de los pedidos de compra de cada sección "
+                         f"de la semana {semana}.\n\n"
+                         f"Atentamente,\n"
+                         f"Sistema de Pedidos automáticos VIVEVERDE.")
+                
+                # Crear y enviar mensaje
+                msg = self._crear_mensaje([email], asunto, cuerpo, [archivo_resumen])
+                enviado = self._enviar_email(msg)
+                
+                if enviado:
+                    logger.info(f"✓ Resumen enviado a {nombre} ({email})")
+                    emails_enviados += 1
+                    resultados_envio[nombre] = {'email': email, 'enviado': True}
+                else:
+                    logger.error(f"✗ Error al enviar resumen a {nombre} ({email})")
+                    emails_fallidos += 1
+                    resultados_envio[nombre] = {'email': email, 'enviado': False}
+            
+            logger.info("\n" + "=" * 60)
+            logger.info("RESUMEN DE ENVÍO A RESPONSABLES DE GESTIÓN")
+            logger.info("=" * 60)
+            logger.info(f"Emails enviados: {emails_enviados}")
+            logger.info(f"Emails fallidos: {emails_fallidos}")
+            
+            return {
+                'enviado': emails_enviados > 0,
+                'emails_enviados': emails_enviados,
+                'emails_fallidos': emails_fallidos,
+                'resultados': resultados_envio
+            }
+            
+        except Exception as e:
+            logger.error(f"Error al enviar resumen de gestión: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {'enviado': False, 'error': str(e)}
     
     def _normalizar_seccion(self, seccion: str) -> str:
         """
@@ -316,7 +427,7 @@ class EmailService:
         Obtiene la lista de destinatarios para una sección específica.
         
         Los correos electrónicos se obtienen EXCLUSIVAMENTE desde config.json.
-        Los nombres se obtienen desde el diccionario ENCARGADOS_POR_SECCION.
+        Los nombres se obtienen desde config/encargados.json.
         
         Args:
             seccion (str): Nombre de la sección
@@ -336,18 +447,10 @@ class EmailService:
             logger.warning(f"No hay destinatarios configurados para la sección: {seccion}")
             return []
         
-        # Obtener nombre del encargado desde el diccionario
+        # Obtener nombre del encargado desde config/encargados.json
         nombre_encargado = self.encargados_por_seccion.get(seccion_normalizada, "")
         
-        # Si no hay nombre, buscar con variaciones comunes
-        if not nombre_encargado:
-            # Intentar con variaciones de nombre de sección
-            for clave, nombre in self.encargados_por_seccion.items():
-                if seccion_normalizada in clave or clave in seccion_normalizada:
-                    nombre_encargado = nombre
-                    break
-        
-        # Si sigue sin encontrar, usar un nombre genérico
+        # Si no hay nombre en el JSON, usar un nombre genérico
         if not nombre_encargado:
             nombre_encargado = "Encargado"
         
@@ -577,8 +680,9 @@ def verificar_configuracion_email(config: dict) -> Dict[str, Any]:
             'remitente': email_config.get('remitente', {}).get('email', 'No configurado'),
             'smtp': email_config.get('servidor', 'No configurado'),
             'mensaje': ('Configuración verificada. Los correos se leen desde config.json. '
-                       'Los nombres de encargados están definidos en el código.')
+                       'Los nombres de encargados se leen desde config/encargados.json.')
         }
+        
     except Exception as e:
         return {
             'valido': False,
@@ -625,7 +729,7 @@ if __name__ == "__main__":
             }
         },
         'archivos_entrada': {
-            'archivo_encargados': 'encargados.xlsx'
+            'archivo_encargados': None
         },
         'rutas': {
             'directorio_base': '.'
