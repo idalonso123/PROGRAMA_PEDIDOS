@@ -3,7 +3,7 @@
 Sistema de Pedidos de Compra - Vivero Aranjuez V2
 
 Autor: Sistema de Pedidos Vivero V2
-Fecha: 2026-02-04 (Actualizado con correcciones de bugs)
+Fecha: 2026-02-05 (Actualizado con correcciones de bugs de email)
 """
 
 import sys
@@ -255,75 +255,88 @@ def enviar_emails_pedidos(
     semana: int,
     config: Dict[str, Any],
     archivos_por_seccion: Dict[str, List[str]]
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], Any]:
+    """
+    Envía los emails de pedidos a los responsables de cada sección.
+
+    Args:
+        semana (int): Número de semana
+        config (Dict[str, Any]): Configuración del sistema
+        archivos_por_seccion (Dict[str, List[str]]): Archivos generados por sección
+
+    Returns:
+        Tuple[Dict[str, Any], Any]: Tupla con (resultado del envío, email_service)
+    """
     logger.info("\n" + "=" * 60)
     logger.info("ENVÍO DE EMAILS A RESPONSABLES")
     logger.info("=" * 60)
-    
+
     email_config = config.get('email', {})
     if not email_config.get('habilitar_envio', True):
         logger.info("Envío de emails deshabilitado en configuración.")
-        return {'exito': False, 'razon': 'deshabilitado'}
-    
+        return {'exito': False, 'razon': 'deshabilitado'}, None
+
     try:
         email_service = crear_email_service(config)
-        
+
         verificacion = email_service.verificar_configuracion()
         if not verificacion['valido']:
             logger.warning("Problemas en la configuración de email:")
             for problema in verificacion['problemas']:
                 logger.warning(f"  - {problema}")
-            
+
             if any('EMAIL_PASSWORD' in p for p in verificacion['problemas']):
                 logger.error("No se puede enviar emails sin configurar la variable EMAIL_PASSWORD")
-                return {'exito': False, 'razon': 'sin_password'}
-        
+                return {'exito': False, 'razon': 'sin_password'}, None
+
         resultados = {}
         emails_enviados = 0
         emails_fallidos = 0
-        
+
         for seccion, archivos in archivos_por_seccion.items():
             if not archivos:
                 logger.info(f"Sin archivos para la sección {seccion}. Saltando.")
                 continue
-            
+
             logger.info(f"\nEnviando email para sección: {seccion}")
             logger.info(f"Archivos: {archivos}")
-            
+
             resultado = email_service.enviar_pedido_por_seccion(
                 semana=semana,
                 seccion=seccion,
                 archivos=archivos
             )
-            
+
             resultados[seccion] = resultado
-            
+
             if resultado.get('exito', False):
                 emails_enviados += 1
                 logger.info(f"✓ Email enviado exitosamente a {seccion}")
             else:
                 emails_fallidos += 1
                 logger.error(f"✗ Error al enviar email a {seccion}: {resultado.get('error', 'Error desconocido')}")
-        
+
         logger.info("\n" + "=" * 60)
         logger.info("RESUMEN DE ENVÍO DE EMAILS")
         logger.info("=" * 60)
         logger.info(f"Emails enviados exitosamente: {emails_enviados}")
         logger.info(f"Emails fallidos: {emails_fallidos}")
         logger.info(f"Secciones procesadas: {len(resultados)}")
-        
-        return {
+
+        resultado_final = {
             'exito': emails_enviados > 0,
             'emails_enviados': emails_enviados,
             'emails_fallidos': emails_fallidos,
             'resultados': resultados
         }
-        
+
+        return resultado_final, email_service
+
     except Exception as e:
         logger.error(f"Error al enviar emails: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
-        return {'exito': False, 'error': str(e)}
+        return {'exito': False, 'error': str(e)}, None
 
 def agrupar_archivos_por_seccion(
     archivos_generados: List[str],
@@ -386,7 +399,7 @@ def procesar_pedido_semana(
     forzar: bool = False,
     aplicar_correccion: bool = True,
     enviar_email: bool = True
-) -> Tuple[bool, Optional[str], int, float, Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+) -> Tuple[bool, Optional[str], int, float, Dict[str, Any], Dict[str, Any]]:
     logger.info("=" * 70)
     logger.info(f"PROCESANDO PEDIDO PARA SEMANA {semana}")
     logger.info("=" * 70)
@@ -579,11 +592,11 @@ def procesar_pedido_semana(
         
         # CORRECCIÓN: Usar la función grouping corregida
         archivos_por_seccion = agrupar_archivos_por_seccion(archivos_generados, config)
-        
-        resultado_email = enviar_emails_pedidos(semana, config, archivos_por_seccion)
-        
+
+        resultado_email, email_service = enviar_emails_pedidos(semana, config, archivos_por_seccion)
+
         # Enviar resumen a los responsables de gestión (Sandra, Ivan, Pedro)
-        if resultado_email.get('exito'):
+        if resultado_email.get('exito') and email_service:
             logger.info("\n" + "=" * 60)
             logger.info("PREPARANDO ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN")
             logger.info("=" * 60)
@@ -600,7 +613,6 @@ def procesar_pedido_semana(
             
             if archivo_resumen:
                 logger.info(f"Archivo de resumen encontrado: {Path(archivo_resumen).name}")
-                email_service = crear_email_service(config)
                 resultado_resumen_gestion = email_service.enviar_resumen_gestion(semana, archivo_resumen)
             else:
                 logger.warning("No se encontró archivo de resumen consolidado")
