@@ -159,9 +159,9 @@ class EmailService:
         Envía el resumen de pedidos de compra a los responsables de gestión.
         
         Destinatarios:
-        - Sandra: sandra.delgado@viveverde.es
+        - Sandra: ivan.delgado@viveverde.es
         - Ivan: ivan.delgado@viveverde.es
-        - Pedro: pedro.delgado@viveverde.es
+        - Pedro: ivan.delgado@viveverde.es
         
         Args:
             semana (int): Número de semana procesada

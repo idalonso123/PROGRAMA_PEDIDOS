@@ -596,7 +596,7 @@ def procesar_pedido_semana(
         resultado_email, email_service = enviar_emails_pedidos(semana, config, archivos_por_seccion)
 
         # Enviar resumen a los responsables de gestión (Sandra, Ivan, Pedro)
-        if resultado_email.get('exito') and email_service:
+        if email_service:
             logger.info("\n" + "=" * 60)
             logger.info("PREPARANDO ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN")
             logger.info("=" * 60)
