@@ -439,6 +439,18 @@ class CorrectionEngine:
             axis=1
         )
         
+        # ================================================================
+        # NUEVA VARIABLE: Detección de Tendencia de Aumento de Ventas
+        # Esta es la ÚLTIMA variable a aplicar, después de todas las demás
+        # ================================================================
+        df = self.aplicar_correccion_tendencia_ventas(
+            df,
+            columna_pedido_corregido='Pedido_Corregido',
+            columna_ventas_reales=columna_ventas_reales,
+            columna_ventas_objetivo=columna_ventas_objetivo
+        )
+        # ================================================================
+        
         # Calcular métricas de corrección
         articulos_corregidos = len(df[df['Pedido_Corregido'] != df[columna_pedido]])
         articulos_aumentados = len(df[df['Pedido_Corregido'] > df[columna_pedido]])
@@ -484,6 +496,119 @@ class CorrectionEngine:
         else:
             deficit = stock_minimo - stock_real
             return f"Aumentar {deficit:.0f} unidades (recuperar stock mínimo)"
+    
+    def aplicar_correccion_tendencia_ventas(
+        self,
+        df: pd.DataFrame,
+        columna_pedido_corregido: str = 'Pedido_Corregido',
+        columna_ventas_reales: str = 'Unidades_Vendidas',
+        columna_ventas_objetivo: str = 'Ventas_Objetivo'
+    ) -> pd.DataFrame:
+        """
+        Aplica la corrección por tendencia de aumento de ventas.
+        
+        Esta es la ÚLTIMA variable a aplicar, después de todas las demás.
+        
+        Concepto: Si hemos vendido un artículo por encima de las compras de la 
+        semana y como consecuencia hemos consumido parte o todo su stock mínimo, 
+        quiere decir que está habiendo una tendencia de aumento de venta en ese 
+        artículo. Entonces la semana que viene, además de hacer el pedido 
+        correspondiente + el pedido para recuperar el stock mínimo, vamos a 
+        ampliar el porcentaje de la cantidad que se consumió del stock mínimo.
+        
+        Lógica de cálculo:
+        1. Si Ventas_Reales > Ventas_Objetivo (se consumió stock mínimo)
+        2. Porcentaje_Consumido = (Ventas_Reales - Ventas_Objetivo) / Ventas_Objetivo
+        3. Incremento_Adicional = Ventas_Objetivo × Porcentaje_Consumido
+        4. Pedido_Final = Pedido_Corregido + Incremento_Adicional
+        
+        Ejemplo:
+        - Ventas_Objetivo = 20 unidades
+        - Ventas_Reales = 24 unidades
+        - Porcentaje_Consumido = (24-20)/20 = 0.20 (20%)
+        - Incremento_Adicional = 20 × 0.20 = +4 unidades
+        
+        Args:
+            df (pd.DataFrame): DataFrame con los pedidos corregidos
+            columna_pedido_corregido (str): Nombre de la columna con pedido corregido
+            columna_ventas_reales (str): Nombre de la columna con ventas reales
+            columna_ventas_objetivo (str): Nombre de la columna con ventas objetivo
+        
+        Returns:
+            pd.DataFrame: DataFrame con la corrección de tendencia aplicada
+        """
+        logger.info("\n" + "=" * 60)
+        logger.info("APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)")
+        logger.info("=" * 60)
+        
+        # Verificar que existen las columnas necesarias
+        if columna_ventas_reales not in df.columns or columna_ventas_objetivo not in df.columns:
+            logger.warning("No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.")
+            return df
+        
+        df = df.copy()
+        
+        # Inicializar columnas de tendencia
+        df['Porcentaje_Consumido_Stock'] = 0.0
+        df['Incremento_Tendencia'] = 0
+        df['Tendencia_Aplicada'] = False
+        
+        # Aplicar corrección de tendencia solo cuando:
+        # 1. Hay datos de ventas reales > 0
+        # 2. Hay ventas objetivo > 0
+        # 3. Las ventas reales superan las ventas objetivo (consumo de stock mínimo)
+        mask_tendencia = (
+            (df[columna_ventas_reales] > 0) & 
+            (df[columna_ventas_objetivo] > 0) & 
+            (df[columna_ventas_reales] > df[columna_ventas_objetivo])
+        )
+        
+        # Calcular porcentaje consumido del stock mínimo
+        df.loc[mask_tendencia, 'Porcentaje_Consumido_Stock'] = (
+            (df.loc[mask_tendencia, columna_ventas_reales] - df.loc[mask_tendencia, columna_ventas_objetivo]) / 
+            df.loc[mask_tendencia, columna_ventas_objetivo]
+        )
+        
+        # Calcular incremento adicional por tendencia
+        df.loc[mask_tendencia, 'Incremento_Tendencia'] = (
+            df.loc[mask_tendencia, columna_ventas_objetivo] * 
+            df.loc[mask_tendencia, 'Porcentaje_Consumido_Stock']
+        ).round().astype(int)
+        
+        # Aplicar el incremento al pedido corregido
+        pedido_antes_tendencia = df[columna_pedido_corregido].copy()
+        df[columna_pedido_corregido] = (
+            df[columna_pedido_corregido] + df['Incremento_Tendencia']
+        )
+        
+        # Marcar artículos con tendencia aplicada
+        df.loc[mask_tendencia, 'Tendencia_Aplicada'] = True
+        
+        # Calcular estadísticas de la corrección de tendencia
+        articulos_con_tendencia = mask_tendencia.sum()
+        total_incremento = df['Incremento_Tendencia'].sum()
+        incremento_promedio = df.loc[mask_tendencia, 'Incremento_Tendencia'].mean() if articulos_con_tendencia > 0 else 0
+        
+        logger.info(f"Corrección de tendencia completada:")
+        logger.info(f"  - Artículos con tendencia detectada: {articulos_con_tendencia}")
+        logger.info(f"  - Total incremento aplicado: {total_incremento} unidades")
+        if articulos_con_tendencia > 0:
+            logger.info(f"  - Incremento promedio: {incremento_promedio:.1f} unidades")
+        
+        # Mostrar ejemplos de artículos con tendencia
+        if articulos_con_tendencia > 0:
+            logger.info(f"\nEjemplos de artículos con tendencia de aumento:")
+            ejemplos = df[mask_tendencia].head(5)
+            for idx, row in ejemplos.iterrows():
+                codigo = row.get('Codigo_Articulo', row.get('Código artículo', 'N/A'))
+                logger.info(f"  - {codigo}: Vta.Obj={row[columna_ventas_objetivo]:.0f}, "
+                          f"Vta.Real={row[columna_ventas_reales]:.0f}, "
+                          f"%Consumido={row['Porcentaje_Consumido_Stock']*100:.1f}%, "
+                          f"+Incremento={row['Incremento_Tendencia']:.0f} uds")
+        
+        logger.info("=" * 60)
+        
+        return df
     
     def calcular_metricas_correccion(
         self, 
@@ -541,6 +666,28 @@ class CorrectionEngine:
         
         # Distribución por escenario
         metricas['distribucion_escenarios'] = df['Escenario'].value_counts().to_dict()
+        
+        # ================================================================
+        # Métricas de corrección por tendencia de ventas (NUEVA VARIABLE)
+        # ================================================================
+        if 'Tendencia_Aplicada' in df.columns:
+            articulos_tendencia = df[df['Tendencia_Aplicada'] == True]
+            metricas['articulos_tendencia'] = len(articulos_tendencia)
+            metricas['porcentaje_tendencia'] = (
+                len(articulos_tendencia) / metricas['total_articulos'] * 100
+                if metricas['total_articulos'] > 0 else 0
+            )
+            metricas['incremento_tendencia_total'] = int(df['Incremento_Tendencia'].sum())
+            metricas['incremento_tendencia_promedio'] = (
+                articulos_tendencia['Incremento_Tendencia'].mean() 
+                if len(articulos_tendencia) > 0 else 0
+            )
+        else:
+            metricas['articulos_tendencia'] = 0
+            metricas['porcentaje_tendencia'] = 0
+            metricas['incremento_tendencia_total'] = 0
+            metricas['incremento_tendencia_promedio'] = 0
+        # ================================================================
         
         # Artículos en alerta de stock bajo
         umbral = self.config.umbral_alerta_stock

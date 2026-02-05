@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 import os
 import glob
+import re
 import logging
 import unicodedata
 from typing import Optional, Dict, List, Tuple, Any
@@ -78,6 +79,15 @@ class DataLoader:
         # Normalizar Unicode (eliminar acentos)
         texto = unicodedata.normalize('NFD', texto)
         texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
+        
+        # Eliminar guiones especiales (en dash, em dash) y otros caracteres especiales
+        texto = texto.replace('–', ' ').replace('—', ' ')
+        texto = texto.replace(''', '').replace(''', '')
+        texto = texto.replace('"', '').replace('...', ' ')
+        
+        # Normalizar espacios múltiples a uno solo
+        while '  ' in texto:
+            texto = texto.replace('  ', ' ')
         
         # Eliminar espacios extra
         texto = texto.strip()
@@ -350,8 +360,9 @@ class DataLoader:
         """
         Busca el archivo CLASIFICACION ABC+D específico para la sección.
 
-        Busca en el directorio de entrada archivos que coincidan con el patrón
-        'CLASIFICACION_ABC+D_' seguido del nombre de la sección.
+        Busca en el directorio de entrada archivos que coincidan exactamente con
+        el patrón 'CLASIFICACION_ABC+D_SECCION' seguido de opcionalmente un período
+        de fecha u otros sufijos.
 
         Args:
             seccion (str): Nombre de la sección a buscar
@@ -360,36 +371,39 @@ class DataLoader:
             Optional[str]: Ruta del archivo encontrado o None
         """
         dir_entrada = self.obtener_directorio_entrada()
-        patron = self.archivos.get('clasificacion_abc', 'CLASIFICACION_ABC+D_*.xlsx')
         
         # Normalizar nombre de sección para búsqueda
         seccion_normalizada = self.normalizar_texto(seccion)
         
-        # Construir patrón de búsqueda
-        if '*' in patron:
-            # Reemplazar * con el nombre de la sección
-            patron_buscar = patron.replace('*', seccion_normalizada)
-        else:
-            patron_buscar = f"*{seccion_normalizada}*"
-        
-        # Buscar archivos
-        ruta_busqueda = os.path.join(dir_entrada, patron_buscar)
-        archivos_encontrados = glob.glob(ruta_busqueda)
-        
-        if archivos_encontrados:
-            logger.info(f"Archivo ABC encontrado para '{seccion}': {archivos_encontrados[0]}")
-            return archivos_encontrados[0]
-        
-        # Búsqueda más amplia si no se encuentra
+        # Buscar todos los archivos CLASIFICACION_ABC+D*.xlsx
         patron_generico = os.path.join(dir_entrada, 'CLASIFICACION_ABC+D*.xlsx')
-        archivos_genericos = glob.glob(patron_generico)
+        archivos_encontrados = glob.glob(patron_generico)
         
-        if archivos_genericos:
-            logger.warning(f"No se encontró archivo específico para '{seccion}', usando: {archivos_genericos[0]}")
-            return archivos_genericos[0]
+        if not archivos_encontrados:
+            logger.error(f"No se encontró ningún archivo ABC+D para sección '{seccion}'")
+            return None
         
-        logger.error(f"No se encontró ningún archivo ABC+D para sección '{seccion}'")
-        return None
+        # Usar regex para matching preciso
+        # El patrón busca: CLASIFICACION_ABC+D_SECCION seguido de _ extensión o fin
+        # ^ asegura que匹配 al inicio del nombre
+        # El patrón acepta cualquier sufijo después de la sección (período u otros)
+        patron = rf'^CLASIFICACION_ABC\+D_{re.escape(seccion_normalizada)}(?:_.*|\.xlsx|$)'
+        
+        archivo_encontrado = None
+        for archivo in archivos_encontrados:
+            nombre_archivo = os.path.basename(archivo)
+            
+            if re.match(patron, nombre_archivo, re.IGNORECASE):
+                archivo_encontrado = archivo
+                break
+        
+        if archivo_encontrado:
+            logger.info(f"Archivo ABC encontrado para '{seccion}': {archivo_encontrado}")
+            return archivo_encontrado
+        
+        # Si no encontramos ninguno específico, usar el primero disponible
+        logger.warning(f"No se encontró archivo específico para '{seccion}', usando: {archivos_encontrados[0]}")
+        return archivos_encontrados[0]
     
     def leer_clasificacion_abc(self, seccion: str) -> Optional[pd.DataFrame]:
         """

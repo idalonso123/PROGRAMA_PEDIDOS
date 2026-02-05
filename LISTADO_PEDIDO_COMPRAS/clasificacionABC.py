@@ -7,7 +7,7 @@ Este script combina:
 - Cálculo de clasificación ABC+D
 - Aplicación de formatos Excel
 - Lógica corregida de riesgo
-- Fechas configurables al inicio del script
+- Período calculado automáticamente desde Ventas.xlsx
 - Procesamiento de múltiples secciones
 - Envío automático de emails a los encargados de cada sección
 
@@ -22,7 +22,7 @@ Ejecutar:
 
 Los datos se leen de 4 archivos separados:
 - Compras.xlsx: Datos de compras del período
-- Ventas.xlsx: Datos de ventas del período
+- Ventas.xlsx: Datos de ventas del período (período calculado automáticamente)
 - Stock.xlsx: Datos de stock actual
 - Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
@@ -47,429 +47,43 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from pathlib import Path
+
+# Importar el módulo de configuración centralizada
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+from config_loader import (
+    get_abc_config,
+    get_secciones_config,
+    get_encargados_config,
+    get_smtp_config,
+    get_rotaciones_familia,
+    get_iva_familia,
+    get_iva_subfamilia,
+    calcular_periodo_ventas
+)
+
 warnings.filterwarnings('ignore')
 
 # ============================================================================
-# CONFIGURACIÓN DE SECCIONES
+# CARGA DE CONFIGURACIÓN DESDE EL SISTEMA CENTRALIZADO
 # ============================================================================
 
-# Códigos de animales vivos (tienen tratamiento especial dentro de sección 2)
-CODIGOS_MASCOTAS_VIVO = ['2104', '2204', '2305', '2405', '2504', '2606', '2705', '2707', '2708', '2805', '2806', '2906']
+# Cargar configuraciones desde el sistema centralizado
+ABC_CONFIG = get_abc_config()
+SECCIONES = get_secciones_config()
+ENCARGADOS = get_encargados_config()['ENCARGADOS']
+SMTP_CONFIG = get_smtp_config()
+ROTACIONES_FAMILIA = get_rotaciones_familia()
+IVA_FAMILIA = get_iva_familia()
+IVA_SUBFAMILIA = get_iva_subfamilia()
 
-# Definición de todas las secciones y sus rangos de códigos
-SECCIONES = {
-    'interior': {
-        'descripcion': 'Plantas de interior',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['1']}]
-    },
-    'utiles_jardin': {
-        'descripcion': 'Útiles de jardín',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['4']}]
-    },
-    'semillas': {
-        'descripcion': 'Semillas y bulbos',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['5']}]
-    },
-    'deco_interior': {
-        'descripcion': 'Decoración interior',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['6']}]
-    },
-    'maf': {
-        'descripcion': 'Planta de temporada y floristería',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['7']}]
-    },
-    'vivero': {
-        'descripcion': 'Vivero y plantas exterior',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['8']}]
-    },
-    'deco_exterior': {
-        'descripcion': 'Decoración exterior',
-        'rangos': [{'tipo': 'prefijos', 'valores': ['9']}]
-    },
-    'mascotas_manufacturado': {
-        'descripcion': 'Mascotas (productos manufacturados)',
-        'rangos': [
-            {'tipo': 'prefijos', 'valores': ['2'], 'excluir': CODIGOS_MASCOTAS_VIVO}
-        ]
-    },
-    'mascotas_vivo': {
-        'descripcion': 'Mascotas (animales vivos)',
-        'rangos': [
-            {'tipo': 'codigos_exactos', 'valores': CODIGOS_MASCOTAS_VIVO}
-        ]
-    },
-    'tierra_aridos': {
-        'descripcion': 'Tierras y áridos',
-        'rangos': [
-            {'tipo': 'prefijos', 'valores': ['31', '32']}
-        ]
-    },
-    'fitos': {
-        'descripcion': 'Fitosanitarios y abonos',
-        'rangos': [
-            {'tipo': 'rango', 'valores': ['33', '34', '35', '36', '37', '38', '39']}
-        ]
-    }
-}
+# Extraer configuraciones específicas (sin fechas, se calculan automáticamente)
+CODIGOS_MASCOTAS_VIVO = ABC_CONFIG.get('codigos_mascotas_vivo', [])
 
-# ============================================================================
-# CONFIGURACIÓN DE FECHAS - MODIFICAR AQUÍ EL PERÍODO DE ANÁLISIS
-# ============================================================================
-
-FECHA_INICIO = datetime(2025, 3, 1)  # Fecha de inicio del período
-FECHA_FIN = datetime(2025, 5, 31)    # Fecha de fin del período
-DIAS_PERIODO = (FECHA_FIN - FECHA_INICIO).days + 1
-
-# ============================================================================
-# CONFIGURACIÓN DE FORMATOS EXCEL
-# ============================================================================
-
-COLORES_RIESGO = {
-    'Bajo': '90EE90',      # Verde claro
-    'Medio': 'FFFF00',     # Amarillo
-    'Alto': 'FFA500',      # Naranja
-    'Crítico': 'FF6B6B',   # Rojo claro
-    'Cero': '90EE90',      # Verde para riesgo cero
-}
-
-COLOR_CABECERA = '008000'
-COLOR_TEXTO_CABECERA = 'FFFFFF'
-
-# ============================================================================
-# TABLA DE ROTACIONES POR FAMILIA
-# ============================================================================
-
-ROTACIONES_FAMILIA = {
-    # Plantas (2 dígitos)
-    '11': ('PLANTAS VERDES', 30),
-    '12': ('ORQUIDEAS', 15),
-    '13': ('PLANTAS DE FLOR', 15),
-    '14': ('FLOR CORTADA', 7),
-    '15': ('CACTUS', 30),
-    '16': ('COMPOSICIONES', 30),
-    '17': ('BONSAIS', 30),
-    
-    # Animales - familias con 4 dígitos (empiezan por 2)
-    '2101': ('ALIMENTACION PAJARO', 60),
-    '2102': ('JAULAS PAJARO', 60),
-    '2103': ('HIGIENE/CUIDADO PAJARO', 60),
-    '2104': ('ANIMAL VIVO PAJARO', 30),
-    '2201': ('ALIMENTACION PEQUEÑOS MAMIFEROS', 60),
-    '2202': ('JAULAS PEQUEÑOS MAMIFEROS', 60),
-    '2203': ('HIGIENE/CUIDADO PEQUEÑOS MAMIFEROS', 60),
-    '2204': ('ANIMAL VIVO PEQUEÑOS MAMIFEROS', 30),
-    '2301': ('ALIMENTACION PERRO', 60),
-    '2302': ('CONFORT PERRO', 60),
-    '2303': ('CORREAS Y COLLARES PERRO', 60),
-    '2304': ('HIGIENE/CUIDADO PERRO', 60),
-    '2305': ('ANIMAL VIVO PERRO', 30),
-    '2401': ('ALIMENTACION GATO', 60),
-    '2402': ('CONFORT GATO', 60),
-    '2403': ('CORREAS Y COLLARES GATO', 60),
-    '2404': ('HIGIENE/CUIDADO GATO', 60),
-    '2405': ('ANIMAL VIVO GATO', 30),
-    '2501': ('ALIMENTACION ANIMALES DE GRANJA', 60),
-    '2502': ('HABITAT / ACCES ANIMALES DE GRANJA', 60),
-    '2503': ('HIGIENE/CUIDADO ANIMALES DE GRANJA', 60),
-    '2504': ('ANIMAL VIVO GRANJA', 30),
-    '2601': ('ALIMENTACION REPTILES', 60),
-    '2602': ('TERRARIO REPTILES', 60),
-    '2603': ('ACCESORIOS REPTILES', 60),
-    '2604': ('DECO INERTE REPTILES', 60),
-    '2605': ('HIGIENE/CUIDADO REPTILES', 60),
-    '2606': ('ANIMAL VIVO REPTILES', 30),
-    '2701': ('ALIMENTACION ACUARIOFILIA', 60),
-    '2702': ('ACUARIOS', 60),
-    '2703': ('ACCESORIOS ACUARIOFILIA', 60),
-    '2704': ('DECO INERTE ACUARIOFILIA', 60),
-    '2705': ('PLANTA ACUATICA DECORACION ACUARIOFILIA', 15),
-    '2706': ('HIGIENE/CUIDADO ACUARIOFILIA', 60),
-    '2707': ('PECES AGUA CALIENTE ACUARIOFILIA', 15),
-    '2708': ('PECES AGUA FRIA ACUARIOFILIA', 15),
-    '2709': ('AGUA OSMOSIS ACUARIOFILIA', 60),
-    '2801': ('ALIMENTACION JARDIN ACUATICO', 60),
-    '2802': ('ACCESORIOS JARDIN ACUATICO', 60),
-    '2803': ('HIGIENE/CUIDADO JARDIN ACUATICO', 60),
-    '2804': ('DECORACION JARDIN ACUATICO', 60),
-    '2805': ('PLANTAS JARDIN ACUATICO', 30),
-    '2806': ('PECES JARDIN ACUATICO', 15),
-    '2906': ('INSECTO VIVO', 15),
-    
-    # Mantenimiento/tratamiento/cuidados (2 dígitos)
-    '31': ('TIERRAS', 90),
-    '32': ('MANTENIMIENTO', 90),
-    '33': ('ABONOS', 90),
-    '34': ('ABONO NATURAL', 90),
-    '35': ('FITOSANITARIOS', 90),
-    '36': ('FITOSANITARIO NATURAL', 90),
-    '37': ('HERBICIDAS', 90),
-    '39': ('ANTI-PLAGAS', 90),
-
-    # Utiles jardin (2 dígitos)
-    '41': ('UTILES JARDIN', 90),
-    '42': ('PODA', 90),
-    '43': ('PULVERIZACION', 90),
-    '44': ('PROTECCION CULTIVO', 90),
-    '45': ('PROTECCION PERSONAL', 90),
-    '46': ('RIEGO', 90),
-    '48': ('OTRAS MAQUINAS MOTOR', 90),
-    '49': ('ACCESS/PIEZAS', 90),
-
-    # Semillas (2 dígitos)
-    '51': ('BULBOS DE FLOR', 60),
-    '53': ('CESPED', 60),
-    '54': ('SEMILLAS', 60),
-
-    # Decoracion casa (2 dígitos)
-    '61': ('DECORACION NAVIDAD', 90),
-    '62': ('DECORACION FLORAL', 90),
-    '63': ('RECIPIENTES', 90),
-    '64': ('DECORACION AMBIENTE', 90),
-    '65': ('LIB/PAP/SON/IMAG.', 90),
-
-    # Planta de temporada (2 dígitos)
-    '71': ('PLANTAS PARA MACIZOS EN BDJA.', 15),
-    '72': ('PLANTAS PARA MACIZOS EN MAC.', 15),
-    '74': ('VIVACES EN MACETA', 15),
-    '75': ('PLANTAS TRADICIONALES', 15),
-    '77': ('PELARGONIUM EN MACETA', 15),
-    '78': ('AROMATICAS', 15),
-    '79': ('FRESALES/HORTICOLAS', 15),
-
-    # Vivero (2 dígitos)
-    '81': ('ARBOLES/ARBUSTOS DECO', 30),
-    '82': ('CONIFERAS', 30),
-    '83': ('ROSALES', 30),
-    '84': ('FRUTALES', 30),
-    '85': ('PLANTAS TIERRA DE BREZO', 30),
-    '86': ('PLANTAS PARA SETOS', 30),
-    '87': ('PLANTAS TREPADORAS', 30),
-    '88': ('PLANTAS CLIMA MEDITERRANEO', 30),
-    '89': ('ABETOS NAVIDAD', 30),
-
-    # Decoracion exterior (2 dígitos)
-    '91': ('MOBILIARIO JARDIN', 90),
-    '92': ('EQUIP. JARDIN', 90),
-    '93': ('AIRE LIBRE', 90),
-    '94': ('MACETERIA/SOPORTES', 90),
-    '95': ('DECORACION', 90),
-    '96': ('COBERTIZOS', 90),
-    '97': ('CERRAMIENTOS/SOMBREO', 90),
-}
-
-# ============================================================================
-# TABLA DE IVA POR FAMILIA (2 dígitos)
-# ============================================================================
-
-IVA_FAMILIA = {
-    # Plantas (IVA 10%)
-    '11': 10,  # PLANTAS VERDES
-    '12': 10,  # ORQUIDEAS
-    '13': 10,  # PLANTAS DE FLOR
-    '14': 10,  # FLOR CORTADA
-    '15': 10,  # CACTUS
-    '16': 10,  # COMPOSICIONES
-    '17': 10,  # BONSAIS
-    '18': 10,  # MUGUET
-    
-    # Mantenimiento/tratamiento/cuidados (IVA 21%)
-    '31': 21,  # TIERRAS
-    '32': 21,  # MANTENIMIENTO
-    '33': 21,  # ABONOS
-    '34': 21,  # ABONO NATURAL
-    '35': 21,  # FITOSANITARIOS
-    '36': 21,  # FITOSANITARIO NATURAL
-    '37': 21,  # HERBICIDAS
-    '38': 21,  # HERBICIDA NATURAL
-    '39': 21,  # ANTI-PLAGAS
-
-    # Utiles jardin (IVA 21%)
-    '41': 21,  # UTILES JARDIN
-    '42': 21,  # PODA
-    '43': 21,  # PULVERIZACION
-    '44': 21,  # PROTECCION CULTIVO
-    '45': 21,  # PROTECCION PERSONAL
-    '46': 21,  # RIEGO
-    '47': 21,  # CORTACESPEDES
-    '48': 21,  # OTRAS MAQUINAS MOTOR
-    '49': 21,  # ACCESS/PIEZAS
-
-    # Semillas (IVA 10%)
-    '51': 10,  # BULBOS DE FLOR
-    '52': 10,  # BULBOS DE HORTICOLAS
-    '53': 10,  # CESPED
-    '54': 10,  # SEMILLAS
-    '55': 10,  # PATATAS
-
-    # Decoracion casa (IVA 21%)
-    '61': 21,  # DECORACION NAVIDAD
-    '62': 21,  # DECORACION FLORAL
-    '63': 21,  # RECIPIENTES
-    '64': 21,  # DECORACION AMBIENTE
-    '65': 21,  # LIB/PAP/SON/IMAG.
-    '66': 21,  # CHIMENEAS
-    '67': 21,  # ALIMENTACION
-
-    # Planta de temporada (IVA 10%)
-    '71': 10,  # PLANTAS PARA MACIZOS EN BDJA.
-    '72': 10,  # PLANTAS PARA MACIZOS EN MAC.
-    '73': 10,  # VIVACES EN BANDEJA
-    '74': 10,  # VIVACES EN MACETA
-    '75': 10,  # PLANTAS TRADICIONALES
-    '76': 10,  # PELARGONIUM EN BANDEJA
-    '77': 10,  # PELARGONIUM EN MACETA
-    '78': 10,  # AROMATICAS
-    '79': 10,  # FRESALES/HORTICOLAS
-
-    # Vivero (IVA 10%)
-    '81': 10,  # ARBOLES/ARBUSTOS DECO
-    '82': 10,  # CONIFERAS
-    '83': 10,  # ROSALES
-    '84': 10,  # FRUTALES
-    '85': 10,  # PLANTAS TIERRA DE BREZO
-    '86': 10,  # PLANTAS PARA SETOS
-    '87': 10,  # PLANTAS TREPADORAS
-    '88': 10,  # PLANTAS CLIMA MEDITERRANEO
-    '89': 10,  # ABETOS NAVIDAD
-
-    # Decoracion exterior (IVA 21%)
-    '91': 21,  # MOBILIARIO JARDIN
-    '92': 21,  # EQUIP. JARDIN
-    '93': 21,  # AIRE LIBRE
-    '94': 21,  # MACETERIA/SOPORTES
-    '95': 21,  # DECORACION
-    '96': 21,  # COBERTIZOS
-    '97': 21,  # CERRAMIENTOS/SOMBREO
-}
-
-# ============================================================================
-# TABLA DE IVA POR SUBFAMILIA (4 dígitos, empiezan por 2)
-# ============================================================================
-
-IVA_SUBFAMILIA = {
-    # Familia 21 - MUGUET
-    '2101': 10,  # ALIMENTACION
-    '2102': 21,  # JAULAS
-    '2103': 21,  # HIGIENE/CUIDADO
-    '2104': 21,  # ANIMAL VIVO
-
-    # Familia 22 - PEQUEÑOS MAMÍFEROS
-    '2201': 10,  # ALIMENTACION
-    '2202': 21,  # JAULAS
-    '2203': 21,  # HIGIENE/CUIDADO
-    '2204': 21,  # ANIMAL VIVO
-
-    # Familia 23 - PERROS
-    '2301': 10,  # ALIMENTACION
-    '2302': 21,  # CONFORT
-    '2303': 21,  # CORREAS Y COLLARES
-    '2304': 21,  # HIGIENE/CUIDADO
-    '2305': 21,  # ANIMAL VIVO PERRO
-    '2306': 21,  # PELUQUERIA
-
-    # Familia 24 - GATOS
-    '2401': 10,  # ALIMENTACION
-    '2402': 21,  # CONFORT
-    '2403': 21,  # CORREAS Y COLLARES
-    '2404': 21,  # HIGIENE/CUIDADO
-    '2405': 21,  # ANIMAL VIVO GATO
-
-    # Familia 25 - ANIMALES DE GRANJA
-    '2501': 10,  # ALIMENTACION
-    '2502': 21,  # HABITAT / ACCES
-    '2503': 21,  # HIGIENE/CUIDADO
-    '2504': 21,  # ANIMAL VIVO GRANJA
-
-    # Familia 26 - REPTILES
-    '2601': 10,  # ALIMENTACION
-    '2602': 21,  # TERRARIO
-    '2603': 21,  # ACCESORIOS
-    '2604': 21,  # DECO INERTE
-    '2605': 21,  # HIGIENE/CUIDADO
-    '2606': 21,  # ANIMAL VIVO REPTILES
-
-    # Familia 27 - ACUARIOFILIA
-    '2701': 10,  # ALIMENTACION
-    '2702': 21,  # ACUARIOS
-    '2703': 21,  # ACCESORIOS
-    '2704': 21,  # DECO INERTE
-    '2705': 10,  # PLANTA ACUATICA DECORACION
-    '2706': 21,  # HIGIENE/CUIDADO
-    '2707': 21,  # PECES AGUA CALIENTE
-    '2708': 21,  # PECES AGUA FRIA
-    '2709': 21,  # AGUA OSMOSIS
-
-    # Familia 28 - JARDÍN ACUÁTICO
-    '2801': 10,  # ALIMENTACION
-    '2802': 21,  # ACCESORIOS
-    '2803': 21,  # HIGIENE/CUIDADO
-    '2804': 21,  # DECORACION
-    '2805': 10,  # PLANTAS
-    '2806': 21,  # PECES
-
-    # Familia 29 - JARDÍN ACUÁTICO
-    '2906': 21,  # INSECTO VIVO
-}
-
-# ============================================================================
-# TABLA DE ENCARGADOS POR SECCIÓN (HARDCODED - SIN VINCULACIÓN A EXCEL)
-# ============================================================================
-
-# Datos extraídos de encargados.xlsx - Mapeo de secciones a encargados y sus emails
-ENCARGADOS = {
-    'interior': {
-        'nombre': 'Iris',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'mascotas_manufacturado': {
-        'nombre': 'María',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'mascotas_vivo': {
-        'nombre': 'María',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'deco_exterior': {
-        'nombre': 'Pablo',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'tierras_aridos': {
-        'nombre': 'Pablo',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'fitos': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'semillas': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'utiles_jardin': {
-        'nombre': 'Ivan',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'deco_interior': {
-        'nombre': 'Rocío',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'maf': {
-        'nombre': 'Jose',
-        'email': 'ivan.delgado@viveverde.es'
-    },
-    'vivero': {
-        'nombre': 'Jose',
-        'email': 'ivan.delgado@viveverde.es'
-    }
-}
-
-# Configuración del servidor SMTP
-SMTP_CONFIG = {
-    'servidor': 'smtp.serviciodecorreo.es',
-    'puerto': 465,
-    'remitente_email': 'ivan.delgado@viveverde.es',
-    'remitente_nombre': 'Sistema de Pedidos automáticos VIVEVERDE'
-}
+# Configuración de formatos Excel
+COLORES_RIESGO = ABC_CONFIG['colores_riesgo']
+COLOR_CABECERA = ABC_CONFIG['color_cabecera']
+COLOR_TEXTO_CABECERA = ABC_CONFIG['color_texto_cabecera']
 
 # ============================================================================
 # FUNCIÓN PARA ENVIAR EMAIL CON ARCHIVO ADJUNTO
@@ -631,7 +245,6 @@ def determinar_seccion(codigo_articulo):
     
     # 1. Verificar códigos de mascotas vivos (primero, tienen prioridad)
     # Los códigos de mascotas vivos son códigos de 4 dígitos (2104, 2204, etc.)
-    #，所以我们需要检查代码的前4位是否在这个列表中
     if codigo_str.startswith('2') and codigo_str[:4] in CODIGOS_MASCOTAS_VIVO:
         return 'mascotas_vivo'
     
@@ -675,7 +288,8 @@ def determinar_seccion(codigo_articulo):
 # FUNCIÓN PARA PROCESAR UNA SECCIÓN ESPECÍFICA
 # ============================================================================
 
-def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, seccion_info):
+def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, seccion_info, 
+                     FECHA_INICIO, FECHA_FIN, DIAS_PERIODO):
     """
     Procesa los datos de una sección específica y genera su archivo Excel.
     
@@ -686,6 +300,9 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
         coste_df: DataFrame de costes
         nombre_seccion: Nombre de la sección a procesar
         seccion_info: Información de la sección (diccionario con descripción)
+        FECHA_INICIO: Fecha de inicio del período (calculada automáticamente)
+        FECHA_FIN: Fecha de fin del período (calculada automáticamente)
+        DIAS_PERIODO: Número de días del período
     
     Returns:
         dict: Estadísticas del procesamiento o None si no hay datos
@@ -1078,8 +695,8 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
         '23': "LIQUIDAR Y DESCATALOGAR: Aplicar descuento [descuento]% para agotar stock. NO recomprar próxima temporada. Producto sin demanda suficiente.",
         '24': "COMPRAS CONSERVADORAS: Aplicar descuento [descuento]% al stock actual. Reducir compras 50% próxima temporada. Demanda limitada confirmada.",
         '25': "AUMENTAR STOCK: Producto de alto interés. Incrementar compras 30% próxima temporada. Stock actual: [unidades] unidades. Alta rotación confirmada.",
-        '26A': "URGENTE - RUPTURA DE STOCK: Producto de alta demanda agotado. Recompra inmediata prioritaria. Aumentar compras 50%. Stock objetivo: [unidades] unidades.",
-        '26B': "RECOMPRA PRIORITARIA: Producto agotado con demanda reciente. Aumentar compras 30%. Stock objetivo: [unidades] unidades. Monitorear demanda.",
+        '26A': "URGENTE - RUPTURA DE STOCK: Producto de alta demanda agotado. Recompra inmediata prioritaria. Aumentar compras 50%. Stock objetivo: [unidades] unidades. Pérdida de ventas estimada.",
+        '26B': "RECOMPRA PRIORITARIA: Producto agotado con demanda reciente. Aumentar compras 30%. Stock objetivo: [unidades] unidades. Monitorear demanda próximas semanas.",
         '26C': "RECOMPRA MODERADA: Stock agotado con rotación moderada. Mantener nivel de compras anterior. Stock objetivo: [unidades] unidades. Demanda estable.",
         '26D': "RECOMPRA CONSERVADORA: Producto agotado de baja rotación. Reducir compras 40% próxima temporada. Stock objetivo mínimo: [unidades] unidades.",
     }
@@ -1148,7 +765,9 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # GUARDAR ARCHIVO EXCEL
     # =========================================================================
     
-    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}.xlsx"
+    # Generar nombre de archivo con período
+    periodo_str = f"{FECHA_INICIO.strftime('%Y%m%d')}-{FECHA_FIN.strftime('%Y%m%d')}"
+    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}_{periodo_str}.xlsx"
     
     with pd.ExcelWriter(nombre_archivo, engine='openpyxl') as writer:
         df_categoria_a.to_excel(writer, sheet_name='CATEGORIA A – BASICOS', index=False)
@@ -1240,6 +859,11 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # Enviar email con el archivo adjunto
     email_enviado = enviar_email_clasificacion(nombre_seccion, nombre_archivo, periodo_str)
     
+    if email_enviado:
+        print(f"  ✓ Email enviado correctamente a {ENCARGADOS.get(nombre_seccion.lower(), {}).get('nombre', nombre_seccion)}")
+    else:
+        print(f"  ✗ No se pudo enviar el email a {ENCARGADOS.get(nombre_seccion.lower(), {}).get('nombre', nombre_seccion)}")
+    
     # Retornar estadísticas
     return {
         'seccion': nombre_seccion,
@@ -1299,11 +923,6 @@ Secciones disponibles:
     else:
         print(f"\nMODO: Multi-sección (todas las secciones)")
     
-    print(f"\nPeríodo configurado:")
-    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
-    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
-    print(f"   Días: {DIAS_PERIODO}")
-    
     # =========================================================================
     # CARGA DE DATOS DESDE ARCHIVOS SEPARADOS
     # =========================================================================
@@ -1328,6 +947,22 @@ Secciones disponibles:
     print(f"VENTAS: {len(ventas_df)} registros cargados")
     print(f"STOCK: {len(stock_df)} registros cargados")
     print(f"COSTE: {len(coste_df)} registros cargados")
+    
+    # =========================================================================
+    # CÁLCULO AUTOMÁTICO DEL PERÍODO DESDE VENTAS
+    # =========================================================================
+    
+    # Calcular automáticamente las fechas mínima y máxima del archivo de ventas
+    print("\n" + "=" * 80)
+    print("FASE 1A: CÁLCULO AUTOMÁTICO DEL PERÍODO DE ANÁLISIS")
+    print("=" * 80)
+    
+    FECHA_INICIO, FECHA_FIN, DIAS_PERIODO = calcular_periodo_ventas(ventas_df)
+    
+    print(f"\nPeríodo calculado automáticamente desde Ventas.xlsx:")
+    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
+    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
+    print(f"   Días: {DIAS_PERIODO}")
     
     # Filtrar filas con Artículo vacío en Compras
     filas_antes = len(compras_df)
@@ -1553,7 +1188,8 @@ Secciones disponibles:
     for nombre_seccion, seccion_info in secciones_a_procesar:
         resultado = procesar_seccion(
             compras_df, ventas_df, stock_df, coste_df,
-            nombre_seccion, seccion_info
+            nombre_seccion, seccion_info,
+            FECHA_INICIO, FECHA_FIN, DIAS_PERIODO
         )
         
         if resultado:
