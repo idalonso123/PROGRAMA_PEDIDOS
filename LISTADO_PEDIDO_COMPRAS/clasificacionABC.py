@@ -1020,7 +1020,7 @@ Secciones disponibles:
     try:
         compras_df = pd.read_excel('data/input/compras.xlsx')
         ventas_df = pd.read_excel('data/input/Ventas.xlsx')
-        stock_df = pd.read_excel('data/input/stock.xlsx')
+        stock_df = pd.read_excel('data/input/Stock.xlsx')
         coste_df = pd.read_excel('data/input/Coste.xlsx')
         
         # Aplicar renombrado flexible de columnas para el archivo Coste.xlsx

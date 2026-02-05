@@ -94,6 +94,59 @@ class DataLoader:
         
         return texto
     
+    def buscar_columna_normalizada(self, df: pd.DataFrame, nombre_columna: str) -> Optional[str]:
+        """
+        Busca una columna en el DataFrame ignorando mayúsculas/minúsculas y acentos.
+        
+        Args:
+            df (pd.DataFrame): DataFrame donde buscar
+            nombre_columna (str): Nombre de la columna a buscar
+        
+        Returns:
+            Optional[str]: Nombre de la columna encontrada o None si no existe
+        """
+        nombre_normalizado = self.normalizar_texto(nombre_columna)
+        
+        for col in df.columns:
+            if self.normalizar_texto(col) == nombre_normalizado:
+                return col
+        
+        return None
+    
+    def renombrar_columnas_flexible(self, df: pd.DataFrame, mapeo: dict) -> Tuple[pd.DataFrame, dict]:
+        """
+        Renombra las columnas de un DataFrame usando un mapeo flexible.
+        
+        Args:
+            df (pd.DataFrame): DataFrame a modificar
+            mapeo (dict): Diccionario con nombres nuevos como clave y lista de nombres posibles como valor
+        
+        Returns:
+            Tuple[pd.DataFrame, dict]: (DataFrame con columnas renombradas, diccionario de renombrados)
+        """
+        df = df.copy()
+        renombrados = {}
+        
+        for nombre_nuevo, nombres_posibles in mapeo.items():
+            # Primero buscar coincidencia exacta (case-insensitive y sin acentos)
+            for col in df.columns:
+                if self.normalizar_texto(col) == self.normalizar_texto(nombre_nuevo):
+                    renombrados[col] = nombre_nuevo
+                    break
+            else:
+                # Si no se encuentra, buscar entre los nombres posibles
+                for nombre_buscar in nombres_posibles:
+                    col_encontrada = self.buscar_columna_normalizada(df, nombre_buscar)
+                    if col_encontrada:
+                        renombrados[col_encontrada] = nombre_nuevo
+                        break
+        
+        # Aplicar renombrados
+        if renombrados:
+            df = df.rename(columns=renombrados)
+        
+        return df, renombrados
+    
     def contiene_texto(self, texto_buscar: str, texto_comparar: str) -> bool:
         """
         Compara si texto_buscar está contenido en texto_comparar.
@@ -344,9 +397,26 @@ class DataLoader:
 
         df = df.copy()
 
-        # Normalizar columna de código
-        if 'Codigo' in df.columns:
-            df['Codigo'] = df['Codigo'].astype(str).str.strip()
+        # Mapeo de columnas para archivo Coste.xlsx (nombres nuevos y antiguos)
+        MAPEO_COLUMNAS_COSTE = {
+            'Artículo': ['Codigo', 'codigo', 'CODIGO', 'Código', 'codigó', 'CODIGÓ', 'Articulo', 'articulo', 'ARTICULO', 'Artículo', 'artículo', 'ARTÍCULO'],
+            'Talla': ['Talla', 'talla', 'TALLA'],
+            'Color': ['Color', 'color', 'COLOR'],
+            'Coste': ['Coste', 'coste', 'COSTE', 'Costo', 'costo', 'COSTO'],
+        }
+        
+        # Renombrar columnas flexiblemente
+        df, columnas_renombradas = self.renombrar_columnas_flexible(df, MAPEO_COLUMNAS_COSTE)
+        if columnas_renombradas:
+            logger.debug(f"COSTE: Columnas renombradas automáticamente: {columnas_renombradas}")
+
+        # Verificar que la columna esencial exista después del renombrado
+        if 'Artículo' not in df.columns:
+            logger.error(f"Columna 'Artículo' no encontrada en Coste.xlsx. Columnas disponibles: {list(df.columns)}")
+            return None
+
+        # Normalizar columna de código usando el nuevo nombre 'Artículo'
+        df['Codigo'] = df['Artículo'].astype(str).str.strip()
 
         # Crear clave única para matching
         df['Clave'] = (df['Codigo'] + '|' +
@@ -623,7 +693,14 @@ class DataLoader:
         # Esto es independiente del resto de columnas y no afecta a PVP ni Coste
         if proveedor == '' or pd.isna(proveedor):
             # Buscar todos los artículos con el mismo código
-            match_proveedor = coste_df[coste_df['Codigo'].astype(str) == str(codigo).strip()]
+            # Usar 'Artículo' que es el nombre renombrado de 'Codigo'
+            columna_articulo = self.buscar_columna_normalizada(coste_df, 'Artículo')
+            if columna_articulo:
+                match_proveedor = coste_df[coste_df[columna_articulo].astype(str) == str(codigo).strip()]
+            else:
+                # Fallback a 'Codigo' si no se encuentra 'Artículo'
+                match_proveedor = coste_df[coste_df['Codigo'].astype(str) == str(codigo).strip()]
+            
             if len(match_proveedor) > 0:
                 # Buscar la columna del proveedor
                 columnas_normalizadas = [self.normalizar_texto(col) for col in match_proveedor.columns]
