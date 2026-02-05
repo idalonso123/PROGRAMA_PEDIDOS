@@ -2029,6 +2029,24 @@
             "importe": 48127.3,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-05T20:16:17.551071",
+            "archivo_generado": "Sin archivo",
+            "num_articulos": 0,
+            "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-05T20:17:58.358185",
+            "archivo_generado": "Sin archivo",
+            "num_articulos": 0,
+            "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
         }
     ],
     "pedidos_generados": [
@@ -2223,10 +2241,22 @@
             "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-05_maf.xlsx",
             "fecha": "2026-02-05",
             "importe": 48127.3
+        },
+        {
+            "semana": 14,
+            "archivo": "Sin archivo",
+            "fecha": "2026-02-05",
+            "importe": 0.0
+        },
+        {
+            "semana": 14,
+            "archivo": "Sin archivo",
+            "fecha": "2026-02-05",
+            "importe": 0.0
         }
     ],
     "metricas": {
-        "total_ejecuciones": 32,
+        "total_ejecuciones": 34,
         "total_articulos_procesados": 44004,
         "total_importe_pedidos": 1380600.4000000004,
         "ultima_semana_procesada_exitosamente": 14

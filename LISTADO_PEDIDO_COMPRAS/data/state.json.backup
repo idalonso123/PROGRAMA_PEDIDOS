@@ -3,7 +3,7 @@
         "version": "2.0.0",
         "fecha_creacion": "2026-01-31T00:00:00",
         "ultima_actualizacion": null,
-        "ultima_ejecucion_exitosa": "2026-02-05T03:08:19.667136",
+        "ultima_ejecucion_exitosa": "2026-02-05T03:19:21.734496",
         "ultima_semana_procesada": 14,
         "año_en_curso": 2026
     },
@@ -2020,6 +2020,24 @@
             "importe": 48039.82,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-05T03:19:21.734448",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-05_maf.xlsx",
+            "num_articulos": 1511,
+            "importe": 48127.3,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-05T20:16:17.551071",
+            "archivo_generado": "Sin archivo",
+            "num_articulos": 0,
+            "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
         }
     ],
     "pedidos_generados": [
@@ -2208,12 +2226,24 @@
             "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-05_maf.xlsx",
             "fecha": "2026-02-05",
             "importe": 48039.82
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-05_maf.xlsx",
+            "fecha": "2026-02-05",
+            "importe": 48127.3
+        },
+        {
+            "semana": 14,
+            "archivo": "Sin archivo",
+            "fecha": "2026-02-05",
+            "importe": 0.0
         }
     ],
     "metricas": {
-        "total_ejecuciones": 31,
-        "total_articulos_procesados": 42493,
-        "total_importe_pedidos": 1332473.1000000003,
+        "total_ejecuciones": 33,
+        "total_articulos_procesados": 44004,
+        "total_importe_pedidos": 1380600.4000000004,
         "ultima_semana_procesada_exitosamente": 14
     },
     "errores_pendientes": [],

@@ -65,6 +65,92 @@ from config_loader import (
 warnings.filterwarnings('ignore')
 
 # ============================================================================
+# FUNCIONES DE NORMALIZACIÓN PARA BÚSQUEDA FLEXIBLE DE COLUMNAS
+# ============================================================================
+
+import unicodedata
+
+def normalizar_texto(texto):
+    """
+    Normaliza un texto eliminando acentos y convirtiéndolo a minúsculas.
+    
+    Args:
+        texto: String a normalizar
+    
+    Returns:
+        str: Texto normalizado (sin acentos y en minúsculas)
+    """
+    if pd.isna(texto):
+        return ''
+    # Eliminar acentos usando unicodedata
+    texto_normalizado = unicodedata.normalize('NFD', str(texto))
+    texto_sin_acentos = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn')
+    return texto_sin_acentos.lower().strip()
+
+def buscar_columna_normalizada(df, nombre_columna):
+    """
+    Busca una columna en el DataFrame ignorando mayúsculas/minúsculas y acentos.
+    
+    Args:
+        df: DataFrame donde buscar
+        nombre_columna: Nombre de la columna a buscar
+    
+    Returns:
+        str: Nombre de la columna encontrada o None si no existe
+    """
+    nombre_normalizado = normalizar_texto(nombre_columna)
+    
+    for col in df.columns:
+        if normalizar_texto(col) == nombre_normalizado:
+            return col
+    
+    return None
+
+# Mapeo de nombres de columnas antiguas a nuevas para el archivo Coste.xlsx
+# Formato: nombre_nuevo: [nombres_posibles_antiguos]
+MAPEO_COLUMNAS_COSTE = {
+    'Artículo': ['Codigo', 'codigo', 'CODIGO', 'Código', 'codigó', 'CODIGÓ', 'Articulo', 'articulo', 'ARTICULO', 'Artículo', 'artículo', 'ARTÍCULO'],
+    'Talla': ['Talla', 'talla', 'TALLA'],
+    'Color': ['Color', 'color', 'COLOR'],
+    'Coste': ['Coste', 'coste', 'COSTE', 'Costo', 'costo', 'COSTO', 'Precio coste', 'precio coste', 'PRECIO COSTE', 'PrecioCoste', 'preciocoste'],
+    'Últ. Compra': ['Fecha ultcom', 'fecha ultcom', 'FECHA ULTCOM', 'Fecha Ult Compra', 'fecha ult compra', 'FECHA ULT COMPRA', 'Fecha última compra', 'fecha última compra', 'Fecha ultima compra', 'fecha ultima compra', 'FechaUltCompra', 'fechaultcompra', 'FECHAULTCOMPRA', 'Ult. Compra', 'ult. compra', 'ULT. COMPRA', 'Ult Compra', 'ult compra', 'ULT COMPRA']
+}
+
+def renombrar_columnas_flexible(df, mapeo):
+    """
+    Renombra las columnas de un DataFrame usando un mapeo flexible.
+    
+    Args:
+        df: DataFrame a modificar
+        mapeo: Diccionario con nombres nuevos como clave y lista de nombres posibles como valor
+    
+    Returns:
+        DataFrame: DataFrame con columnas renombradas
+    """
+    df = df.copy()
+    renombrados = {}
+    
+    for nombre_nuevo, nombres_posibles in mapeo.items():
+        # Primero buscar coincidencia exacta (case-insensitive y sin acentos)
+        for col in df.columns:
+            if normalizar_texto(col) == normalizar_texto(nombre_nuevo):
+                renombrados[col] = nombre_nuevo
+                break
+        else:
+            # Si no se encuentra, buscar entre los nombres posibles
+            for nombre_buscar in nombres_posibles:
+                col_encontrada = buscar_columna_normalizada(df, nombre_buscar)
+                if col_encontrada:
+                    renombrados[col_encontrada] = nombre_nuevo
+                    break
+    
+    # Aplicar renombrados
+    if renombrados:
+        df = df.rename(columns=renombrados)
+    
+    return df, renombrados
+
+# ============================================================================
 # CARGA DE CONFIGURACIÓN DESDE EL SISTEMA CENTRALIZADO
 # ============================================================================
 
@@ -936,6 +1022,20 @@ Secciones disponibles:
         ventas_df = pd.read_excel('data/input/Ventas.xlsx')
         stock_df = pd.read_excel('data/input/stock.xlsx')
         coste_df = pd.read_excel('data/input/Coste.xlsx')
+        
+        # Aplicar renombrado flexible de columnas para el archivo Coste.xlsx
+        coste_df, columnas_renombradas = renombrar_columnas_flexible(coste_df, MAPEO_COLUMNAS_COSTE)
+        if columnas_renombradas:
+            print(f"COSTE: Columnas renombradas automáticamente: {columnas_renombradas}")
+        
+        # Verificar que las columnas esenciales existan después del renombrado
+        columnas_esenciales = ['Artículo', 'Talla', 'Color', 'Coste']
+        columnas_faltantes = [col for col in columnas_esenciales if col not in coste_df.columns]
+        if columnas_faltantes:
+            print(f"ERROR: Faltan columnas esenciales en Coste.xlsx después del renombrado: {columnas_faltantes}")
+            print(f"Columnas disponibles en Coste.xlsx: {list(coste_df.columns)}")
+            sys.exit(1)
+            
     except FileNotFoundError as e:
         print(f"ERROR: No se encontró el archivo: {e.filename}")
         sys.exit(1)
@@ -994,8 +1094,23 @@ Secciones disponibles:
     print(f"VENTAS: {filas_ventas_total} filas totales → {len(ventas_df)} filas de Detalle")
     
     # Normalizar claves de unión en Coste
-    coste_df_sorted = coste_df.sort_values('Fecha ultcom', ascending=False)
-    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Codigo', 'Talla', 'Color'], keep='first').copy()
+    # Usar la columna 'Últ. Compra' si existe, si no usar cualquier columna de fecha disponible
+    columna_fecha = buscar_columna_normalizada(coste_df, 'Últ. Compra')
+    if columna_fecha:
+        coste_df_sorted = coste_df.sort_values(columna_fecha, ascending=False)
+    else:
+        # Buscar cualquier columna que parezca una fecha
+        for col in coste_df.columns:
+            if 'fecha' in normalizar_texto(col) or 'date' in normalizar_texto(col).lower():
+                print(f"  AVISO: Usando columna '{col}' como fecha de última compra")
+                coste_df_sorted = coste_df.sort_values(col, ascending=False)
+                break
+        else:
+            # Si no hay columna de fecha, no ordenar
+            coste_df_sorted = coste_df.copy()
+    
+    # Usar las nuevas columnas renombradas: Artículo, Talla, Color
+    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Artículo', 'Talla', 'Color'], keep='first').copy()
     
     def normalize_keys(df):
         df = df.copy()
@@ -1005,9 +1120,10 @@ Secciones disponibles:
         return df
     
     def normalize_keys_coste(df):
-        """Normalizar claves para el archivo Coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
+        """Normalizar claves para el archivo Coste.xlsx (usa 'Artículo' en lugar de 'Codigo')"""
         df = df.copy()
-        df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
+        # Usar la columna 'Artículo' que ya fue renombrada del original 'Codigo'
+        df['Artículo'] = df['Artículo'].astype(str).str.replace(r'\.0$', '', regex=True)
         df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()
         df['Color'] = df['Color'].fillna('').astype(str).str.strip()
         return df
