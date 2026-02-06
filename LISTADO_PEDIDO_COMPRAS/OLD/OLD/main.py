@@ -218,7 +218,7 @@ def generar_archivo_pedido_corregido(
         if fecha_lunes < datetime.now():
             fecha_lunes = datetime.now()
         
-        fecha_lunes_str = fecha_lunes.strftime('%Y-%m-%d')
+        fecha_lunes_str = fecha_lunes.strftime('%d%m%Y')
         
         dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
         nombre_archivo = f"Pedido_Semana_{semana}_{fecha_lunes_str}_{seccion}_CORREGIDO.xlsx"

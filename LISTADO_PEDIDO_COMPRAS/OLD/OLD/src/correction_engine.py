@@ -440,12 +440,6 @@ class CorrectionEngine:
         )
         
         # ================================================================
-        # PRESERVAR Tendencia_Consumo del forecast_engine
-        # Si ya existe Tendencia_Consumo, la preservamos y la agregamos al final
-        # ================================================================
-        tiene_tendencia_existente = 'Tendencia_Consumo' in df.columns
-        
-        # ================================================================
         # NUEVA VARIABLE: Detección de Tendencia de Aumento de Ventas
         # Esta es la ÚLTIMA variable a aplicar, después de todas las demás
         # ================================================================
@@ -455,19 +449,6 @@ class CorrectionEngine:
             columna_ventas_reales=columna_ventas_reales,
             columna_ventas_objetivo=columna_ventas_objetivo
         )
-        # ================================================================
-        
-        # ================================================================
-        # AGREGAR Tendencia_Consumo preservada al Pedido_Final
-        # El Pedido_Final final debe incluir tanto:
-        # - Incremento_Tendencia (del correction_engine)
-        # - Tendencia_Consumo (del forecast_engine)
-        # ================================================================
-        if tiene_tendencia_existente:
-            df['Pedido_Final'] = df['Pedido_Corregido'] + df['Tendencia_Consumo']
-            logger.info(f"Tendencia_Consumo preservada y agregada al Pedido_Final")
-        else:
-            df['Pedido_Final'] = df['Pedido_Corregido']
         # ================================================================
         
         # Calcular métricas de corrección
