@@ -3,7 +3,7 @@
         "version": "2.0.0",
         "fecha_creacion": "2026-01-31T00:00:00",
         "ultima_actualizacion": null,
-        "ultima_ejecucion_exitosa": "2026-02-04T19:51:01.991022",
+        "ultima_ejecucion_exitosa": "2026-02-04T21:11:01.212468",
         "ultima_semana_procesada": 14,
         "año_en_curso": 2026
     },
@@ -171,7 +171,7 @@
         "7401250005|M14A25   |UNICO   ": 1,
         "7202250000|M13A25   |UNICO   ": 1,
         "7703050004|M13A25   |UNICO   ": 0,
-        "7905120007|PACK6    |UNICO   ": 1,
+        "7905120007|PACK6    |UNICO   ": 0,
         "7201220001|C17A35   |UNICO   ": 1,
         "7401070000|1I6LA20  |UNICO   ": 0,
         "7204160000|1I6LA20  |UNICO   ": 3,
@@ -219,7 +219,7 @@
         "7201330001|3I6LA20  |UNICO   ": 3,
         "7401740023|T22A30   |UNICO   ": 0,
         "7804230001|5LA25    |UNICO   ": 1,
-        "7203350001|5LA30    |UNICO   ": 0,
+        "7203350001|5LA30    |UNICO   ": 1,
         "7401740032|C17A25   |UNICO   ": 1,
         "7805020003|5LA30    |UNICO   ": 1,
         "7201080000|T25A20   |UNICO   ": 1,
@@ -897,7 +897,7 @@
         "2101030004|1KG      |UNICO   ": 1,
         "2301090077|MENSUAL  |UNICO   ": 1,
         "2201010017|         |        ": 1,
-        "2202050005|         |        ": 0,
+        "2202050005|         |        ": 1,
         "2703030034|         |        ": 0,
         "2404030021|10L      |UNICO   ": 1,
         "2302030032|25CM     |UNICO   ": 1,
@@ -1975,6 +1975,15 @@
             "importe": 48113.87,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T21:11:01.212420",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
         }
     ],
     "pedidos_generados": [
@@ -2133,12 +2142,18 @@
             "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
             "fecha": "2026-02-04",
             "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
         }
     ],
     "metricas": {
-        "total_ejecuciones": 26,
-        "total_articulos_procesados": 34347,
-        "total_importe_pedidos": 1092131.04,
+        "total_ejecuciones": 27,
+        "total_articulos_procesados": 35857,
+        "total_importe_pedidos": 1140244.9100000001,
         "ultima_semana_procesada_exitosamente": 14
     },
     "errores_pendientes": [],
