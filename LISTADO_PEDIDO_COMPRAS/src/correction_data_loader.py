@@ -4,7 +4,7 @@ Módulo CorrectionDataLoader - Carga de datos de corrección para FASE 2
 
 Este módulo extiende el DataLoader existente para leer el archivo de stock
 actual que alimenta el sistema de corrección de pedidos:
-- Stock_actual.xlsx: Inventario disponible al momento del cálculo
+- SPA_stock_actual.xlsx: Inventario disponible al momento del cálculo
 
 La integración de estos datos permite ajustar las proyecciones teóricas de la
 FASE 1 contra la realidad operativa del almacén, corrigiendo el pedido generado
@@ -157,7 +157,7 @@ class CorrectionDataLoader:
     
     def leer_stock_actual(self, semana: Optional[int] = None) -> Optional[pd.DataFrame]:
         """
-        Lee el archivo de stock actual (Stock_actual.xlsx).
+        Lee el archivo de stock actual (SPA_stock_actual.xlsx).
         
         Este archivo contiene el inventario disponible al momento del cálculo,
         incluyendo código de artículo, nombre, talla, color, unidades en stock,
@@ -169,7 +169,7 @@ class CorrectionDataLoader:
         Returns:
             Optional[pd.DataFrame]: DataFrame con el stock actual o None si hay error
         """
-        nombre_base = self.correction_files.get('stock_actual', 'Stock_actual.xlsx')
+        nombre_base = self.correction_files.get('stock_actual', 'SPA_stock_actual.xlsx')
         
         # Si se especifica semana, buscar con patrón de semana
         if semana:
@@ -387,7 +387,7 @@ if __name__ == "__main__":
             'directorio_entrada': './data/input'
         },
         'archivos_correccion': {
-            'stock_actual': 'Stock_actual.xlsx'
+            'stock_actual': 'SPA_stock_actual.xlsx'
         }
     }
     

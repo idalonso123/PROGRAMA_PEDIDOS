@@ -4,7 +4,7 @@
 PRESENTACION.py
 Script para generar presentaciones HTML del análisis ABC+D de Vivero Aranjuez.
 Versión CORREGIDA: Lee SOLO los archivos de clasificación ABC+D y genera presentaciones por sección.
-NO utiliza los archivos individuales (Ventas.xlsx, stock.xlsx, compras.xlsx).
+NO utiliza los archivos individuales (SPA_ventas.xlsx, SPA_stock.xlsx, SPA_compras.xlsx).
 Envía automáticamente un email con todas las presentaciones generadas a Ivan.
 """
 

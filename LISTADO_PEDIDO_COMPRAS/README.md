@@ -116,8 +116,8 @@ python main.py --verbose
 
 Los siguientes archivos deben estar en el directorio `data/input/`:
 
-- **Ventas.xlsx**: Histórico de ventas por artículo
-- **Coste.xlsx**: Costes, precios y proveedores
+- **SPA_ventas.xlsx**: Histórico de ventas por artículo
+- **SPA_coste.xlsx**: Costes, precios y proveedores
 - **CLASIFICACION_ABC+D_*.xlsx**: Clasificación y acciones por categoría
 
 ## Archivos de Salida

@@ -12,7 +12,7 @@ FÓRMULA PRINCIPAL (satisface todos los 54 escenarios):
 Donde:
     - Pedido_Generado: Resultado del algoritmo de predicción (FASE 1)
     - Stock_Mínimo: Definido por la clasificación ABC (Safety Stock)
-    - Stock_Real: Dato físico proveniente del archivo Stock_actual.xlsx
+    - Stock_Real: Dato físico proveniente del archivo SPA_stock_actual.xlsx
     - max(0, ...): Función de corrección para evitar pedidos negativos
 
 Autor: Sistema de Pedidos Vivero V2 - FASE 2

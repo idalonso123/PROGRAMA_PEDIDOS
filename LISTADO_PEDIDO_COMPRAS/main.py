@@ -81,9 +81,9 @@ def verificar_archivos_correccion(config: Dict[str, Any], semana: int) -> Dict[s
     disponibilidad = {'stock': False, 'ventas': False, 'compras': False}
     
     patrones = {
-        'stock': ['Stock_actual.xlsx', f'Stock_semana_{semana}.xlsx'],
-        'ventas': [f'Ventas_semana_{semana}.xlsx', f'Ventas_Semana_{semana}.xlsx', 'Ventas_semana.xlsx'],
-        'compras': [f'Compras_semana_{semana}.xlsx', f'Compras_Semana_{semana}.xlsx', 'Compras_semana.xlsx']
+        'stock': ['SPA_stock_actual.xlsx', f'SPA_stock_semana_{semana}.xlsx'],
+        'ventas': [f'SPA_ventas_semana_{semana}.xlsx', f'SPA_ventas_Semana_{semana}.xlsx', 'SPA_ventas_semana.xlsx'],
+        'compras': [f'SPA_compras_semana_{semana}.xlsx', f'SPA_compras_Semana_{semana}.xlsx', 'SPA_compras_semana.xlsx']
     }
     
     for tipo, patrones_archivo in patrones.items():

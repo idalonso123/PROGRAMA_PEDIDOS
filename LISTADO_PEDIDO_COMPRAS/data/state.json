@@ -1,15 +1,15 @@
 {
     "informacion_sistema": {
         "version": "2.0.0",
-        "fecha_creacion": "2026-02-06T17:38:41.695461",
+        "fecha_creacion": "2026-01-31T00:00:00",
         "ultima_actualizacion": null,
-        "ultima_ejecucion_exitosa": "2026-02-06T21:40:59.104965",
+        "ultima_ejecucion_exitosa": "2026-02-06T22:42:53.236480",
         "ultima_semana_procesada": 14,
         "año_en_curso": 2026
     },
     "configuracion_actual": {
-        "semana_inicio_periodo": null,
-        "semana_fin_periodo": null,
+        "semana_inicio_periodo": 10,
+        "semana_fin_periodo": 22,
         "secciones_procesando": []
     },
     "stock_acumulado": {
@@ -1744,106 +1744,268 @@
     "historico_ejecuciones": [
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T17:39:59.124506",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T18:52:22.837023",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T19:32:21.485038",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:02:05.412139",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:11:11.467417",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:22:05.386713",
-            "archivo_generado": ".\\./data/output\\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx",
+            "fecha_ejecucion": "2026-01-30T20:16:06.083025",
+            "archivo_generado": "Sin archivo",
             "num_articulos": 0,
             "importe": 0.0,
-            "exitosa": true,
+            "exitosa": false,
             "notas": "Procesadas 11 secciones"
         },
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:24:55.189855",
-            "archivo_generado": ".\\./data/output\\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx",
+            "fecha_ejecucion": "2026-01-30T20:27:05.278171",
+            "archivo_generado": "Sin archivo",
             "num_articulos": 0,
             "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-01-30T20:36:19.100486",
+            "archivo_generado": "Sin archivo",
+            "num_articulos": 0,
+            "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-01-30T21:13:17.249509",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-01-30_maf.xlsx",
+            "num_articulos": 1486,
+            "importe": 47966.89,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 15,
+            "fecha_ejecucion": "2026-02-01T14:52:08.208738",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_15_2026-02-01_maf.xlsx",
+            "num_articulos": 1173,
+            "importe": 33919.86,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
         },
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:40:59.409444",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
+            "fecha_ejecucion": "2026-02-03T19:38:31.115355",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
+            "num_articulos": 1488,
+            "importe": 47966.89,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
         },
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:51:39.209785",
-            "archivo_generado": "./data/output\\Pedido_Semana_14_06042026_maf_CORREGIDO.xlsx",
+            "fecha_ejecucion": "2026-02-03T20:46:28.956669",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
             "num_articulos": 1510,
-            "importe": 48115.81,
-            "exitosa": true,
-            "notas": "Procesadas 11 secciones - 1510 artículos corregidos en FASE 2"
-        },
-        {
-            "semana": 14,
-            "fecha_ejecucion": "2026-02-06T20:54:37.054718",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "num_articulos": 1510,
-            "importe": 48115.81,
+            "importe": 48113.87,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
         },
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T21:16:21.001093",
-            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
+            "fecha_ejecucion": "2026-02-04T00:06:25.715174",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
             "num_articulos": 1510,
-            "importe": 48115.81,
+            "importe": 48113.87,
             "exitosa": true,
             "notas": "Procesadas 11 secciones"
         },
         {
             "semana": 14,
-            "fecha_ejecucion": "2026-02-06T21:40:59.104915",
+            "fecha_ejecucion": "2026-02-04T00:19:50.900270",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T02:07:21.478707",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T02:42:08.641728",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T02:48:52.252618",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T02:51:20.169611",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T02:54:15.940191",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T16:24:35.788651",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T16:28:13.869325",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T16:42:08.759046",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T16:50:25.178279",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T17:26:23.532710",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T17:34:11.096735",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T17:51:36.283449",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T18:07:04.695955",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T18:43:02.364742",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T19:06:38.355849",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T19:27:09.084073",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T19:51:01.990974",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-04T21:11:01.212420",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "num_articulos": 1510,
+            "importe": 48113.87,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-06T15:34:12.165705",
+            "archivo_generado": ".\\./data/output\\Pedido_Semana_14_2026-02-06_maf.xlsx",
+            "num_articulos": 1511,
+            "importe": 48127.3,
+            "exitosa": true,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 5,
+            "fecha_ejecucion": "2026-02-07T00:58:55.886560",
+            "archivo_generado": "Sin archivo",
+            "num_articulos": 0,
+            "importe": 0.0,
+            "exitosa": false,
+            "notas": "Procesadas 11 secciones"
+        },
+        {
+            "semana": 14,
+            "fecha_ejecucion": "2026-02-06T22:42:53.236431",
             "archivo_generado": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
             "num_articulos": 1510,
             "importe": 48115.81,
@@ -1854,69 +2016,177 @@
     "pedidos_generados": [
         {
             "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
-        },
-        {
-            "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
-        },
-        {
-            "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
-        },
-        {
-            "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
-        },
-        {
-            "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
-        },
-        {
-            "semana": 14,
-            "archivo": ".\\./data/output\\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx",
-            "fecha": "2026-02-06",
+            "archivo": "Sin archivo",
+            "fecha": "2026-01-30",
             "importe": 0.0
         },
         {
             "semana": 14,
-            "archivo": ".\\./data/output\\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx",
-            "fecha": "2026-02-06",
+            "archivo": "Sin archivo",
+            "fecha": "2026-01-30",
             "importe": 0.0
         },
         {
             "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
+            "archivo": "Sin archivo",
+            "fecha": "2026-01-30",
+            "importe": 0.0
         },
         {
             "semana": 14,
-            "archivo": "./data/output\\Pedido_Semana_14_06042026_maf_CORREGIDO.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-01-30_maf.xlsx",
+            "fecha": "2026-01-30",
+            "importe": 47966.89
+        },
+        {
+            "semana": 15,
+            "archivo": ".\\./data/output\\Pedido_Semana_15_2026-02-01_maf.xlsx",
+            "fecha": "2026-02-01",
+            "importe": 33919.86
         },
         {
             "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
-            "fecha": "2026-02-06",
-            "importe": 48115.81
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
+            "fecha": "2026-02-03",
+            "importe": 47966.89
         },
         {
             "semana": 14,
-            "archivo": ".\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx",
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-03_maf.xlsx",
+            "fecha": "2026-02-03",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-04_maf.xlsx",
+            "fecha": "2026-02-04",
+            "importe": 48113.87
+        },
+        {
+            "semana": 14,
+            "archivo": ".\\./data/output\\Pedido_Semana_14_2026-02-06_maf.xlsx",
             "fecha": "2026-02-06",
-            "importe": 48115.81
+            "importe": 48127.3
+        },
+        {
+            "semana": 5,
+            "archivo": "Sin archivo",
+            "fecha": "2026-02-07",
+            "importe": 0.0
         },
         {
             "semana": 14,
@@ -1926,9 +2196,9 @@
         }
     ],
     "metricas": {
-        "total_ejecuciones": 12,
-        "total_articulos_procesados": 15100,
-        "total_importe_pedidos": 481158.10000000003,
+        "total_ejecuciones": 30,
+        "total_articulos_procesados": 38878,
+        "total_importe_pedidos": 1236488.0200000003,
         "ultima_semana_procesada_exitosamente": 14
     },
     "errores_pendientes": [],

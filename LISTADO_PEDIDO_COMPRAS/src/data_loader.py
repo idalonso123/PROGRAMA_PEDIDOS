@@ -253,7 +253,7 @@ class DataLoader:
             Optional[pd.DataFrame]: DataFrame con las ventas procesadas o None
         """
         dir_entrada = self.obtener_directorio_entrada()
-        nombre_archivo = self.archivos.get('ventas', 'Ventas.xlsx')
+        nombre_archivo = self.archivos.get('ventas', 'SPA_ventas.xlsx')
         ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
         
         df = self.leer_excel(ruta_archivo)
@@ -318,7 +318,7 @@ class DataLoader:
             Optional[pd.DataFrame]: DataFrame con los costes o None si hay error
         """
         dir_entrada = self.obtener_directorio_entrada()
-        nombre_archivo = self.archivos.get('coste', 'Coste.xlsx')
+        nombre_archivo = self.archivos.get('coste', 'SPA_coste.xlsx')
         ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
 
         df = self.leer_excel(ruta_archivo)
@@ -697,8 +697,8 @@ if __name__ == "__main__":
             'directorio_salida': './data/output'
         },
         'archivos_entrada': {
-            'ventas': 'Ventas.xlsx',
-            'coste': 'Coste.xlsx'
+            'ventas': 'SPA_ventas.xlsx',
+            'coste': 'SPA_coste.xlsx'
         },
         'secciones_activas': ['vivero', 'interior'],
         'codigos_mascotas_vivo': ['2104', '2204']

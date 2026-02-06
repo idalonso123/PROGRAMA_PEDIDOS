@@ -21,10 +21,10 @@ Ejecutar:
     python clasificacionABC.py -s interior                  # Procesa solo interior
 
 Los datos se leen de 4 archivos separados:
-- Compras.xlsx: Datos de compras del período
-- Ventas.xlsx: Datos de ventas del período
-- Stock.xlsx: Datos de stock actual
-- Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
+- SPA_compras.xlsx: Datos de compras del período
+- SPA_ventas.xlsx: Datos de ventas del período
+- SPA_stock_{periodo}.xlsx: Datos de stock actual
+- SPA_coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
 Al generar cada archivo de clasificación, se envía automáticamente un email
 al encargado de la sección con el archivo adjunto.
@@ -1392,10 +1392,10 @@ Secciones disponibles:
     print("=" * 80)
     
     try:
-        compras_df = pd.read_excel('data/input/compras.xlsx')
-        ventas_df = pd.read_excel('data/input/Ventas.xlsx')
-        stock_df = pd.read_excel('data/input/stock.xlsx')
-        coste_df = pd.read_excel('data/input/Coste.xlsx')
+        compras_df = pd.read_excel('data/input/SPA_compras.xlsx')
+        ventas_df = pd.read_excel('data/input/SPA_ventas.xlsx')
+        stock_df = pd.read_excel(f'data/input/SPA_stock_{PERIODO}.xlsx')
+        coste_df = pd.read_excel('data/input/SPA_coste.xlsx')
     except FileNotFoundError as e:
         print(f"ERROR: No se encontró el archivo: {e.filename}")
         sys.exit(1)
@@ -1449,7 +1449,7 @@ Secciones disponibles:
         return df
     
     def normalize_keys_coste(df):
-        """Normalizar claves para el archivo Coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
+        """Normalizar claves para el archivo SPA_coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
         df = df.copy()
         df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
         df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()

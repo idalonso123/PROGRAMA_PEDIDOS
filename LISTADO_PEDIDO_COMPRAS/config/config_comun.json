@@ -19,7 +19,7 @@
     },
     
     "configuracion_periodo_informe": {
-        "descripcion": "Período utilizado por INFORME.py y PRESENTACION.py. NOTA: El período ahora se calcula automáticamente desde Ventas.xlsx. No es necesario configurar fechas aquí."
+        "descripcion": "Período utilizado por INFORME.py y PRESENTACION.py. NOTA: El período ahora se calcula automáticamente desde SPA_ventas.xlsx. No es necesario configurar fechas aquí."
     },
     
     "configuracion_periodo_clasificacion": {
@@ -294,7 +294,7 @@
         "archivo_principal": "Este es el archivo de configuración unificado para todos los scripts del sistema.",
         "ubicacion": "Guardar en: config/config_comun.json",
         "uso": "Este archivo debe ser leído por src/config_loader.py para obtener todas las configuraciones.",
-        "periodo_automatico": "NOTA IMPORTANTE: El período de análisis ya NO se configura aquí. Los tres scripts (INFORME.py, PRESENTACION.py, clasificacionABC.py) calculan automáticamente el período desde el archivo Ventas.xlsx usando la fecha mínima y máxima de las ventas. Esto garantiza que los tres scripts usen exactamente el mismo período.",
+        "periodo_automatico": "NOTA IMPORTANTE: El período de análisis ya NO se configura aquí. Los tres scripts (INFORME.py, PRESENTACION.py, clasificacionABC.py) calculan automáticamente el período desde el archivo SPA_ventas.xlsx usando la fecha mínima y máxima de las ventas. Esto garantiza que los tres scripts usen exactamente el mismo período.",
         "variables_compartidas": [
             "configuracion_email",
             "configuracion_colores",

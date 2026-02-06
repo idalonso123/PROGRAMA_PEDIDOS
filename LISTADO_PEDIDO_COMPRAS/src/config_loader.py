@@ -116,7 +116,7 @@ def obtener_configuracion_email(config=None):
 def obtener_configuracion_periodo_informe(config=None):
     """
     Obtiene la configuración del período para INFORME.py y PRESENTACION.py.
-    NOTE: El período ahora se calcula automáticamente desde Ventas.xlsx.
+    NOTE: El período ahora se calcula automáticamente desde SPA_ventas.xlsx.
     Esta función devuelve valores por defecto que serán sobrescritos por calcular_periodo_desde_dataframe().
     
     Args:
@@ -165,7 +165,7 @@ def obtener_configuracion_periodo_informe(config=None):
 def obtener_configuracion_periodo_clasificacion(config=None):
     """
     Obtiene la configuración del período para clasificacionABC.py.
-    NOTE: El período ahora se calcula automáticamente desde Ventas.xlsx.
+    NOTE: El período ahora se calcula automáticamente desde SPA_ventas.xlsx.
     Esta función devuelve valores por defecto que serán sobrescritos por calcular_periodo_desde_dataframe().
     
     Args:
@@ -406,7 +406,7 @@ def get_abc_config(config=None):
     """
     Obtiene la configuración ABC completa para clasificacionABC.py.
     NOTE: Las fechas de período ya no se devuelven ya que se calculan automáticamente
-    desde Ventas.xlsx usando calcular_periodo_desde_dataframe().
+    desde SPA_ventas.xlsx usando calcular_periodo_desde_dataframe().
     
     Args:
         config: Diccionario de configuración (opcional)
@@ -641,7 +641,7 @@ if __name__ == "__main__":
     print(f"Inicio: {periodo_informe['FECHA_INICIO'].strftime('%d/%m/%Y')}")
     print(f"Fin: {periodo_informe['FECHA_FIN'].strftime('%d/%m/%Y')}")
     print(f"Días: {periodo_informe['DIAS_PERIODO']}")
-    print("NOTA: El período real se calculará automáticamente desde Ventas.xlsx")
+    print("NOTA: El período real se calculará automáticamente desde SPA_ventas.xlsx")
     
     # Test de configuración de período clasificación
     print("\n--- Período para clasificacionABC.py (valores por defecto) ---")
@@ -649,7 +649,7 @@ if __name__ == "__main__":
     print(f"Inicio: {periodo_clasif['FECHA_INICIO'].strftime('%d/%m/%Y')}")
     print(f"Fin: {periodo_clasif['FECHA_FIN'].strftime('%d/%m/%Y')}")
     print(f"Días: {periodo_clasif['DIAS_PERIODO']}")
-    print("NOTA: El período real se calculará automáticamente desde Ventas.xlsx")
+    print("NOTA: El período real se calculará automáticamente desde SPA_ventas.xlsx")
     
     # Test de configuración de umbrales
     print("\n--- Umbrales de Riesgo ---")
@@ -678,5 +678,5 @@ if __name__ == "__main__":
     
     print("\n" + "=" * 60)
     print("✓ TODAS LAS CONFIGURACIONES CARGADAS CORRECTAMENTE")
-    print("NOTA: El período se calculará automáticamente desde Ventas.xlsx")
+    print("NOTA: El período se calculará automáticamente desde SPA_ventas.xlsx")
     print("=" * 60)
