@@ -1,33 +1,40 @@
 #!/usr/bin/env python3
 """
-Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN MULTI-SECCIÓN
-Jardinería Aranjuez - Período configurable
+Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN V2
+Vivero Aranjuez - Sistema de Clasificación ABC+D por Períodos
 
 Este script combina:
-- Cálculo de clasificación ABC+D
-- Aplicación de formatos Excel
-- Lógica corregida de riesgo
-- Período calculado automáticamente desde Ventas.xlsx
+- Cálculo de clasificación ABC+D por períodos definidos
+- Aplicación de formatos Excel profesionales
+- Soporte para nuevo formato de archivos del ERP (SPA_*.xlsx)
 - Procesamiento de múltiples secciones
 - Envío automático de emails a los encargados de cada sección
 
 MODO DE USO:
-- Sin parámetros: Procesa TODOS los datos y genera un archivo por cada sección
-- Con parámetro --seccion: Procesa solo la sección especificada (modo compatible)
+- Con parámetro --periodo: Procesa el período especificado (1-4)
+- Con parámetro --seccion: Procesa solo la sección especificada
 
 Ejecutar: 
-    python clasificacionABC.py                              # Procesa todas las secciones
-    python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-    python clasificacionABC.py -s interior                  # Procesa solo interior
+    python clasificacionABC.py --periodo 1              # Procesa Período 1 (enero-febrero)
+    python clasificacionABC.py --periodo 2              # Procesa Período 2 (marzo-mayo)
+    python clasificacionABC.py --periodo 3              # Procesa Período 3 (junio-agosto)
+    python clasificacionABC.py --periodo 4              # Procesa Período 4 (septiembre-diciembre)
+    python clasificacionABC.py --periodo 1 --seccion vivero  # Solo sección vivero del período 1
 
-Los datos se leen de 4 archivos separados:
-- Compras.xlsx: Datos de compras del período
-- Ventas.xlsx: Datos de ventas del período (período calculado automáticamente)
-- Stock.xlsx: Datos de stock actual
-- Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
+Los datos se leen de archivos con formato ERP:
+- SPA_Compras.xlsx: Datos de compras del año
+- SPA_Ventas.xlsx: Datos de ventas del año
+- SPA_Stock.xlsx: Datos de stock actual
+- SPA_Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
 Al generar cada archivo de clasificación, se envía automáticamente un email
 al encargado de la sección con el archivo adjunto.
+
+Períodos definidos:
+- Período 1: 1 enero - 28 febrero (59 días)
+- Período 2: 1 marzo - 31 mayo (92 días)
+- Período 3: 1 junio - 31 agosto (92 días)
+- Período 4: 1 septiembre - 31 diciembre (122 días)
 """
 
 import pandas as pd
@@ -61,8 +68,44 @@ from config_loader import (
     get_iva_subfamilia,
     calcular_periodo_ventas
 )
+from file_finder import find_latest_file
 
 warnings.filterwarnings('ignore')
+
+# ============================================================================
+# DEFINICIÓN DE PERÍODOS (según manual del sistema V2)
+# ============================================================================
+
+DEFINICION_PERIODOS = {
+    1: {
+        'nombre': 'Periodo_1',
+        'descripcion': 'Enero - Febrero',
+        'fecha_inicio': '01/01',
+        'fecha_fin': '28/02',
+        'dias': 59
+    },
+    2: {
+        'nombre': 'Periodo_2',
+        'descripcion': 'Marzo - Mayo',
+        'fecha_inicio': '01/03',
+        'fecha_fin': '31/05',
+        'dias': 92
+    },
+    3: {
+        'nombre': 'Periodo_3',
+        'descripcion': 'Junio - Agosto',
+        'fecha_inicio': '01/06',
+        'fecha_fin': '31/08',
+        'dias': 92
+    },
+    4: {
+        'nombre': 'Periodo_4',
+        'descripcion': 'Septiembre - Diciembre',
+        'fecha_inicio': '01/09',
+        'fecha_fin': '31/12',
+        'dias': 122
+    }
+}
 
 # ============================================================================
 # FUNCIONES DE NORMALIZACIÓN PARA BÚSQUEDA FLEXIBLE DE COLUMNAS
@@ -971,13 +1014,19 @@ def main():
     
     # Parsear argumentos de línea de comandos
     parser = argparse.ArgumentParser(
-        description='Motor de Cálculo ABC+D para Gestión de Inventarios',
+        description='Motor de Cálculo ABC+D para Gestión de Inventarios - Versión V2',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
+Períodos disponibles:
+  --periodo 1: Enero - Febrero (59 días)
+  --periodo 2: Marzo - Mayo (92 días)
+  --periodo 3: Junio - Agosto (92 días)
+  --periodo 4: Septiembre - Diciembre (122 días)
+
 Ejemplos de uso:
-  python clasificacionABC.py                              # Procesa todas las secciones
-  python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-  python clasificacionABC.py -s interior                  # Procesa solo interior
+  python clasificacionABC.py --periodo 1              # Procesa Período 1 completo
+  python clasificacionABC.py --periodo 2 --seccion vivero  # Solo sección vivero del período 2
+  python clasificacionABC.py --periodo 3 --verbose         # Modo verbose para período 3
 
 Secciones disponibles:
   interior, utiles_jardin, semillas, deco_interior, maf, vivero, 
@@ -985,11 +1034,27 @@ Secciones disponibles:
         """
     )
     parser.add_argument(
+        '-p', '--periodo',
+        type=int,
+        help='Número del período a procesar (1-4). Si no se especifica, usa fechas de Ventas.xlsx'
+    )
+    parser.add_argument(
         '-s', '--seccion',
         type=str,
-        help='Procesar solo una sección específica (modo mono-sección)'
+        help='Procesar solo una sección específica (opcional)'
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        help='Activar modo verbose con logs detallados'
     )
     args = parser.parse_args()
+    
+    # Validar período si se especificó
+    if args.periodo and args.periodo not in DEFINICION_PERIODOS:
+        print(f"ERROR: Período '{args.periodo}' no válido.")
+        print(f"Períodos disponibles: {', '.join(map(str, DEFINICION_PERIODOS.keys()))}")
+        sys.exit(1)
     
     seccion_especifica = args.seccion.lower() if args.seccion else None
     
@@ -1000,10 +1065,13 @@ Secciones disponibles:
         sys.exit(1)
     
     print("=" * 80)
-    print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS")
+    print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS - V2")
     print("=" * 80)
     
-    if seccion_especifica:
+    if args.periodo:
+        print(f"\nMODO: Por Período")
+        print(f"Período seleccionado: {DEFINICION_PERIODOS[args.periodo]['descripcion']}")
+    elif seccion_especifica:
         print(f"\nMODO: Mono-sección")
         print(f"Sección seleccionada: {seccion_especifica}")
     else:
@@ -1018,10 +1086,63 @@ Secciones disponibles:
     print("=" * 80)
     
     try:
-        compras_df = pd.read_excel('data/input/compras.xlsx')
-        ventas_df = pd.read_excel('data/input/Ventas.xlsx')
-        stock_df = pd.read_excel('data/input/Stock.xlsx')
-        coste_df = pd.read_excel('data/input/Coste.xlsx')
+        # Cargar archivos del ERP con soporte para timestamps y case-insensitive
+        import glob
+        
+        def buscar_archivo_erp(nombre_base):
+            """Busca archivo con múltiples variaciones de mayúsculas/minúsculas"""
+            variaciones = [
+                nombre_base,
+                nombre_base.lower(),
+                nombre_base.capitalize(),
+                nombre_base.upper()
+            ]
+            for var in variaciones:
+                # Primero intentar con timestamp
+                archivo = find_latest_file('data/input', var)
+                if archivo:
+                    return archivo
+            
+            # Si no encontramos con timestamp, buscar archivos que coincidan case-insensitive
+            base_lower = nombre_base.lower()
+            for archivo in glob.glob('data/input/*.xlsx'):
+                nombre_archivo = os.path.basename(archivo)
+                if nombre_archivo.lower().startswith(base_lower.lower()):
+                    return archivo
+            
+            return None
+
+        archivo_compras = buscar_archivo_erp('SPA_Compras')
+        if archivo_compras:
+            compras_df = pd.read_excel(archivo_compras)
+            print(f"COMPRAS: {os.path.basename(archivo_compras)}")
+        else:
+            compras_df = pd.read_excel('data/input/compras.xlsx')
+            print("COMPRAS: compras.xlsx (formato legacy)")
+
+        archivo_ventas = buscar_archivo_erp('SPA_Ventas')
+        if archivo_ventas:
+            ventas_df = pd.read_excel(archivo_ventas)
+            print(f"VENTAS: {os.path.basename(archivo_ventas)}")
+        else:
+            ventas_df = pd.read_excel('data/input/Ventas.xlsx')
+            print("VENTAS: Ventas.xlsx (formato legacy)")
+
+        archivo_stock = buscar_archivo_erp('SPA_Stock')
+        if archivo_stock:
+            stock_df = pd.read_excel(archivo_stock)
+            print(f"STOCK: {os.path.basename(archivo_stock)}")
+        else:
+            stock_df = pd.read_excel('data/input/Stock.xlsx')
+            print("STOCK: Stock.xlsx (formato legacy)")
+
+        archivo_coste = buscar_archivo_erp('SPA_Coste')
+        if archivo_coste:
+            coste_df = pd.read_excel(archivo_coste)
+            print(f"COSTE: {os.path.basename(archivo_coste)}")
+        else:
+            coste_df = pd.read_excel('data/input/Coste.xlsx')
+            print("COSTE: Coste.xlsx (formato legacy)")
         
         # Aplicar renombrado flexible de columnas para el archivo Coste.xlsx
         coste_df, columnas_renombradas = renombrar_columnas_flexible(coste_df, MAPEO_COLUMNAS_COSTE)
@@ -1049,20 +1170,36 @@ Secciones disponibles:
     print(f"COSTE: {len(coste_df)} registros cargados")
     
     # =========================================================================
-    # CÁLCULO AUTOMÁTICO DEL PERÍODO DESDE VENTAS
+    # CÁLCULO DEL PERÍODO DE ANÁLISIS
     # =========================================================================
     
-    # Calcular automáticamente las fechas mínima y máxima del archivo de ventas
     print("\n" + "=" * 80)
-    print("FASE 1A: CÁLCULO AUTOMÁTICO DEL PERÍODO DE ANÁLISIS")
+    print("FASE 1A: DETERMINACIÓN DEL PERÍODO DE ANÁLISIS")
     print("=" * 80)
     
-    FECHA_INICIO, FECHA_FIN, DIAS_PERIODO = calcular_periodo_ventas(ventas_df)
-    
-    print(f"\nPeríodo calculado automáticamente desde Ventas.xlsx:")
-    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
-    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
-    print(f"   Días: {DIAS_PERIODO}")
+    if args.periodo:
+        # Usar período predefinido
+        periodo_info = DEFINICION_PERIODOS[args.periodo]
+        año_actual = datetime.now().year
+        fecha_inicio_str = f"{periodo_info['fecha_inicio']}/{año_actual}"
+        fecha_fin_str = f"{periodo_info['fecha_fin']}/{año_actual}"
+        FECHA_INICIO = datetime.strptime(fecha_inicio_str, '%d/%m/%Y')
+        FECHA_FIN = datetime.strptime(fecha_fin_str, '%d/%m/%Y')
+        DIAS_PERIODO = periodo_info['dias']
+        
+        print(f"\nPeríodo configurado manualmente:")
+        print(f"   Período: {periodo_info['nombre']} ({periodo_info['descripcion']})")
+        print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
+        print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
+        print(f"   Días: {DIAS_PERIODO}")
+    else:
+        # Calcular automáticamente las fechas mínima y máxima del archivo de ventas
+        FECHA_INICIO, FECHA_FIN, DIAS_PERIODO = calcular_periodo_ventas(ventas_df)
+        
+        print(f"\nPeríodo calculado automáticamente desde Ventas.xlsx:")
+        print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
+        print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
+        print(f"   Días: {DIAS_PERIODO}")
     
     # Filtrar filas con Artículo vacío en Compras
     filas_antes = len(compras_df)
@@ -1323,7 +1460,12 @@ Secciones disponibles:
     print("RESUMEN DEL PROCESAMIENTO")
     print("=" * 80)
     
-    print(f"\nPeríodo: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
+    if args.periodo:
+        periodo_info = DEFINICION_PERIODOS[args.periodo]
+        print(f"\nPeríodo: {periodo_info['nombre']} ({periodo_info['descripcion']})")
+        print(f"Fechas: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
+    else:
+        print(f"\nPeríodo: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
     
     print(f"\nSecciones procesadas: {len(secciones_procesadas)}")
     if secciones_procesadas:
