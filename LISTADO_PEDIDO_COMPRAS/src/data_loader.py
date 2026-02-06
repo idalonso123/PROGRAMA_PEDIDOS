@@ -21,6 +21,9 @@ import unicodedata
 from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
 
+# Importar módulo de búsqueda flexible de archivos
+from src.file_finder import find_latest_file
+
 # Configuración del logger
 logger = logging.getLogger(__name__)
 
@@ -312,13 +315,24 @@ class DataLoader:
         El archivo debe contener una hoja con datos de ventas por vendedor,
         incluyendo código de artículo, nombre, fecha, semana, unidades e importe.
         
+        Utiliza búsqueda flexible para encontrar archivos con timestamp del ERP
+        (ej: SPA_Ventas__20260205_210037.xlsx) o fallback a archivo legacy.
+        
         Returns:
             Optional[pd.DataFrame]: DataFrame con las ventas procesadas o None
         """
         dir_entrada = self.obtener_directorio_entrada()
-        nombre_archivo = self.archivos.get('ventas', 'Ventas.xlsx')
-        ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
         
+        # Usar búsqueda flexible de archivos (soporta timestamps dinámicos del ERP)
+        # El config.json debe tener: "ventas": "SPA_Ventas" (sin extensión)
+        base_name = self.archivos.get('ventas', 'Ventas').replace('.xlsx', '')
+        ruta_archivo = find_latest_file(dir_entrada, base_name, logger_instance=logger)
+        
+        if ruta_archivo is None:
+            logger.error(f"No se encontró archivo de ventas: {base_name}")
+            return None
+        
+        logger.info(f"Leyendo archivo de ventas: {os.path.basename(ruta_archivo)}")
         df = self.leer_excel(ruta_archivo)
         
         if df is None:
@@ -377,13 +391,23 @@ class DataLoader:
         El archivo contiene información sobre PVP, costes de compra, proveedores
         y márgenes para cada artículo.
 
+        Utiliza búsqueda flexible para encontrar archivos con timestamp del ERP
+        (ej: SPA_Coste__20260205_210037.xlsx) o fallback a archivo legacy.
+
         Returns:
             Optional[pd.DataFrame]: DataFrame con los costes o None si hay error
         """
         dir_entrada = self.obtener_directorio_entrada()
-        nombre_archivo = self.archivos.get('coste', 'Coste.xlsx')
-        ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
-
+        
+        # Usar búsqueda flexible de archivos
+        base_name = self.archivos.get('coste', 'Coste').replace('.xlsx', '')
+        ruta_archivo = find_latest_file(dir_entrada, base_name, logger_instance=logger)
+        
+        if ruta_archivo is None:
+            logger.error(f"No se encontró archivo de costes: {base_name}")
+            return None
+        
+        logger.info(f"Leyendo archivo de costes: {os.path.basename(ruta_archivo)}")
         df = self.leer_excel(ruta_archivo)
 
         if df is None:

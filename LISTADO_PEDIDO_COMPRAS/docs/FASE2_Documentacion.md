@@ -18,11 +18,16 @@ Pedido_Final = max(0, Pedido_Generado + (Stock_Mínimo - Stock_Real))
 
 Este módulo extiende el DataLoader existente para leer los archivos de datos de corrección. Sus funciones principales incluyen la lectura del archivo de stock actual, la lectura de ventas reales de la semana, la lectura de compras recibidas, y la fusión de todos estos datos con el pedido teórico generado en la FASE 1.
 
-El módulo busca automáticamente los archivos de corrección en el directorio de entrada, soportando múltiples patrones de nomenclatura para mayor flexibilidad. Los archivos esperados son:
+El módulo busca automáticamente los archivos de corrección en el directorio de entrada, soportando el nuevo formato del ERP con timestamps. Los archivos esperados son:
 
-- `Stock_actual.xlsx`: Inventario disponible al momento del cálculo
-- `Ventas_semana.xlsx`: Ventas reales realizadas durante la semana anterior  
-- `Compras_semana.xlsx`: Compras efectivamente recibidas durante la semana anterior
+- `SPA_Stock_actual.xlsx`: Inventario disponible al momento del cálculo (con o sin timestamp)
+
+**Nota:** El sistema soporta archivos con el formato del ERP:
+```
+SPA_Nombre__YYYYMMDD_HHMMSS.xlsx
+```
+
+Si existen múltiples archivos con diferentes timestamps, el sistema selecciona automáticamente el más reciente. Si no hay archivos con timestamp, busca el archivo sin timestamp (formato legacy).
 
 ### 2.2 `src/correction_engine.py`
 
@@ -35,10 +40,14 @@ El motor detecta automáticamente el escenario de cada artículo basándose en l
 Se añadieron las siguientes secciones de configuración:
 
 ```json
+"archivos_entrada": {
+    "ventas": "SPA_Ventas",
+    "coste": "SPA_Coste",
+    "compras": "SPA_Compras"
+},
+
 "archivos_correccion": {
-    "stock_actual": "Stock_actual.xlsx",
-    "ventas_semana": "Ventas_semana.xlsx",
-    "compras_semana": "Compras_semana.xlsx"
+    "stock_actual": "SPA_Stock_actual"
 },
 
 "parametros_correccion": {
@@ -53,6 +62,10 @@ Se añadieron las siguientes secciones de configuración:
     "permitir_pedidos_negativos": false
 }
 ```
+
+**Nota sobre el sistema de archivos:**
+
+La configuración ahora usa nombres base sin extensión (ej: `SPA_Ventas` en lugar de `Ventas.xlsx`). El sistema busca automáticamente archivos que coincidan con estos nombres, ya sea con el formato legacy (`SPA_Ventas.xlsx`) o con el formato del ERP (`SPA_Ventas__20260205_210037.xlsx`).
 
 ---
 
@@ -152,16 +165,30 @@ Antes de ejecutar la corrección, deben existir los siguientes archivos en `./da
 
 ```
 data/input/
-├── Stock_actual.xlsx       (obligatorio para corrección)
-├── Ventas_semana_SEMANA.xlsx  (opcional, semana específica)
-├── Compras_semana_SEMANA.xlsx (opcional, semana específica)
-├── Ventas_semana.xlsx      (alternativo)
-└── Compras_semana.xlsx     (alternativo)
+├── SPA_Stock_actual.xlsx       (obligatorio para corrección, con o sin timestamp)
+└── SPA_Ventas_semana_*.xlsx    (opcional, si existe)
 ```
+
+**Sistema de búsqueda flexible:**
+
+El sistema utiliza el módulo `file_finder.py` que implementa la función `find_latest_file()`. Esta función:
+
+1. **Busca archivos con timestamp ERP**: `SPA_Stock_actual__20260205_210037.xlsx`
+2. **Selecciona el más reciente**: Si hay múltiples exports del mismo día, usa el de mayor timestamp
+3. **Fallback legacy**: Si no hay archivos con timestamp, busca `SPA_Stock_actual.xlsx`
+
+El ERP genera los archivos con el formato:
+```
+SPA_Nombre__YYYYMMDD_HHMMSS.xlsx
+```
+
+Donde:
+- `YYYYMMDD`: Fecha de exportación (8 dígitos)
+- `HHMMSS`: Hora de exportación (6 dígitos)
 
 ### 7.2 Estructura de Archivos de Entrada
 
-**Stock_actual.xlsx** debe contener:
+**SPA_Stock_actual.xlsx** debe contener:
 - Código de artículo
 - Nombre del artículo
 - Talla

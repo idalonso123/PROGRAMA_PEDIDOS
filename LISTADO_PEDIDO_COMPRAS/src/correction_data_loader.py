@@ -23,6 +23,7 @@ import unicodedata
 from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
 from src.data_loader import DataLoader
+from src.file_finder import find_latest_file
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -157,45 +158,33 @@ class CorrectionDataLoader:
     
     def leer_stock_actual(self, semana: Optional[int] = None) -> Optional[pd.DataFrame]:
         """
-        Lee el archivo de stock actual (Stock_actual.xlsx).
+        Lee el archivo de stock actual (SPA_Stock_actual__YYYYMMDD_HHMMSS.xlsx).
         
         Este archivo contiene el inventario disponible al momento del cálculo,
         incluyendo código de artículo, nombre, talla, color, unidades en stock,
         fecha del último movimiento y antigüedad del stock.
         
+        Utiliza búsqueda flexible para encontrar archivos con timestamp del ERP
+        o fallback a archivo legacy.
+        
         Args:
-            semana (Optional[int]): Número de semana para buscar archivo específico
+            semana (Optional[int]): Número de semana (no usado actualmente, para futuro)
         
         Returns:
             Optional[pd.DataFrame]: DataFrame con el stock actual o None si hay error
         """
-        nombre_base = self.correction_files.get('stock_actual', 'Stock_actual.xlsx')
+        dir_entrada = self.obtener_directorio_entrada()
         
-        # Si se especifica semana, buscar con patrón de semana
-        if semana:
-            # Intentar buscar archivo con semana en el nombre
-            nombre_con_semana = nombre_base.replace('.xlsx', f'_Semana_{semana}.xlsx')
-            ruta = self.buscar_archivo_correccion(nombre_con_semana)
-            
-            if ruta is None:
-                # Buscar con otro patrón común
-                nombre_con_semana = f"Stock_semana_{semana}.xlsx"
-                ruta = self.buscar_archivo_correccion(nombre_con_semana)
+        # Usar búsqueda flexible de archivos
+        # El config.json debe tener: "stock_actual": "SPA_Stock_actual" (sin extensión)
+        base_name = self.correction_files.get('stock_actual', 'Stock_actual').replace('.xlsx', '')
+        ruta = find_latest_file(dir_entrada, base_name, logger_instance=logger)
         
-        # Si no se encontró archivo con semana, usar el base
-        if semana is None or not self.buscar_archivo_correccion(nombre_base):
-            # Verificar si existe el archivo base
-            dir_entrada = self.obtener_directorio_entrada()
-            ruta_base = os.path.join(dir_entrada, nombre_base)
-            if os.path.exists(ruta_base):
-                ruta = ruta_base
-            else:
-                logger.warning(f"No se encontró archivo de stock actual")
-                return None
+        if ruta is None:
+            logger.error(f"No se encontró archivo de stock actual: {base_name}")
+            return None
         
-        if semana:
-            ruta = self.buscar_archivo_correccion(nombre_base)
-        
+        logger.info(f"Leyendo archivo de stock: {os.path.basename(ruta)}")
         df = self.leer_excel(ruta)
         
         if df is None:

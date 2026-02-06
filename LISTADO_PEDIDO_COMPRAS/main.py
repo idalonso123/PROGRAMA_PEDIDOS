@@ -27,8 +27,12 @@ from src.correction_data_loader import CorrectionDataLoader
 from src.correction_engine import CorrectionEngine, crear_correction_engine
 
 from src.email_service import EmailService, crear_email_service
+from src.file_finder import find_latest_file
 
 import pandas as pd
+
+# Logger a nivel de módulo
+logger = logging.getLogger(__name__)
 
 def configurar_logging(nivel: int = logging.INFO, log_file: Optional[str] = None) -> logging.Logger:
     formato = logging.Formatter(
@@ -75,24 +79,45 @@ def cargar_configuracion(ruta: str = 'config/config.json') -> Optional[Dict[str,
         return None
 
 def verificar_archivos_correccion(config: Dict[str, Any], semana: int) -> Dict[str, bool]:
+    """
+    Verifica la disponibilidad de archivos de corrección usando búsqueda flexible.
+    
+    Soporta el nuevo formato del ERP (SPA_Nombre__YYYYMMDD_HHMMSS.xlsx)
+    y el formato legacy (Nombre.xlsx).
+    
+    Args:
+        config: Configuración del sistema
+        semana: Número de semana (para futuras extensiones)
+    
+    Returns:
+        Dict con disponibilidad de cada tipo de archivo
+    """
     dir_entrada = config.get('rutas', {}).get('directorio_entrada', './data/input')
     archivos_correccion = config.get('archivos_correccion', {})
     
     disponibilidad = {'stock': False, 'ventas': False, 'compras': False}
     
-    patrones = {
-        'stock': ['Stock_actual.xlsx', f'Stock_semana_{semana}.xlsx'],
-        'ventas': [f'Ventas_semana_{semana}.xlsx', f'Ventas_Semana_{semana}.xlsx', 'Ventas_semana.xlsx'],
-        'compras': [f'Compras_semana_{semana}.xlsx', f'Compras_Semana_{semana}.xlsx', 'Compras_semana.xlsx']
+    # Mapear tipos a nombres base del config
+    nombres_base = {
+        'stock': archivos_correccion.get('stock_actual', 'SPA_Stock_actual').replace('.xlsx', ''),
+        # 'ventas' y 'compras' se buscarían en archivos_entrada si existieran
     }
     
-    for tipo, patrones_archivo in patrones.items():
-        for patron in patrones_archivo:
-            ruta = os.path.join(dir_entrada, patron)
-            if os.path.exists(ruta):
+    # Verificar cada tipo de archivo
+    for tipo, base_name in nombres_base.items():
+        if find_latest_file(dir_entrada, base_name, logger_instance=logger):
+            disponibilidad[tipo] = True
+    
+    # Verificar si hay archivos legacy de semana (para compatibilidad)
+    patrones_legacy = {
+        'ventas': f'Ventas_semana_{semana}',
+        'compras': f'Compras_semana_{semana}'
+    }
+    
+    for tipo, base in patrones_legacy.items():
+        if not disponibilidad[tipo]:  # Solo si no se encontró con nuevo formato
+            if find_latest_file(dir_entrada, base, logger_instance=logger):
                 disponibilidad[tipo] = True
-                logger.info(f"Archivo de {tipo} encontrado: {patron}")
-                break
     
     return disponibilidad
 

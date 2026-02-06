@@ -193,14 +193,14 @@
     },
     
     "archivos_entrada": {
-        "ventas": "Ventas.xlsx",
-        "coste": "Coste.xlsx",
+        "ventas": "SPA_Ventas",
+        "coste": "SPA_Coste",
         "clasificacion_abc": "CLASIFICACION_ABC+D_*.xlsx",
         "archivo_encargados": "encargados.xlsx"
     },
     
     "archivos_correccion": {
-        "stock_actual": "Stock_actual.xlsx"
+        "stock_actual": "SPA_Stock_actual"
     },
     
     "parametros_correccion": {
