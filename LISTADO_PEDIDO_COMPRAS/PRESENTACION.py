@@ -4,10 +4,8 @@
 PRESENTACION.py
 Script para generar presentaciones HTML del análisis ABC+D de Vivero Aranjuez.
 Versión CORREGIDA: Lee SOLO los archivos de clasificación ABC+D y genera presentaciones por sección.
+NO utiliza los archivos individuales (Ventas.xlsx, stock.xlsx, compras.xlsx).
 Envía automáticamente un email con todas las presentaciones generadas a Ivan.
-
-CONFIGURACIÓN: Todas las variables están centralizadas en config/config_comun.json
-El período de análisis se calcula automáticamente desde Ventas.xlsx (no requiere configuración manual).
 """
 
 import pandas as pd
@@ -23,87 +21,36 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from pathlib import Path
-
-# Importar configuración desde el módulo centralizado
-from src.config_loader import (
-    obtener_configuracion_completa_presentacion,
-    obtener_configuracion_email_textos,
-    calcular_periodo_desde_dataframe
-)
-
 warnings.filterwarnings('ignore')
 
 # ============================================================================
-# CARGAR CONFIGURACIÓN DESDE EL ARCHIVO CENTRALIZADO
+# CONFIGURACIÓN DE EMAIL
 # ============================================================================
 
-CONFIG = obtener_configuracion_completa_presentacion()
+# Destinatario: Ivan (información del archivo src/email_service.py)
+DESTINATARIO_IVAN = {
+    'nombre': 'Ivan',
+    'email': 'ivan.delgado@viveverde.es'
+}
 
-# Asignar variables globales desde la configuración (excepto período)
-DESTINATARIO_IVAN = CONFIG['DESTINATARIO_IVAN']
-SMTP_CONFIG = CONFIG['SMTP_CONFIG']
+# Configuración del servidor SMTP
+SMTP_CONFIG = {
+    'servidor': 'smtp.serviciodecorreo.es',
+    'puerto': 465,
+    'remitente_email': 'ivan.delgado@viveverde.es',
+    'remitente_nombre': 'Sistema de Pedidos automáticos VIVEVERDE'
+}
 
-# Obtener textos de email
-EMAIL_TEXTOS = obtener_configuracion_email_textos()
+# Configuración de fechas
+FECHA_INICIO = datetime(2025, 1, 1)
+FECHA_FIN = datetime(2025, 2, 28)
+DIAS_PERIODO = 59
 
-# ============================================================================
-# CALCULAR PERÍODO AUTOMÁTICAMENTE DESDE VENTAS.XLSX
-# ============================================================================
+# Período formateado para nombres de archivo (formato: YYYYMMDD-YYYYMMDD)
+PERIODO_FILENAME = f"{FECHA_INICIO.strftime('%Y%m%d')}-{FECHA_FIN.strftime('%Y%m%d')}"
 
-def calcular_periodo_presentacion():
-    """
-    Calcula el período de análisis automáticamente desde Ventas.xlsx.
-    Esta función garantiza que los tres scripts usen exactamente el mismo período.
-    
-    Returns:
-        dict: Diccionario con todas las variables de período calculadas
-    """
-    print("\n" + "=" * 70)
-    print("CÁLCULO AUTOMÁTICO DEL PERÍODO DE ANÁLISIS")
-    print("=" * 70)
-    
-    try:
-        # Cargar archivo de ventas para calcular período
-        print("\n  Cargando archivo Ventas.xlsx para cálculo del período...")
-        df_ventas = pd.read_excel('data/input/Ventas.xlsx')
-        print(f"  ✓ Ventas cargadas: {len(df_ventas)} registros")
-        
-        # Calcular período automáticamente
-        periodo = calcular_periodo_desde_dataframe(df_ventas)
-        
-        print(f"\n  Período calculado automáticamente desde Ventas.xlsx:")
-        print(f"    Fecha inicio: {periodo['FECHA_INICIO'].strftime('%d de %B de %Y')}")
-        print(f"    Fecha fin: {periodo['FECHA_FIN'].strftime('%d de %B de %Y')}")
-        print(f"    Días del período: {periodo['DIAS_PERIODO']}")
-        print(f"    Período corto: {periodo['PERIODO_CORTO']}")
-        
-        return periodo
-        
-    except FileNotFoundError:
-        print("  ERROR: No se encontró el archivo Ventas.xlsx")
-        print("  El período no puede ser calculado automáticamente.")
-        return None
-    except Exception as e:
-        print(f"  ERROR al calcular el período: {str(e)}")
-        return None
-
-# Calcular período al inicio del script
-PERIODO_CALCULADO = calcular_periodo_presentacion()
-
-if PERIODO_CALCULADO:
-    FECHA_INICIO = PERIODO_CALCULADO['FECHA_INICIO']
-    FECHA_FIN = PERIODO_CALCULADO['FECHA_FIN']
-    DIAS_PERIODO = PERIODO_CALCULADO['DIAS_PERIODO']
-    PERIODO_FILENAME = PERIODO_CALCULADO['PERIODO_FILENAME']
-    PERIODO_EMAIL = PERIODO_CALCULADO['PERIODO_EMAIL']
-else:
-    # Valores por defecto si no se puede calcular (no debería ocurrir)
-    print("  ⚠ Usando valores por defecto (el script puede fallar)")
-    FECHA_INICIO = datetime(2000, 1, 1)
-    FECHA_FIN = datetime(2000, 1, 1)
-    DIAS_PERIODO = 1
-    PERIODO_FILENAME = "20000101-20000101"
-    PERIODO_EMAIL = "Período no disponible"
+# Período formateado para el email
+PERIODO_EMAIL = f"{FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}"
 
 # ============================================================================
 # FUNCIÓN PARA ENVIAR EMAIL CON PRESENTACIONES ADJUNTAS
@@ -149,13 +96,16 @@ def enviar_email_presentaciones(archivos_presentaciones: list) -> bool:
         msg = MIMEMultipart()
         msg['From'] = f"{SMTP_CONFIG['remitente_nombre']} <{SMTP_CONFIG['remitente_email']}>"
         msg['To'] = email_destinatario
+        msg['Subject'] = f"VIVEVERDE: Presentacion de ClasificacionABC+D de cada sección del periodo {PERIODO_EMAIL}"
         
-        # Formatear asunto con el período
-        asunto = EMAIL_TEXTOS['ASUNTO_PRESENTACION'].format(periodo=PERIODO_EMAIL)
-        msg['Subject'] = asunto
-        
-        # Formatear cuerpo del email
-        cuerpo = EMAIL_TEXTOS['CUERPO_PRESENTACION'].format(nombre=nombre_destinatario)
+        # Cuerpo del email
+        cuerpo = f"""Buenos días {nombre_destinatario},
+
+Te adjunto en este correo las presentaciones de Clasificación ABC+D de cada sección.
+
+Atentamente,
+
+Sistema de Pedidos automáticos VIVEVERDE."""
         
         msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
         
@@ -260,6 +210,12 @@ def obtener_datos_seccion(hojas_dict):
     # Combinar todas las categorías
     df_seccion_completo = pd.concat(hojas_dict.values(), ignore_index=True)
     
+    # Calcular métricas usando las columnas pre-calculadas del archivo de clasificación
+    # El archivo CLASIFICACION_ABC+D ya tiene las columnas correctas:
+    # - 'Importe ventas (€)' o 'Importe Ventas'
+    # - 'Beneficio (importe €)' o 'Beneficio'
+    # - 'Stock' o 'Stock (uds)'
+    
     # Detectar nombres de columnas
     col_articulo = 'Artículo'
     col_ventas = 'Importe ventas (€)'
@@ -274,13 +230,21 @@ def obtener_datos_seccion(hojas_dict):
         'stock_final_total': int(df_seccion_completo[col_stock].sum())
     }
     
-    # Calcular margen bruto
+    # Calcular margen bruto (dato ya viene pre-calculado en el archivo de clasificación)
     if datos_seccion['ventas_totales'] > 0:
         datos_seccion['margen_bruto'] = round(datos_seccion['beneficio_total'] / datos_seccion['ventas_totales'] * 100, 1)
     else:
         datos_seccion['margen_bruto'] = 0
     
+    # Calcular distribución por categoría
+    dist_categoria = df_seccion_completo.groupby(col_articulo).agg({
+        col_ventas: 'sum',
+        col_beneficio: 'sum',
+        col_stock: 'sum'
+    }).reset_index()
+    
     # Contar artículos por categoría basándose en los nombres de las hojas
+    # Usamos un patrón más específico para evitar coincidencias parciales
     categorias = {}
     ventas_por_categoria = {}
     stock_por_categoria = {}
@@ -359,10 +323,852 @@ def generar_html_presentacion(datos_seccion, categorias, ventas_por_categoria, s
     angle_c = round(pct_c * 3.6, 1)
     angle_d = round(360 - angle_a - angle_b - angle_c, 1)
     
-    # El resto del HTML continúa aquí...
-    # Por brevedad, se incluye la estructura principal
+    html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación - Sección {nombre_seccion_titulo} | ABC+D</title>
+    <style>
+        :root {{
+            --primary: #2d5a27;
+            --primary-light: #4a8c3f;
+            --accent: #8bc34a;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --success: #4caf50;
+            --info: #2196f3;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+        }}
+        
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+        
+        body {{
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--dark);
+            color: var(--dark);
+            overflow: hidden;
+            height: 100vh;
+        }}
+        
+        .presentation {{
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }}
+        
+        .slide {{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(100px);
+            background: linear-gradient(135deg, #ffffff 0%, #f5f9f5 100%);
+            padding: 60px 80px;
+        }}
+        
+        .slide.active {{
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }}
+        
+        .slide.prev {{
+            transform: translateX(-100px);
+        }}
+        
+        .slide-title {{
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }}
+        
+        .slide-title h1 {{
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }}
+        
+        .slide-title .subtitle {{
+            font-size: 1.6em;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }}
+        
+        .slide-title .meta {{
+            font-size: 1.1em;
+            opacity: 0.8;
+        }}
+        
+        .slide-title .section-badge {{
+            background: rgba(255,255,255,0.2);
+            padding: 10px 30px;
+            border-radius: 30px;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+        }}
+        
+        .slide-header {{
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--accent);
+        }}
+        
+        .slide-header .icon {{
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+        }}
+        
+        .slide-header h2 {{
+            font-size: 2em;
+            color: var(--primary);
+        }}
+        
+        .slide-content {{
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }}
+        
+        .kpi-row {{
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }}
+        
+        .kpi-box {{
+            background: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            min-width: 200px;
+            transition: transform 0.3s ease;
+        }}
+        
+        .kpi-box:hover {{
+            transform: translateY(-8px);
+        }}
+        
+        .kpi-box .number {{
+            font-size: 3em;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }}
+        
+        .kpi-box .label {{
+            font-size: 1em;
+            color: #666;
+            margin-top: 8px;
+        }}
+        
+        .kpi-box.highlight {{
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        }}
+        
+        .kpi-box.highlight .number,
+        .kpi-box.highlight .label {{
+            color: white;
+        }}
+        
+        .category-grid {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            height: 100%;
+        }}
+        
+        .cat-card {{
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }}
+        
+        .cat-card:hover {{
+            transform: scale(1.02);
+        }}
+        
+        .cat-card::before {{
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }}
+        
+        .cat-card.a {{
+            background: linear-gradient(135deg, #1b5e20 0%, #4caf50 100%);
+        }}
+        
+        .cat-card.b {{
+            background: linear-gradient(135deg, #1565c0 0%, #42a5f5 100%);
+        }}
+        
+        .cat-card.c {{
+            background: linear-gradient(135deg, #e65100 0%, #ff9800 100%);
+        }}
+        
+        .cat-card.d {{
+            background: linear-gradient(135deg, #c62828 0%, #f44336 100%);
+        }}
+        
+        .cat-card h3 {{
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }}
+        
+        .cat-card .count {{
+            font-size: 2.5em;
+            font-weight: 800;
+            margin: 10px 0;
+        }}
+        
+        .cat-card .details {{
+            font-size: 0.9em;
+            opacity: 0.9;
+            line-height: 1.5;
+        }}
+        
+        .cat-card .badge {{
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }}
+        
+        .chart-section {{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 60px;
+            flex: 1;
+        }}
+        
+        .donut-chart {{
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #1b5e20 0deg {angle_a}deg,
+                #1565c0 {angle_a}deg {angle_a + angle_b}deg,
+                #e65100 {angle_a + angle_b}deg {angle_a + angle_b + angle_c}deg,
+                #c62828 {angle_a + angle_b + angle_c}deg 360deg
+            );
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }}
+        
+        .donut-chart::before {{
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f9f5 100%);
+            border-radius: 50%;
+        }}
+        
+        .chart-center {{
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1;
+        }}
+        
+        .chart-center .total {{
+            font-size: 2em;
+            font-weight: 800;
+            color: var(--primary);
+        }}
+        
+        .chart-center .label {{
+            font-size: 0.9em;
+            color: #666;
+        }}
+        
+        .chart-legend {{
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }}
+        
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        }}
+        
+        .legend-color {{
+            width: 20px;
+            height: 20px;
+            border-radius: 5px;
+        }}
+        
+        .legend-text h4 {{
+            font-size: 1.1em;
+            color: var(--dark);
+        }}
+        
+        .legend-text p {{
+            font-size: 0.85em;
+            color: #666;
+        }}
+        
+        .key-points {{
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }}
+        
+        .key-point {{
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }}
+        
+        .key-point .icon-box {{
+            width: 50px;
+            height: 50px;
+            background: var(--bg-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            flex-shrink: 0;
+        }}
+        
+        .key-point h4 {{
+            font-size: 1.1em;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }}
+        
+        .key-point p {{
+            color: #666;
+            font-size: 0.9em;
+        }}
+        
+        .summary-grid {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }}
+        
+        .summary-box {{
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }}
+        
+        .summary-box h3 {{
+            font-size: 1.1em;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }}
+        
+        .summary-box .big-number {{
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--primary);
+        }}
+        
+        .summary-box p {{
+            color: #666;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }}
+        
+        .nav-controls {{
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }}
+        
+        .nav-btn {{
+            width: 55px;
+            height: 55px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.4em;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }}
+        
+        .nav-btn:hover {{
+            background: var(--primary-light);
+            transform: scale(1.1);
+        }}
+        
+        .nav-btn:disabled {{
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }}
+        
+        .slide-counter {{
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--dark);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+            z-index: 1000;
+        }}
+        
+        .progress-bar {{
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }}
+        
+        @media (max-width: 1200px) {{
+            .category-grid {{
+                grid-template-columns: repeat(2, 1fr);
+            }}
+            .chart-section {{
+                flex-direction: column;
+            }}
+        }}
+        
+        @media (max-width: 768px) {{
+            .slide {{
+                padding: 30px 40px;
+            }}
+            .category-grid {{
+                grid-template-columns: 1fr;
+            }}
+        }}
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
     
-    html = ""
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title active" data-slide="1">
+            <div class="section-badge">{nombre_seccion_titulo}</div>
+            <h1>Clasificación ABC+D</h1>
+            <p class="subtitle">Análisis de Inventario y Ventas</p>
+            <p class="meta">Vivero Aranjuez | {fecha_actual}</p>
+        </div>
+        
+        <!-- Slide 2: Agenda -->
+        <div class="slide" data-slide="2">
+            <div class="slide-header">
+                <div class="icon">📋</div>
+                <h2>Agenda de Presentación</h2>
+            </div>
+            <div class="slide-content">
+                <div class="key-points">
+                    <div class="key-point">
+                        <div class="icon-box">📊</div>
+                        <div>
+                            <h4>Resultados Generales</h4>
+                            <p>Resumen de la clasificación ABC+D y métricas clave</p>
+                        </div>
+                    </div>
+                    <div class="key-point">
+                        <div class="icon-box">📦</div>
+                        <div>
+                            <h4>Distribución por Categorías</h4>
+                            <p>Análisis detallado de Categorías A, B, C y D</p>
+                        </div>
+                    </div>
+                    <div class="key-point">
+                        <div class="icon-box">💰</div>
+                        <div>
+                            <h4>Participación en Ingresos</h4>
+                            <p>Gráfico de distribución de ventas por categoría</p>
+                        </div>
+                    </div>
+                    <div class="key-point">
+                        <div class="icon-box">📈</div>
+                        <div>
+                            <h4>Acciones Recomendadas</h4>
+                            <p>Estrategias para optimizar el inventario</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Key Metrics -->
+        <div class="slide" data-slide="3">
+            <div class="slide-header">
+                <div class="icon">📈</div>
+                <h2>Métricas Clave</h2>
+            </div>
+            <div class="slide-content">
+                <div class="kpi-row">
+                    <div class="kpi-box highlight">
+                        <div class="number">{total_arts}</div>
+                        <div class="label">Total Artículos</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="number">{formatear_numero(datos_seccion['ventas_totales'], 0)}€</div>
+                        <div class="label">Ventas Totales</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="number">{datos_seccion['stock_final_total']:,}</div>
+                        <div class="label">Unidades Stock</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="number">{datos_seccion['margen_bruto']}%</div>
+                        <div class="label">Margen Bruto</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Categories Overview -->
+        <div class="slide" data-slide="4">
+            <div class="slide-header">
+                <div class="icon">📦</div>
+                <h2>Distribución por Categorías</h2>
+            </div>
+            <div class="slide-content">
+                <div class="category-grid">
+                    <div class="cat-card a">
+                        <span class="badge">{pct_a}%</span>
+                        <h3>Categoría A</h3>
+                        <div class="count">{count_a}</div>
+                        <div class="details">
+                            <p>Artículos ({pct_ventas_a}% ventas)</p>
+                            <p>Stock: {stock_a} uds</p>
+                        </div>
+                    </div>
+                    <div class="cat-card b">
+                        <span class="badge">{pct_b}%</span>
+                        <h3>Categoría B</h3>
+                        <div class="count">{count_b}</div>
+                        <div class="details">
+                            <p>Artículos ({pct_ventas_b}% ventas)</p>
+                            <p>Stock: {stock_b} uds</p>
+                        </div>
+                    </div>
+                    <div class="cat-card c">
+                        <span class="badge">{pct_c}%</span>
+                        <h3>Categoría C</h3>
+                        <div class="count">{count_c}</div>
+                        <div class="details">
+                            <p>Artículos ({pct_ventas_c}% ventas)</p>
+                            <p>Stock: {stock_c} uds</p>
+                        </div>
+                    </div>
+                    <div class="cat-card d">
+                        <span class="badge">{pct_d}%</span>
+                        <h3>Categoría D</h3>
+                        <div class="count">{count_d}</div>
+                        <div class="details">
+                            <p>Sin ventas</p>
+                            <p>Stock: {stock_d} uds</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 5: Revenue Distribution -->
+        <div class="slide" data-slide="5">
+            <div class="slide-header">
+                <div class="icon">💰</div>
+                <h2>Participación en Ingresos</h2>
+            </div>
+            <div class="slide-content">
+                <div class="chart-section">
+                    <div class="donut-chart">
+                        <div class="chart-center">
+                            <div class="total">{formatear_numero(total_ventas, 0)}€</div>
+                            <div class="label">Total Ventas</div>
+                        </div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #1b5e20, #4caf50);"></div>
+                            <div class="legend-text">
+                                <h4>A - {pct_ventas_a}%</h4>
+                                <p>{formatear_numero(ventas_a, 0)}€ - Productos Estrella</p>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #1565c0, #42a5f5);"></div>
+                            <div class="legend-text">
+                                <h4>B - {pct_ventas_b}%</h4>
+                                <p>{formatear_numero(ventas_b, 0)}€ - Complemento</p>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #e65100, #ff9800);"></div>
+                            <div class="legend-text">
+                                <h4>C - {pct_ventas_c}%</h4>
+                                <p>{formatear_numero(ventas_c, 0)}€ - Bajo Movimiento</p>
+                            </div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, #c62828, #f44336);"></div>
+                            <div class="legend-text">
+                                <h4>D - 0%</h4>
+                                <p>Sin ventas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 6: Key Findings -->
+        <div class="slide" data-slide="6">
+            <div class="slide-header">
+                <div class="icon">🔑</div>
+                <h2>Hallazgos Principales</h2>
+            </div>
+            <div class="slide-content">
+                <div class="key-points">
+                    <div class="key-point">
+                        <div class="icon-box">📊</div>
+                        <div>
+                            <h4>Concentración de Valor</h4>
+                            <p>El {pct_a}% de artículos genera el {pct_ventas_a}% de ventas (principio de Pareto)</p>
+                        </div>
+                    </div>
+                    <div class="key-point" style="border-left: 5px solid #f44336;">
+                        <div class="icon-box">⚠️</div>
+                        <div>
+                            <h4>Artículos Sin Ventas</h4>
+                            <p>{count_d} artículos ({pct_d}%) sin rotación - requieren acción</p>
+                        </div>
+                    </div>
+                    <div class="key-point">
+                        <div class="icon-box">💵</div>
+                        <div>
+                            <h4>Margen de Beneficio</h4>
+                            <p>Margen bruto del {datos_seccion['margen_bruto']}% - rentabilidad saludable</p>
+                        </div>
+                    </div>
+                    <div class="key-point">
+                        <div class="icon-box">📦</div>
+                        <div>
+                            <h4>Stock Total</h4>
+                            <p>{datos_seccion['stock_final_total']:,} unidades valoradas en el inventario</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 7: Recommendations -->
+        <div class="slide" data-slide="7">
+            <div class="slide-header">
+                <div class="icon">💡</div>
+                <h2>Recomendaciones</h2>
+            </div>
+            <div class="slide-content">
+                <div class="key-points">
+                    <div class="key-point" style="border-left: 5px solid #1b5e20;">
+                        <div class="icon-box">⭐</div>
+                        <div>
+                            <h4>Priorizar Categoría A</h4>
+                            <p>Asegurar stock óptimo de {count_a} artículos estrella - prioridad máxima</p>
+                        </div>
+                    </div>
+                    <div class="key-point" style="border-left: 5px solid #ff9800;">
+                        <div class="icon-box">🏷️</div>
+                        <div>
+                            <h4>Promocionar Categoría B</h4>
+                            <p>Aplicar estrategias de promoción para aumentar rotaciones</p>
+                        </div>
+                    </div>
+                    <div class="key-point" style="border-left: 5px solid #e65100;">
+                        <div class="icon-box">📉</div>
+                        <div>
+                            <h4>Evaluar Categoría C</h4>
+                            <p>Revisar continuidad de {count_c} artículos con bajo rendimiento</p>
+                        </div>
+                    </div>
+                    <div class="key-point" style="border-left: 5px solid #c62828;">
+                        <div class="icon-box">🛒</div>
+                        <div>
+                            <h4>Liquidar Categoría D</h4>
+                            <p>Tomar decisiones sobre {count_d} artículos sin ventas ({pct_d}% del catálogo)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 8: Summary -->
+        <div class="slide" data-slide="8">
+            <div class="slide-header">
+                <div class="icon">✅</div>
+                <h2>Resumen</h2>
+            </div>
+            <div class="slide-content">
+                <div class="summary-grid">
+                    <div class="summary-box">
+                        <h3>Artículos Activos</h3>
+                        <div class="big-number">{count_a + count_b + count_c}</div>
+                        <p>En Categorías A, B y C con potencial de ventas</p>
+                    </div>
+                    <div class="summary-box">
+                        <h3>Sin Rotación</h3>
+                        <div class="big-number">{count_d}</div>
+                        <p>Artículos sin ventas ({pct_d}% del catálogo)</p>
+                    </div>
+                    <div class="summary-box">
+                        <h3>Margen Bruto</h3>
+                        <div class="big-number">{datos_seccion['margen_bruto']}%</div>
+                        <p>Rentabilidad del negocio</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 9: Thank You -->
+        <div class="slide slide-title" data-slide="9">
+            <div class="section-badge">{nombre_seccion_titulo}</div>
+            <h1>¡Gracias!</h1>
+            <p class="subtitle">¿Preguntas o comentarios?</p>
+            <p class="meta">Vivero Aranjuez | Análisis ABC+D</p>
+        </div>
+    </div>
+    
+    <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">←</button>
+        <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">→</button>
+    </div>
+    
+    <div class="slide-counter">
+        <span id="currentSlide">1</span> / <span id="totalSlides">9</span>
+    </div>
+    
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        
+        document.getElementById('totalSlides').textContent = totalSlides;
+        
+        function updateSlide() {{
+            document.querySelectorAll('.slide').forEach((slide, index) => {{
+                slide.classList.remove('active', 'prev');
+                if (index + 1 === currentSlide) {{
+                    slide.classList.add('active');
+                }} else if (index + 1 < currentSlide) {{
+                    slide.classList.add('prev');
+                }}
+            }});
+            
+            document.getElementById('currentSlide').textContent = currentSlide;
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+            
+            const progress = ((currentSlide - 1) / (totalSlides - 1)) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }}
+        
+        function changeSlide(direction) {{
+            currentSlide += direction;
+            if (currentSlide < 1) currentSlide = 1;
+            if (currentSlide > totalSlides) currentSlide = totalSlides;
+            updateSlide();
+        }}
+        
+        document.addEventListener('keydown', function(e) {{
+            if (e.key === 'ArrowRight' || e.key === ' ') {{
+                changeSlide(1);
+            }} else if (e.key === 'ArrowLeft') {{
+                changeSlide(-1);
+            }}
+        }});
+        
+        let touchStartX = 0;
+        document.addEventListener('touchstart', function(e) {{
+            touchStartX = e.touches[0].clientX;
+        }});
+        
+        document.addEventListener('touchend', function(e) {{
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {{
+                if (diff > 0) {{
+                    changeSlide(1);
+                }} else {{
+                    changeSlide(-1);
+                }}
+            }}
+        }});
+        
+        updateSlide();
+    </script>
+</body>
+</html>"""
     
     return html
 
@@ -378,10 +1184,6 @@ def main():
     print("=" * 70)
     print("\nMODO: Usando archivos de clasificación como fuente de datos")
     print("      (NO se procesan archivos individuales Ventas/stock/compras)")
-    
-    # Mostrar período calculado automáticamente
-    print(f"\nPeríodo de análisis (calculado automáticamente desde Ventas.xlsx):")
-    print(f"  {PERIODO_CALCULADO['PERIODO_TEXTO'] if PERIODO_CALCULADO else 'No disponible'} ({DIAS_PERIODO} días)")
     
     # Buscar archivos de clasificación
     print("\n[1/3] Buscando archivos de clasificación ABC+D...")

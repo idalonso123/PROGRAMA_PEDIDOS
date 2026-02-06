@@ -15,14 +15,10 @@ import pandas as pd
 import numpy as np
 import os
 import glob
-import re
 import logging
 import unicodedata
 from typing import Optional, Dict, List, Tuple, Any
 from datetime import datetime
-
-# Importar módulo de búsqueda flexible de archivos
-from src.file_finder import find_latest_file
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -83,72 +79,10 @@ class DataLoader:
         texto = unicodedata.normalize('NFD', texto)
         texto = ''.join(c for c in texto if unicodedata.category(c) != 'Mn')
         
-        # Eliminar guiones especiales (en dash, em dash) y otros caracteres especiales
-        texto = texto.replace('–', ' ').replace('—', ' ')
-        texto = texto.replace(''', '').replace(''', '')
-        texto = texto.replace('"', '').replace('...', ' ')
-        
-        # Normalizar espacios múltiples a uno solo
-        while '  ' in texto:
-            texto = texto.replace('  ', ' ')
-        
         # Eliminar espacios extra
         texto = texto.strip()
         
         return texto
-    
-    def buscar_columna_normalizada(self, df: pd.DataFrame, nombre_columna: str) -> Optional[str]:
-        """
-        Busca una columna en el DataFrame ignorando mayúsculas/minúsculas y acentos.
-        
-        Args:
-            df (pd.DataFrame): DataFrame donde buscar
-            nombre_columna (str): Nombre de la columna a buscar
-        
-        Returns:
-            Optional[str]: Nombre de la columna encontrada o None si no existe
-        """
-        nombre_normalizado = self.normalizar_texto(nombre_columna)
-        
-        for col in df.columns:
-            if self.normalizar_texto(col) == nombre_normalizado:
-                return col
-        
-        return None
-    
-    def renombrar_columnas_flexible(self, df: pd.DataFrame, mapeo: dict) -> Tuple[pd.DataFrame, dict]:
-        """
-        Renombra las columnas de un DataFrame usando un mapeo flexible.
-        
-        Args:
-            df (pd.DataFrame): DataFrame a modificar
-            mapeo (dict): Diccionario con nombres nuevos como clave y lista de nombres posibles como valor
-        
-        Returns:
-            Tuple[pd.DataFrame, dict]: (DataFrame con columnas renombradas, diccionario de renombrados)
-        """
-        df = df.copy()
-        renombrados = {}
-        
-        for nombre_nuevo, nombres_posibles in mapeo.items():
-            # Primero buscar coincidencia exacta (case-insensitive y sin acentos)
-            for col in df.columns:
-                if self.normalizar_texto(col) == self.normalizar_texto(nombre_nuevo):
-                    renombrados[col] = nombre_nuevo
-                    break
-            else:
-                # Si no se encuentra, buscar entre los nombres posibles
-                for nombre_buscar in nombres_posibles:
-                    col_encontrada = self.buscar_columna_normalizada(df, nombre_buscar)
-                    if col_encontrada:
-                        renombrados[col_encontrada] = nombre_nuevo
-                        break
-        
-        # Aplicar renombrados
-        if renombrados:
-            df = df.rename(columns=renombrados)
-        
-        return df, renombrados
     
     def contiene_texto(self, texto_buscar: str, texto_comparar: str) -> bool:
         """
@@ -315,24 +249,13 @@ class DataLoader:
         El archivo debe contener una hoja con datos de ventas por vendedor,
         incluyendo código de artículo, nombre, fecha, semana, unidades e importe.
         
-        Utiliza búsqueda flexible para encontrar archivos con timestamp del ERP
-        (ej: SPA_Ventas__20260205_210037.xlsx) o fallback a archivo legacy.
-        
         Returns:
             Optional[pd.DataFrame]: DataFrame con las ventas procesadas o None
         """
         dir_entrada = self.obtener_directorio_entrada()
+        nombre_archivo = self.archivos.get('ventas', 'Ventas.xlsx')
+        ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
         
-        # Usar búsqueda flexible de archivos (soporta timestamps dinámicos del ERP)
-        # El config.json debe tener: "ventas": "SPA_Ventas" (sin extensión)
-        base_name = self.archivos.get('ventas', 'Ventas').replace('.xlsx', '')
-        ruta_archivo = find_latest_file(dir_entrada, base_name, logger_instance=logger)
-        
-        if ruta_archivo is None:
-            logger.error(f"No se encontró archivo de ventas: {base_name}")
-            return None
-        
-        logger.info(f"Leyendo archivo de ventas: {os.path.basename(ruta_archivo)}")
         df = self.leer_excel(ruta_archivo)
         
         if df is None:
@@ -391,23 +314,13 @@ class DataLoader:
         El archivo contiene información sobre PVP, costes de compra, proveedores
         y márgenes para cada artículo.
 
-        Utiliza búsqueda flexible para encontrar archivos con timestamp del ERP
-        (ej: SPA_Coste__20260205_210037.xlsx) o fallback a archivo legacy.
-
         Returns:
             Optional[pd.DataFrame]: DataFrame con los costes o None si hay error
         """
         dir_entrada = self.obtener_directorio_entrada()
-        
-        # Usar búsqueda flexible de archivos
-        base_name = self.archivos.get('coste', 'Coste').replace('.xlsx', '')
-        ruta_archivo = find_latest_file(dir_entrada, base_name, logger_instance=logger)
-        
-        if ruta_archivo is None:
-            logger.error(f"No se encontró archivo de costes: {base_name}")
-            return None
-        
-        logger.info(f"Leyendo archivo de costes: {os.path.basename(ruta_archivo)}")
+        nombre_archivo = self.archivos.get('coste', 'Coste.xlsx')
+        ruta_archivo = os.path.join(dir_entrada, nombre_archivo)
+
         df = self.leer_excel(ruta_archivo)
 
         if df is None:
@@ -421,26 +334,9 @@ class DataLoader:
 
         df = df.copy()
 
-        # Mapeo de columnas para archivo Coste.xlsx (nombres nuevos y antiguos)
-        MAPEO_COLUMNAS_COSTE = {
-            'Artículo': ['Codigo', 'codigo', 'CODIGO', 'Código', 'codigó', 'CODIGÓ', 'Articulo', 'articulo', 'ARTICULO', 'Artículo', 'artículo', 'ARTÍCULO'],
-            'Talla': ['Talla', 'talla', 'TALLA'],
-            'Color': ['Color', 'color', 'COLOR'],
-            'Coste': ['Coste', 'coste', 'COSTE', 'Costo', 'costo', 'COSTO'],
-        }
-        
-        # Renombrar columnas flexiblemente
-        df, columnas_renombradas = self.renombrar_columnas_flexible(df, MAPEO_COLUMNAS_COSTE)
-        if columnas_renombradas:
-            logger.debug(f"COSTE: Columnas renombradas automáticamente: {columnas_renombradas}")
-
-        # Verificar que la columna esencial exista después del renombrado
-        if 'Artículo' not in df.columns:
-            logger.error(f"Columna 'Artículo' no encontrada en Coste.xlsx. Columnas disponibles: {list(df.columns)}")
-            return None
-
-        # Normalizar columna de código usando el nuevo nombre 'Artículo'
-        df['Codigo'] = df['Artículo'].astype(str).str.strip()
+        # Normalizar columna de código
+        if 'Codigo' in df.columns:
+            df['Codigo'] = df['Codigo'].astype(str).str.strip()
 
         # Crear clave única para matching
         df['Clave'] = (df['Codigo'] + '|' +
@@ -454,9 +350,8 @@ class DataLoader:
         """
         Busca el archivo CLASIFICACION ABC+D específico para la sección.
 
-        Busca en el directorio de entrada archivos que coincidan exactamente con
-        el patrón 'CLASIFICACION_ABC+D_SECCION' seguido de opcionalmente un período
-        de fecha u otros sufijos.
+        Busca en el directorio de entrada archivos que coincidan con el patrón
+        'CLASIFICACION_ABC+D_' seguido del nombre de la sección.
 
         Args:
             seccion (str): Nombre de la sección a buscar
@@ -465,39 +360,36 @@ class DataLoader:
             Optional[str]: Ruta del archivo encontrado o None
         """
         dir_entrada = self.obtener_directorio_entrada()
+        patron = self.archivos.get('clasificacion_abc', 'CLASIFICACION_ABC+D_*.xlsx')
         
         # Normalizar nombre de sección para búsqueda
         seccion_normalizada = self.normalizar_texto(seccion)
         
-        # Buscar todos los archivos CLASIFICACION_ABC+D*.xlsx
+        # Construir patrón de búsqueda
+        if '*' in patron:
+            # Reemplazar * con el nombre de la sección
+            patron_buscar = patron.replace('*', seccion_normalizada)
+        else:
+            patron_buscar = f"*{seccion_normalizada}*"
+        
+        # Buscar archivos
+        ruta_busqueda = os.path.join(dir_entrada, patron_buscar)
+        archivos_encontrados = glob.glob(ruta_busqueda)
+        
+        if archivos_encontrados:
+            logger.info(f"Archivo ABC encontrado para '{seccion}': {archivos_encontrados[0]}")
+            return archivos_encontrados[0]
+        
+        # Búsqueda más amplia si no se encuentra
         patron_generico = os.path.join(dir_entrada, 'CLASIFICACION_ABC+D*.xlsx')
-        archivos_encontrados = glob.glob(patron_generico)
+        archivos_genericos = glob.glob(patron_generico)
         
-        if not archivos_encontrados:
-            logger.error(f"No se encontró ningún archivo ABC+D para sección '{seccion}'")
-            return None
+        if archivos_genericos:
+            logger.warning(f"No se encontró archivo específico para '{seccion}', usando: {archivos_genericos[0]}")
+            return archivos_genericos[0]
         
-        # Usar regex para matching preciso
-        # El patrón busca: CLASIFICACION_ABC+D_SECCION seguido de _ extensión o fin
-        # ^ asegura que匹配 al inicio del nombre
-        # El patrón acepta cualquier sufijo después de la sección (período u otros)
-        patron = rf'^CLASIFICACION_ABC\+D_{re.escape(seccion_normalizada)}(?:_.*|\.xlsx|$)'
-        
-        archivo_encontrado = None
-        for archivo in archivos_encontrados:
-            nombre_archivo = os.path.basename(archivo)
-            
-            if re.match(patron, nombre_archivo, re.IGNORECASE):
-                archivo_encontrado = archivo
-                break
-        
-        if archivo_encontrado:
-            logger.info(f"Archivo ABC encontrado para '{seccion}': {archivo_encontrado}")
-            return archivo_encontrado
-        
-        # Si no encontramos ninguno específico, usar el primero disponible
-        logger.warning(f"No se encontró archivo específico para '{seccion}', usando: {archivos_encontrados[0]}")
-        return archivos_encontrados[0]
+        logger.error(f"No se encontró ningún archivo ABC+D para sección '{seccion}'")
+        return None
     
     def leer_clasificacion_abc(self, seccion: str) -> Optional[pd.DataFrame]:
         """
@@ -717,14 +609,7 @@ class DataLoader:
         # Esto es independiente del resto de columnas y no afecta a PVP ni Coste
         if proveedor == '' or pd.isna(proveedor):
             # Buscar todos los artículos con el mismo código
-            # Usar 'Artículo' que es el nombre renombrado de 'Codigo'
-            columna_articulo = self.buscar_columna_normalizada(coste_df, 'Artículo')
-            if columna_articulo:
-                match_proveedor = coste_df[coste_df[columna_articulo].astype(str) == str(codigo).strip()]
-            else:
-                # Fallback a 'Codigo' si no se encuentra 'Artículo'
-                match_proveedor = coste_df[coste_df['Codigo'].astype(str) == str(codigo).strip()]
-            
+            match_proveedor = coste_df[coste_df['Codigo'].astype(str) == str(codigo).strip()]
             if len(match_proveedor) > 0:
                 # Buscar la columna del proveedor
                 columnas_normalizadas = [self.normalizar_texto(col) for col in match_proveedor.columns]

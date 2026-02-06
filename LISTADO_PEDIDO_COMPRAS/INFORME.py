@@ -5,9 +5,6 @@ INFORME_FINAL.py
 Script para generar el informe HTML completo del análisis ABC+D de Vivero Aranjuez.
 Versión mejorada: Lee archivos CLASIFICACION_ABC+D_[SECCION].xlsx con datos ya clasificados.
 Envía automáticamente un email con todos los informes generados a Ivan.
-
-CONFIGURACIÓN: Todas las variables están centralizadas en config/config_comun.json
-El período de análisis se calcula automáticamente desde Ventas.xlsx (no requiere configuración manual).
 """
 
 import pandas as pd
@@ -23,96 +20,36 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from pathlib import Path
-
-# Importar configuración desde el módulo centralizado
-from src.config_loader import (
-    obtener_configuracion_completa_informe,
-    obtener_configuracion_email_textos,
-    calcular_periodo_desde_dataframe
-)
-
 warnings.filterwarnings('ignore')
 
 # ============================================================================
-# CARGAR CONFIGURACIÓN DESDE EL ARCHIVO CENTRALIZADO
+# CONFIGURACIÓN DE EMAIL
 # ============================================================================
 
-CONFIG = obtener_configuracion_completa_informe()
+# Destinatario: Ivan (información del archivo src/email_service.py)
+DESTINATARIO_IVAN = {
+    'nombre': 'Ivan',
+    'email': 'ivan.delgado@viveverde.es'
+}
 
-# Asignar variables globales desde la configuración (excepto período)
-DESTINATARIO_IVAN = CONFIG['DESTINATARIO_IVAN']
-SMTP_CONFIG = CONFIG['SMTP_CONFIG']
-UMBRAL_RIESGO_CRITICO = CONFIG['UMBRAL_RIESGO_CRITICO']
-UMBRAL_RIESGO_ALTO = CONFIG['UMBRAL_RIESGO_ALTO']
-UMBRAL_RIESGO_MEDIO = CONFIG['UMBRAL_RIESGO_MEDIO']
-KPI_OBJETIVOS = CONFIG['KPI_OBJETIVOS']
-VALOR_PROMEDIO_POR_ARTICULO = CONFIG['VALOR_PROMEDIO_POR_ARTICULO']
+# Configuración del servidor SMTP
+SMTP_CONFIG = {
+    'servidor': 'smtp.serviciodecorreo.es',
+    'puerto': 465,
+    'remitente_email': 'ivan.delgado@viveverde.es',
+    'remitente_nombre': 'Sistema de Pedidos automáticos VIVEVERDE'
+}
 
-# Obtener textos de email
-EMAIL_TEXTOS = obtener_configuracion_email_textos()
+# Configuración de fechas
+FECHA_INICIO = datetime(2025, 1, 1)
+FECHA_FIN = datetime(2025, 2, 28)
+DIAS_PERIODO = 59
 
-# ============================================================================
-# CALCULAR PERÍODO AUTOMÁTICAMENTE DESDE VENTAS.XLSX
-# ============================================================================
+# Período formateado para nombres de archivo (formato: YYYYMMDD-YYYYMMDD)
+PERIODO_FILENAME = f"{FECHA_INICIO.strftime('%Y%m%d')}-{FECHA_FIN.strftime('%Y%m%d')}"
 
-def calcular_periodo_informe():
-    """
-    Calcula el período de análisis automáticamente desde Ventas.xlsx.
-    Esta función garantiza que los tres scripts usen exactamente el mismo período.
-    
-    Returns:
-        dict: Diccionario con todas las variables de período calculadas
-    """
-    print("\n" + "=" * 70)
-    print("CÁLCULO AUTOMÁTICO DEL PERÍODO DE ANÁLISIS")
-    print("=" * 70)
-    
-    try:
-        # Cargar archivo de ventas para calcular período
-        print("\n  Cargando archivo Ventas.xlsx para cálculo del período...")
-        df_ventas = pd.read_excel('data/input/Ventas.xlsx')
-        print(f"  ✓ Ventas cargadas: {len(df_ventas)} registros")
-        
-        # Calcular período automáticamente
-        periodo = calcular_periodo_desde_dataframe(df_ventas)
-        
-        print(f"\n  Período calculado automáticamente desde Ventas.xlsx:")
-        print(f"    Fecha inicio: {periodo['FECHA_INICIO'].strftime('%d de %B de %Y')}")
-        print(f"    Fecha fin: {periodo['FECHA_FIN'].strftime('%d de %B de %Y')}")
-        print(f"    Días del período: {periodo['DIAS_PERIODO']}")
-        print(f"    Período corto: {periodo['PERIODO_CORTO']}")
-        
-        return periodo
-        
-    except FileNotFoundError:
-        print("  ERROR: No se encontró el archivo Ventas.xlsx")
-        print("  El período no puede ser calculado automáticamente.")
-        return None
-    except Exception as e:
-        print(f"  ERROR al calcular el período: {str(e)}")
-        return None
-
-# Calcular período al inicio del script
-PERIODO_CALCULADO = calcular_periodo_informe()
-
-if PERIODO_CALCULADO:
-    FECHA_INICIO = PERIODO_CALCULADO['FECHA_INICIO']
-    FECHA_FIN = PERIODO_CALCULADO['FECHA_FIN']
-    DIAS_PERIODO = PERIODO_CALCULADO['DIAS_PERIODO']
-    PERIODO_FILENAME = PERIODO_CALCULADO['PERIODO_FILENAME']
-    PERIODO_TEXTO = PERIODO_CALCULADO['PERIODO_TEXTO']
-    PERIODO_CORTO = PERIODO_CALCULADO['PERIODO_CORTO']
-    PERIODO_EMAIL = PERIODO_CALCULADO['PERIODO_EMAIL']
-else:
-    # Valores por defecto si no se puede calcular (no debería ocurrir)
-    print("  ⚠ Usando valores por defecto (el script puede fallar)")
-    FECHA_INICIO = datetime(2000, 1, 1)
-    FECHA_FIN = datetime(2000, 1, 1)
-    DIAS_PERIODO = 1
-    PERIODO_FILENAME = "20000101-20000101"
-    PERIODO_TEXTO = "Período no disponible"
-    PERIODO_CORTO = "Período no disponible"
-    PERIODO_EMAIL = "Período no disponible"
+# Período formateado para el email
+PERIODO_EMAIL = f"{FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}"
 
 # ============================================================================
 # FUNCIÓN PARA ENVIAR EMAIL CON INFORMES ADJUNTOS
@@ -158,13 +95,16 @@ def enviar_email_informes(archivos_informes: list) -> bool:
         msg = MIMEMultipart()
         msg['From'] = f"{SMTP_CONFIG['remitente_nombre']} <{SMTP_CONFIG['remitente_email']}>"
         msg['To'] = email_destinatario
+        msg['Subject'] = f"VIVEVERDE: Informes de ClasificacionABC+D de cada sección del periodo {PERIODO_EMAIL}"
         
-        # Formatear asunto con el período
-        asunto = EMAIL_TEXTOS['ASUNTO_INFORME'].format(periodo=PERIODO_EMAIL)
-        msg['Subject'] = asunto
-        
-        # Formatear cuerpo del email
-        cuerpo = EMAIL_TEXTOS['CUERPO_INFORME'].format(nombre=nombre_destinatario)
+        # Cuerpo del email
+        cuerpo = f"""Buenos días {nombre_destinatario},
+
+Te adjunto en este correo los informes de Clasificación ABC+D de cada sección.
+
+Atentamente,
+
+Sistema de Pedidos automáticos VIVEVERDE."""
         
         msg.attach(MIMEText(cuerpo, 'plain', 'utf-8'))
         
@@ -405,36 +345,8 @@ def generar_html_informe(datos, df_completo, nombre_seccion=None):
     tr = datos['top_riesgo']
     te = datos['top_estrella']
     
-    # Usar valores calculados automáticamente
-    periodo_corto = PERIODO_CORTO
-    periodo_texto = PERIODO_TEXTO
-    dias_periodo = DIAS_PERIODO
-    kpi_objetivos = KPI_OBJETIVOS
-    valor_promedio = VALOR_PROMEDIO_POR_ARTICULO
-    
-    if not periodo_corto:
-        periodo_corto = "Periodo de analisis"
-    if not periodo_texto:
-        periodo_texto = "Periodo no especificado"
-    if dias_periodo <= 0:
-        dias_periodo = 1
-    if kpi_objetivos is None:
-        kpi_objetivos = {
-            'tasa_venta_semanal': '>5%',
-            'rotacion_inventario_dias': '<45',
-            'productos_riesgo_critico_objetivo': '<10%',
-            'rupturas_stock_objetivo': '<5'
-        }
-    
     fecha_actual = datetime.now().strftime("%d de %B de %Y")
     nombre_seccion_titulo = nombre_seccion.upper() if nombre_seccion else "Vivero"
-    
-    # Variables locales con nombres esperados por el f-string
-    PERIODO_CORTO_LOCAL = periodo_corto
-    PERIODO_TEXTO_LOCAL = periodo_texto
-    DIAS_PERIODO_LOCAL = dias_periodo
-    KPI_OBJETIVOS_LOCAL = kpi_objetivos
-    VALOR_PROMEDIO_POR_ARTICULO_LOCAL = valor_promedio
     
     # Obtener valores por categoría
     cat_a = dc[dc['categoria'] == 'A'].iloc[0] if 'A' in dc['categoria'].values else None
@@ -497,17 +409,24 @@ def generar_html_informe(datos, df_completo, nombre_seccion=None):
     # Calcular ángulos dinámicos para el diagrama de circunferencia de Antigüedad del Stock
     total_stock_count = count_elevado + count_normal + count_bajo_stock + count_cero_stock
     if total_stock_count > 0:
+        # Convertir counts a ángulos (360° = 100%)
         angle_elevado = round(count_elevado / total_stock_count * 360, 1)
         angle_normal = round(count_normal / total_stock_count * 360, 1)
         angle_bajo = round(count_bajo_stock / total_stock_count * 360, 1)
+        # El último ángulo se calcula por residuo para completar 360°
         angle_cero = round(360 - angle_elevado - angle_normal - angle_bajo, 1)
         
+        # Calcular puntos de corte para el gradiente cónico
+        # Cada sector comienza donde termina el anterior
         end_elevado = angle_elevado
         end_normal = end_elevado + angle_normal
         end_bajo = end_normal + angle_bajo
         
+        # Generar la cadena del gradiente cónico dinámicamente
+        # Colores: ELEVADO=verde(#C8E6C9), NORMAL=amarillo(#FFF9C4), BAJO=naranja(#FFE0B2), CERO=rojo(#FFCDD2)
         chart_gradient = f"#C8E6C9 0deg {end_elevado}deg, #FFF9C4 {end_elevado}deg {end_normal}deg, #FFE0B2 {end_normal}deg {end_bajo}deg, #FFCDD2 {end_bajo}deg 360deg"
     else:
+        # Valores por defecto si no hay datos
         chart_gradient = "#C8E6C9 0deg 90deg, #FFF9C4 90deg 180deg, #FFE0B2 180deg 270deg, #FFCDD2 270deg 360deg"
         end_elevado = 90
         end_normal = 180
@@ -631,9 +550,604 @@ def generar_html_informe(datos, df_completo, nombre_seccion=None):
     stock_final_str = r['stock_final_total']
     margen_bruto_str = r['margen_bruto']
     
-    # El resto del HTML continúa igual...
-    # Por brevedad, incluyo solo las partes principales del HTML
-    html = ''
+    html = f'''<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Final - Sección {nombre_seccion_titulo} | Enero-Febrero 2025</title>
+    <style>
+        :root {{
+            --primary: #2E7D32;
+            --secondary: #1565C0;
+            --danger: #D32F2F;
+            --warning: #F9A825;
+            --success: #388E3C;
+            --text: #37474F;
+            --bg: #FAFAFA;
+            --white: #FFFFFF;
+        }}
+        
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        
+        body {{
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }}
+        
+        .container {{ max-width: 1200px; margin: 0 auto; padding: 20px; }}
+        
+        .cover {{
+            background: linear-gradient(135deg, var(--primary) 0%, #1B5E20 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }}
+        
+        .cover h1 {{ font-size: 2.5em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }}
+        .cover .subtitle {{ font-size: 1.3em; opacity: 0.9; margin-bottom: 30px; }}
+        .cover .meta {{ font-size: 1em; opacity: 0.8; }}
+        
+        section {{
+            background: var(--white);
+            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            page-break-inside: avoid;
+        }}
+        
+        h2 {{ color: var(--primary); font-size: 1.6em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid var(--primary); }}
+        h3 {{ color: var(--secondary); font-size: 1.3em; margin: 20px 0 15px 0; }}
+        
+        .kpi-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }}
+        
+        .kpi-card {{
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }}
+        
+        .kpi-card.danger {{ border-left-color: var(--danger); }}
+        .kpi-card.warning {{ border-left-color: var(--warning); }}
+        .kpi-card.success {{ border-left-color: var(--success); }}
+        
+        .kpi-value {{ font-size: 2em; font-weight: bold; color: var(--primary); }}
+        .kpi-card.danger .kpi-value {{ color: var(--danger); }}
+        .kpi-card.warning .kpi-value {{ color: var(--warning); }}
+        .kpi-card.success .kpi-value {{ color: var(--success); }}
+        .kpi-label {{ font-size: 0.9em; color: #666; margin-top: 5px; }}
+        
+        .chart-container {{ margin: 30px 0; text-align: center; }}
+        .chart-title {{ font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }}
+        
+        .table-container {{ overflow-x: auto; margin: 20px 0; }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 0.9em; }}
+        th, td {{ padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }}
+        th {{ background-color: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; }}
+        tr:hover {{ background-color: #f5f5f5; }}
+        .text-right {{ text-align: right; }}
+        .text-center {{ text-align: center; }}
+        
+        .badge {{
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }}
+        
+        .badge-critical {{ background: #FFEBEE; color: #C62828; }}
+        .badge-high {{ background: #FFF3E0; color: #EF6C00; }}
+        .badge-medium {{ background: #FFF8E1; color: #F9A825; }}
+        .badge-low {{ background: #E8F5E9; color: #2E7D32; }}
+        
+        .matrix-grid {{
+            display: grid;
+            grid-template-columns: 150px repeat(4, 1fr);
+            gap: 3px;
+            margin: 20px 0;
+        }}
+        
+        .matrix-cell {{ padding: 15px 10px; text-align: center; border-radius: 5px; font-size: 0.85em; }}
+        .matrix-header {{ background: var(--secondary); color: white; font-weight: bold; }}
+        .matrix-row-header {{ background: var(--primary); color: white; font-weight: bold; }}
+        .risk-critical {{ background: #FFCDD2; }}
+        .risk-high {{ background: #FFE0B2; }}
+        .risk-medium {{ background: #FFF9C4; }}
+        .risk-low {{ background: #C8E6C9; }}
+        
+        .toc {{
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }}
+        
+        .toc h2 {{ margin-bottom: 15px; }}
+        .toc ul {{ list-style: none; columns: 2; }}
+        .toc li {{ padding: 8px 0; border-bottom: 1px dashed #ddd; }}
+        .toc a {{ color: var(--secondary); text-decoration: none; }}
+        .toc a:hover {{ text-decoration: underline; }}
+        
+        footer {{
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+            margin-top: 40px;
+        }}
+        
+        @media print {{
+            body {{ background: white; }}
+            section {{ box-shadow: none; border: 1px solid #ddd; }}
+            .cover {{ background: var(--primary) !important; -webkit-print-color-adjust: exact; }}
+        }}
+    </style>
+</head>
+<body>
+
+<div class="cover">
+    <h1>INFORME FINAL</h1>
+    <p class="subtitle">Seccion {nombre_seccion_titulo} - Analisis de Inventario y Ventas</p>
+    <p class="meta">
+        <strong>Jardineria Aranjuez (Madrid)</strong><br>
+        Periodo: 1 de Enero - 28 de Febrero 2025 (59 dias)<br>
+        Generado: {fecha_actual}
+    </p>
+</div>
+
+<div class="container">
+
+<!-- INDICE -->
+<div class="toc">
+    <h2>Indice de Contenidos</h2>
+    <ul>
+        <li><a href="#resumen-ejecutivo">1. Resumen Ejecutivo</a></li>
+        <li><a href="#analisis-abc">2. Clasificacion ABC</a></li>
+        <li><a href="#analisis-ventas">3. Analisis de Ventas</a></li>
+        <li><a href="#analisis-stock">4. Analisis de Stock</a></li>
+        <li><a href="#matriz-stock">5. Matriz Stock vs Rotacion</a></li>
+        <li><a href="#riesgo-merma">6. Riesgo de Merma</a></li>
+        <li><a href="#productos-problematicos">7. Productos Problematicos</a></li>
+        <li><a href="#productos-estrella">8. Productos Estrella</a></li>
+        <li><a href="#capital">9. Optimizacion de Capital</a></li>
+        <li><a href="#recomendaciones">10. Recomendaciones</a></li>
+    </ul>
+</div>
+
+<!-- RESUMEN EJECUTIVO -->
+<section id="resumen-ejecutivo">
+    <h2>1. Resumen Ejecutivo</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">{total_arts}</div>
+            <div class="kpi-label">Articulos Analizados</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">{ventas_totales_str}€</div>
+            <div class="kpi-label">Ventas Totales</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{beneficio_total_str}€</div>
+            <div class="kpi-label">Beneficio</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">{stock_final_str}</div>
+            <div class="kpi-label">Stock Final (uds.)</div>
+        </div>
+    </div>
+    
+    <h3>Metricas Principales</h3>
+    <table>
+        <tr><th>Metrica</th><th>Valor</th><th>Interpretacion</th></tr>
+        <tr><td>Total Articulos</td><td class="text-right">{total_arts}</td><td>SKUs unicos en catalogo</td></tr>
+        <tr><td>Margen Bruto Global</td><td class="text-right">{margen_bruto_str}%</td><td>Rentabilidad saludable</td></tr>
+        <tr><td>Capital Inmovilizado</td><td class="text-right">{capital_inmov_str}€</td><td>Valor del inventario</td></tr>
+        <tr><td>Articulos en Riesgo Critico</td><td class="text-right" style="color: #D32F2F; font-weight: bold;">{count_critico} ({round(count_critico/total_arts*100, 1)}%)</td><td>Requieren accion inmediata</td></tr>
+        <tr><td>Rupturas de Stock</td><td class="text-right" style="color: #D32F2F; font-weight: bold;">{count_cero_stock}</td><td>Oportunidades perdidas</td></tr>
+        <tr><td>Productos Estrella</td><td class="text-right" style="color: #2E7D32; font-weight: bold;">{count_a}</td><td>Alta rotacion, bajo stock</td></tr>
+    </table>
+    
+    <h3>Hallazgos Clave</h3>
+    <ul>
+        <li><strong>El {pct_d}% del catalogo</strong> ({count_d} articulos) no genero ventas durante el periodo</li>
+        <li><strong>La clasificacion ABC</strong> muestra que {count_a} articulos ({pct_a}%) generan el {pct_ventas_a}% de los ingresos</li>
+        <li><strong>El {pct_elevado}% del inventario</strong> presenta un nivel de stock ELEVADO, indicando sobreabastecimiento</li>
+        <li><strong>El margen bruto global</strong> del {margen_bruto_str}% refleja una gestion rentable del negocio</li>
+        <li><strong>{count_cero_stock} productos</strong> estan en ruptura de stock con demanda reciente</li>
+        <li>La aplicacion de descuentos progresivos puede recuperar el 40-60% del capital en riesgo</li>
+    </ul>
+</section>
+
+<!-- CLASIFICACION ABC -->
+<section id="analisis-abc">
+    <h2>2. Clasificacion ABC (Principio de Pareto)</h2>
+    
+    <div class="chart-container">
+        <div class="chart-title">Distribucion de Ventas por Categoria ABC</div>
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(
+                    #1B5E20 0deg {pct_a * 3.6}deg, 
+                    #1565C0 {pct_a * 3.6}deg {(pct_a + pct_b) * 3.6}deg, 
+                    #E65100 {(pct_a + pct_b) * 3.6}deg {(pct_a + pct_b + pct_c) * 3.6}deg, 
+                    #C62828 {(pct_a + pct_b + pct_c) * 3.6}deg 360deg
+                ); margin: 0 auto;"></div>
+                <p style="margin-top: 15px; font-weight: bold;">Distribucion Articulos</p>
+            </div>
+            <div style="text-align: left; max-width: 400px;">
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #1B5E20; margin-right: 10px; vertical-align: middle;"></span> Categoria A: {count_a} articulos ({pct_a}%) - Ingresos: {formatear_numero(ventas_a)}€</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #1565C0; margin-right: 10px; vertical-align: middle;"></span> Categoria B: {count_b} articulos ({pct_b}%) - Ingresos: {formatear_numero(ventas_b)}€</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #E65100; margin-right: 10px; vertical-align: middle;"></span> Categoria C: {count_c} articulos ({pct_c}%) - Ingresos: {formatear_numero(ventas_c)}€</div>
+                <div><span style="display: inline-block; width: 20px; height: 20px; background: #C62828; margin-right: 10px; vertical-align: middle;"></span> Categoria D: {count_d} articulos ({pct_d}%) - Sin ventas</div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>Desglose por Categoria</h3>
+    <table>
+        <tr><th>Categoria</th><th>Articulos</th><th>% Articulos</th><th>Ingresos</th><th>% Ingresos</th><th>Stock Final</th><th>Acciones</th></tr>
+        <tr><td><span class="badge badge-low">A - Basicos</span></td><td class="text-right">{count_a}</td><td class="text-right">{pct_a}%</td><td class="text-right">{formatear_numero(ventas_a)}€</td><td class="text-right">{pct_ventas_a}%</td><td class="text-right">{stock_a}</td><td>Mantener y optimizar</td></tr>
+        <tr><td><span class="badge badge-medium">B - Complemento</span></td><td class="text-right">{count_b}</td><td class="text-right">{pct_b}%</td><td class="text-right">{formatear_numero(ventas_b)}€</td><td class="text-right">{pct_ventas_b}%</td><td class="text-right">{stock_b}</td><td>Gestion activa</td></tr>
+        <tr><td><span class="badge badge-high">C - Bajo Impacto</span></td><td class="text-right">{count_c}</td><td class="text-right">{pct_c}%</td><td class="text-right">{formatear_numero(ventas_c)}€</td><td class="text-right">{pct_ventas_c}%</td><td class="text-right">{stock_c}</td><td>Evaluar continuidad</td></tr>
+        <tr><td><span class="badge badge-critical">D - Sin Ventas</span></td><td class="text-right">{count_d}</td><td class="text-right">{pct_d}%</td><td class="text-right">0€</td><td class="text-right">0,0%</td><td class="text-right">{stock_d}</td><td>Liquidacion/Descatalogacion</td></tr>
+        <tr style="background: #f0f0f0; font-weight: bold;">
+            <td>TOTAL</td><td class="text-right">{total_arts}</td><td class="text-right">100%</td><td class="text-right">{formatear_numero(total_ventas)}€</td><td class="text-right">100%</td><td class="text-right">{stock_final_str}</td><td></td>
+        </tr>
+    </table>
+    
+    <h3>Interpretacion</h3>
+    <ul>
+        <li><strong>Categoria A (Basicos):</strong> {count_a} productos que representan el {pct_ventas_a}% de los ingresos. Estos son los productos estrella que deben tener prioridad en gestion de stock y reposicion.</li>
+        <li><strong>Categoria B (Complemento):</strong> {count_b} productos que aportan el {pct_ventas_b}% de ingresos. Complementan la oferta y requieren gestion activa pero con menor intensidad.</li>
+        <li><strong>Categoria C (Bajo Impacto):</strong> {count_c} productos con contribucion marginal del {pct_ventas_c}%. Evaluar si compensa mantenerlos en catalogo.</li>
+        <li><strong>Categoria D (Sin Ventas):</strong> {count_d} productos ({pct_d}% del catalogo) sin ventas. Representan inmovilizado significativo y requieren accion inmediata de liquidacion o descatalogacion.</li>
+    </ul>
+</section>
+
+<!-- ANALISIS DE VENTAS -->
+<section id="analisis-ventas">
+    <h2>3. Analisis de Ventas</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card success">
+            <div class="kpi-value">{ventas_totales_str}€</div>
+            <div class="kpi-label">Ventas Totales</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{unidades_vendidas}</div>
+            <div class="kpi-label">Unidades Vendidas</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">{margen_bruto_str}%</div>
+            <div class="kpi-label">Margen Bruto</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{ticket_promedio}€</div>
+            <div class="kpi-label">Ticket Promedio</div>
+        </div>
+    </div>
+    
+    <h3>Top 15 Productos por Ingresos</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Color</th><th class="text-right">Unidades</th><th class="text-right">Ingresos</th><th class="text-right">Beneficio</th></tr>
+{generar_filas_top_ventas()}
+        </table>
+    </div>
+    
+    <h3>Analisis de Rentabilidad</h3>
+    <table>
+        <tr><th>Indicador</th><th>Valor</th><th>Evaluacion</th></tr>
+        <tr><td>Ingresos Totales</td><td class="text-right">{ventas_totales_str}€</td><td>Bueno para el periodo</td></tr>
+        <tr><td>Beneficio Total</td><td class="text-right">{beneficio_total_str}€</td><td>Saludable</td></tr>
+        <tr><td>Margen Bruto</td><td class="text-right">{margen_bruto_str}%</td><td>Optimo (>50%)</td></tr>
+        <tr><td>Unidades Vendidas</td><td class="text-right">{unidades_vendidas}</td><td>Baja rotacion</td></tr>
+        <tr><td>Ticket Promedio</td><td class="text-right">{ticket_promedio}€</td><td>Moderado</td></tr>
+    </table>
+</section>
+
+<!-- ANALISIS DE STOCK -->
+<section id="analisis-stock">
+    <h2>4. Analisis de Stock</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">{stock_final_str}</div>
+            <div class="kpi-label">Stock Final (uds.)</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">{capital_inmov_str}€</div>
+            <div class="kpi-label">Capital Inmovilizado</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">{count_elevado}</div>
+            <div class="kpi-label">Stock Elevado ({pct_elevado}%)</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">{count_normal}</div>
+            <div class="kpi-label">Stock Normal ({pct_normal}%)</div>
+        </div>
+    </div>
+    
+    <h3>Distribucion por Nivel de Stock</h3>
+    <table>
+        <tr><th>Nivel Stock</th><th>Articulos</th><th>% Total</th><th>Stock Final</th><th>Clasificacion</th></tr>
+        <tr><td><span class="badge badge-critical">ELEVADO</span></td><td class="text-right">{count_elevado}</td><td class="text-right">{pct_elevado}%</td><td class="text-right">{stock_elevado_sum}</td><td>Sobrestock</td></tr>
+        <tr><td><span class="badge badge-low">NORMAL</span></td><td class="text-right">{count_normal}</td><td class="text-right">{pct_normal}%</td><td class="text-right">{stock_normal_sum}</td><td>Optimo</td></tr>
+        <tr><td><span class="badge badge-high">BAJO</span></td><td class="text-right">{count_bajo_stock}</td><td class="text-right">{pct_bajo_stock}%</td><td class="text-right">{stock_bajo_sum}</td><td>Riesgo Ruptura</td></tr>
+        <tr><td><span class="badge badge-critical">CERO</span></td><td class="text-right">{count_cero_stock}</td><td class="text-right">{pct_cero_stock}%</td><td class="text-right">0</td><td>Ruptura Stock</td></tr>
+    </table>
+    
+    <h3>Antiguedad del Stock</h3>
+    <div class="chart-container">
+        <div class="chart-title">Distribucion por Antiguedad de Stock</div>
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient({chart_gradient}); margin: 0 auto;"></div>
+                <p style="margin-top: 15px; font-weight: bold;">Distribucion Antiguedad</p>
+            </div>
+            <div style="text-align: left; max-width: 400px;">
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #C8E6C9; margin-right: 10px; vertical-align: middle;"></span> ELEVADO: {count_elevado} articulos ({pct_elevado}%)</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #FFF9C4; margin-right: 10px; vertical-align: middle;"></span> NORMAL: {count_normal} articulos ({pct_normal}%)</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #FFE0B2; margin-right: 10px; vertical-align: middle;"></span> BAJO: {count_bajo_stock} articulos ({pct_bajo_stock}%)</div>
+                <div><span style="display: inline-block; width: 20px; height: 20px; background: #FFCDD2; margin-right: 10px; vertical-align: middle;"></span> CERO: {count_cero_stock} articulos ({pct_cero_stock}%)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MATRIZ STOCK VS ROTACION -->
+<section id="matriz-stock">
+    <h2>5. Matriz Stock vs Rotacion Consumida</h2>
+    
+    <div class="matrix-grid" style="grid-template-columns: 150px repeat(4, 1fr);">
+        <div class="matrix-cell matrix-header">Stock \\ % Rotacion</div>
+        <div class="matrix-cell matrix-header">BAJO<br>(<65%)</div>
+        <div class="matrix-cell matrix-header">MEDIO<br>(65-100%)</div>
+        <div class="matrix-cell matrix-header">ALTO<br>(100-150%)</div>
+        <div class="matrix-cell matrix-header">CRITICO<br>(>150%)</div>
+        
+        <div class="matrix-cell matrix-row-header">ELEVADO</div>
+        <div class="matrix-cell risk-low">{matrix['ELEVADO']['BAJO']}<br>articulos</div>
+        <div class="matrix-cell risk-medium">{matrix['ELEVADO']['MEDIO']}<br>articulos</div>
+        <div class="matrix-cell risk-high">{matrix['ELEVADO']['ALTO']}<br>articulos</div>
+        <div class="matrix-cell risk-critical">{matrix['ELEVADO']['CRITICO']}<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">NORMAL</div>
+        <div class="matrix-cell risk-low">{matrix['NORMAL']['BAJO']}<br>articulos</div>
+        <div class="matrix-cell risk-medium">{matrix['NORMAL']['MEDIO']}<br>articulos</div>
+        <div class="matrix-cell risk-high">{matrix['NORMAL']['ALTO']}<br>articulos</div>
+        <div class="matrix-cell risk-critical">{matrix['NORMAL']['CRITICO']}<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">BAJO</div>
+        <div class="matrix-cell risk-low">{matrix['BAJO']['BAJO']}<br>articulos</div>
+        <div class="matrix-cell risk-medium">{matrix['BAJO']['MEDIO']}<br>articulos</div>
+        <div class="matrix-cell risk-high">{matrix['BAJO']['ALTO']}<br>articulos</div>
+        <div class="matrix-cell risk-critical">{matrix['BAJO']['CRITICO']}<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">CERO</div>
+        <div class="matrix-cell risk-low">{matrix['CERO']['BAJO']}<br>articulos</div>
+        <div class="matrix-cell risk-medium">{matrix['CERO']['MEDIO']}<br>articulos</div>
+        <div class="matrix-cell risk-high">{matrix['CERO']['ALTO']}<br>articulos</div>
+        <div class="matrix-cell risk-critical">{matrix['CERO']['CRITICO']}<br>articulos</div>
+    </div>
+    
+    <h3>Analisis de la Matriz</h3>
+    <table>
+        <tr><th>Cuadrante</th><th>Articulos</th><th>Situacion</th><th>Accion Recomendada</th></tr>
+        <tr><td><span class="badge badge-low">Stock ELEVADO + Riesgo BAJO</span></td><td class="text-right">{matrix['ELEVADO']['BAJO']}</td><td>Producto fresco con alta demanda</td><td>Mantener estrategia actual</td></tr>
+        <tr><td><span class="badge badge-medium">Stock ELEVADO + Riesgo MEDIO</span></td><td class="text-right">{matrix['ELEVADO']['MEDIO']}</td><td>Stock abundante aproximandose a limite</td><td>Descuento preventivo 10%</td></tr>
+        <tr><td><span class="badge badge-high">Stock ELEVADO + Riesgo ALTO</span></td><td class="text-right">{matrix['ELEVADO']['ALTO']}</td><td>Sobrestock con rotacion lenta</td><td>Descuento agresivo 20%</td></tr>
+        <tr><td><span class="badge badge-critical">Stock ELEVADO + Riesgo CRITICO</span></td><td class="text-right">{matrix['ELEVADO']['CRITICO']}</td><td>Sobrestock critico, riesgo merma</td><td>Liquidacion urgente 30%</td></tr>
+    </table>
+</section>
+
+<!-- RIESGO DE MERMA -->
+<section id="riesgo-merma">
+    <h2>6. Riesgo de Merma</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card danger">
+            <div class="kpi-value">{count_critico}</div>
+            <div class="kpi-label">Riesgo Critico</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">{count_alto}</div>
+            <div class="kpi-label">Riesgo Alto</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">{count_medio}</div>
+            <div class="kpi-label">Riesgo Medio</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">{count_bajo_riesgo}</div>
+            <div class="kpi-label">Riesgo Bajo</div>
+        </div>
+    </div>
+    
+    <h3>Articulos con Riesgo Critico de Merma</h3>
+    <p>Estos articulos han superado significativamente su periodo optimo de rotacion y requieren accion inmediata:</p>
+    
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Stock</th><th>% Rotacion</th><th>Descuento</th></tr>
+{generar_filas_riesgo_critico()}
+        </table>
+    </div>
+    
+    <h3>Plan de Pricing Dinamico</h3>
+    <table>
+        <tr><th>Tramo</th><th>% Rotacion Consumida</th><th>Descuento</th><th>Articulos</th><th>Accion</th></tr>
+        <tr><td><span class="badge badge-low">1 - PRECIO NORMAL</span></td><td>0% - 65%</td><td>0%</td><td>{count_bajo_riesgo}</td><td>Venta a precio completo</td></tr>
+        <tr><td><span class="badge badge-medium">2 - DESCUENTO PREVENTIVO</span></td><td>65% - 100%</td><td>10%</td><td>{count_medio}</td><td>Acelerar venta</td></tr>
+        <tr><td><span class="badge badge-high">3 - DESCUENTO AGRESIVO</span></td><td>100% - 150%</td><td>20%</td><td>{count_alto}</td><td>Liquidacion urgente</td></tr>
+        <tr><td><span class="badge badge-critical">4 - LIQUIDACION</span></td><td>> 150%</td><td>30%</td><td>{count_critico}</td><td>Recuperar valor residual</td></tr>
+    </table>
+    
+    <h3>Recuperacion Potencial de Capital</h3>
+    <ul>
+        <li><strong>Con descuentos del 10%:</strong> Potencial recuperacion de {count_medio} articulos en riesgo medio</li>
+        <li><strong>Con descuentos del 20%:</strong> Potencial recuperacion de {count_alto} articulos en riesgo alto</li>
+        <li><strong>Con descuentos del 30%:</strong> Potencial recuperacion de {count_critico} articulos en riesgo critico</li>
+        <li><strong>Total recuperable:</strong> {count_critico + count_alto + count_medio} articulos mediante estrategia de pricing dinamico</li>
+    </ul>
+</section>
+
+<!-- PRODUCTOS PROBLEMATICOS -->
+<section id="productos-problematicos">
+    <h2>7. Productos Problematicos</h2>
+    
+    <p>Identificacion de articulos que requieren atencion inmediata por bajo rendimiento o alto riesgo:</p>
+    
+    <h3>TOP 10 Productos con Mayor Riesgo</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Stock</th><th>% Rotacion</th><th>Valor Stock</th><th>Accion Sugerida</th></tr>
+{generar_filas_problematicos()}
+        </table>
+    </div>
+    
+    <h3>Causas de Problematicas Identificadas</h3>
+    <ul>
+        <li><strong>{pct_d}% Categoria D:</strong> {count_d} productos sin ninguna venta - posible descatalogacion</li>
+        <li><strong>{pct_elevado}% Stock Elevado + Riesgo Alto:</strong> {matrix['ELEVADO']['ALTO']} productos con sobreabastecimiento y baja rotacion</li>
+        <li><strong>{round(count_critico/total_arts*100, 1)}% Riesgo Critico:</strong> {count_critico} productos con merma inminente</li>
+        <li><strong>{pct_cero_stock}% Ruptura de Stock:</strong> {count_cero_stock} productos agotados con demanda</li>
+    </ul>
+</section>
+
+<!-- PRODUCTOS ESTRELLA -->
+<section id="productos-estrella">
+    <h2>8. Productos Estrella</h2>
+    
+    <p>Articulos con alto rendimiento y gestion optima que deben mantenerse y potenciarse:</p>
+    
+    <h3>TOP 10 Productos con Mejor Rendimiento</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Unidades Vendidas</th><th>Ingresos</th><th>Stock</th><th>Accion</th></tr>
+{generar_filas_estrella()}
+        </table>
+    </div>
+    
+    <h3>Caracteristicas de Productos Estrella</h3>
+    <ul>
+        <li><strong>Tasa de venta del 100%:</strong> Estos productos se venden completamente durante el periodo</li>
+        <li><strong>Margen bruto superior al 54%:</strong> Contribucion positiva a la rentabilidad</li>
+        <li><strong>Demanda constante:</strong> Rotacion estable que permite planificar</li>
+        <li><strong>Riesgo de ruptura:</strong> Muchos tienen stock bajo o cero, indicando oportunidad de aumentar compras</li>
+    </ul>
+    
+    <h3>Recomendaciones para Productos Estrella</h3>
+    <ul>
+        <li><strong>Aumentar stock un 40%:</strong> Para productos con alta demanda y stock bajo</li>
+        <li><strong>Mantener nivel actual:</strong> Para productos con stock equilibrado</li>
+        <li><strong>Prioridad en reposicion:</strong> Estos productos deben ser los primeros en el pedido de reposicion</li>
+        <li><strong>Promocion en punto de venta:</strong> Destacar estos productos para aumentar visibilidad</li>
+    </ul>
+</section>
+
+<!-- OPTIMIZACION DE CAPITAL -->
+<section id="capital">
+    <h2>9. Optimizacion de Capital</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card warning">
+            <div class="kpi-value">{capital_inmov_str}€</div>
+            <div class="kpi-label">Capital Total Inmovilizado</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">{capital_liberar}€</div>
+            <div class="kpi-label">Capital a Liberar</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">{count_a}</div>
+            <div class="kpi-label">Prod. para Inversion</div>
+        </div>
+    </div>
+    
+    <h3>Plan de Reasignacion de Capital</h3>
+    <table>
+        <tr><th>Prioridad</th><th>Accion</th><th>Articulos</th><th>Capital</th><th>Impacto</th></tr>
+        <tr><td class="text-center">1</td><td>Liquidacion productos Categoria D</td><td class="text-center">{count_d}</td><td class="text-right">~12000€</td><td>Recuperacion 40-60% mediante descuentos</td></tr>
+        <tr><td class="text-center">2</td><td>Reducir stock Categoria C</td><td class="text-center">{count_c}</td><td class="text-right">~3500€</td><td>Eliminar productos de baja rotacion</td></tr>
+        <tr><td class="text-center">3</td><td>Reposicion rupturas stock</td><td class="text-center">{count_cero_stock}</td><td>Variable</td><td>Recuperacion ventas perdidas</td></tr>
+        <tr><td class="text-center">4</td><td>Aumento stock estrellas</td><td class="text-center">{count_a}</td><td>Segun demanda</td><td>+20% ventas potenciales</td></tr>
+    </table>
+    
+    <h3>Resumen de Impacto Financiero</h3>
+    <ul>
+        <li><strong>Capital liberable:</strong> ~{capital_liberar}€ mediante liquidacion de productos sin ventas</li>
+        <li><strong>Inversion propuesta:</strong> Reasignar capital a productos Categoria A y B</li>
+        <li><strong>ROI esperado:</strong> Mejora del 15-25% en rotacion de inventario</li>
+        <li><strong>Periodo recuperacion:</strong> 2-3 meses con estrategia de pricing dinamico</li>
+    </ul>
+</section>
+
+<!-- RECOMENDACIONES -->
+<section id="recomendaciones">
+    <h2>10. Recomendaciones y Plan de Accion</h2>
+    
+    <h3>PRIORIDAD 1 - Acciones Inmediatas (Semana 1-2)</h3>
+    <ul>
+        <li>Aplicar descuento del 20-30% a {count_critico} productos con riesgo critico de merma</li>
+        <li>Reposicion inmediata de {count_cero_stock} productos en ruptura de stock</li>
+        <li>Implementar estrategia de pricing dinamico para {count_alto} productos en riesgo alto</li>
+        <li>Revision de los {count_d} productos Categoria D sin ventas</li>
+    </ul>
+    
+    <h3>PRIORIDAD 2 - Acciones Preventivas (Semana 3-4)</h3>
+    <ul>
+        <li>Implementar descuentos del 10% a {count_medio} productos en riesgo medio</li>
+        <li>Aumentar compras 40% para productos estrella con bajo stock</li>
+        <li>Revisar estrategia para productos Categoria C</li>
+        <li>Optimizar niveles de stock segun recomendaciones por familia</li>
+    </ul>
+    
+    <h3>PRIORIDAD 3 - Optimizacion (Mes 2)</h3>
+    <ul>
+        <li>Evaluar continuidad de productos no viables del catalogo</li>
+        <li>Ajustar niveles de stock segun recomendaciones por familia</li>
+        <li>Implementar sistema de monitoreo semanal</li>
+        <li>Renegociar con proveedores para productos Categoria A</li>
+    </ul>
+    
+    <h3>KPIs para Monitoreo</h3>
+    <table>
+        <tr><th>Indicador</th><th>Objetivo</th><th>Actual</th><th>Meta</th></tr>
+        <tr><td>Tasa de venta semanal</td><td>>5%</td><td>Variable</td><td>Medir semanalmente</td></tr>
+        <tr><td>Rotacion inventario</td><td><45 dias</td><td>Por familia</td><td>Mejorar 20%</td></tr>
+        <tr><td>Productos riesgo critico</td><td><10%</td><td>{round(count_critico/total_arts*100, 1)}%</td><td>Reducir a <5%</td></tr>
+        <tr><td>Rupturas de stock</td><td><5</td><td>{count_cero_stock}</td><td>Cero rupturas</td></tr>
+    </table>
+</section>
+
+</div>
+
+<footer>
+    <p><strong>Informe Final - Seccion {nombre_seccion_titulo}</strong></p>
+    <p>Jardineria Aranjuez (Madrid) | Periodo: Enero - Febrero 2025</p>
+    <p>Generado mediante analisis automatizado de datos de inventario</p>
+</footer>
+
+</body>
+</html>'''
     
     return html
 
@@ -718,11 +1232,13 @@ def procesar_seccion(ruta_archivo, nombre_seccion):
         
         margen_bruto = round(beneficio_total / ventas_totales * 100, 1) if ventas_totales > 0 else 0
         
-        # Usar el capital inmovilizado real del archivo stock.xlsx
+        # Usar el capital inmovilizado real del archivo stock.xlsx en lugar del estimado
+        # Pasar df_completo para filtrar solo los artículos de esta sección
         capital_inmovilizado_real = leer_capital_inmovilizado_stock(df_completo, "data/input/stock.xlsx")
         if capital_inmovilizado_real is not None:
             capital_inmovilizado = round(capital_inmovilizado_real, 2)
         else:
+            # Si no se puede leer del stock, usar el estimado como fallback
             capital_inmovilizado = round(ventas_totales * 2.5, 0)
             print(f"    ⚠ Usando valor estimado de capital inmovilizado: {capital_inmovilizado:,.2f}€")
         
@@ -751,11 +1267,7 @@ def procesar_seccion(ruta_archivo, nombre_seccion):
         
         # Generar HTML
         print("    [4/4] Generando informe HTML...")
-        html_informe = generar_html_informe(
-            datos, 
-            df_completo, 
-            nombre_seccion
-        )
+        html_informe = generar_html_informe(datos, df_completo, nombre_seccion)
         
         # Guardar archivo HTML
         nombre_salida = f"data/output/INFORME_FINAL_{nombre_seccion}_{PERIODO_FILENAME}.html"
@@ -779,17 +1291,13 @@ def main():
     print("Vivero Aranjuez")
     print("=" * 70)
     
-    # Mostrar período calculado automáticamente
-    print(f"\nPeríodo de análisis (calculado automáticamente desde Ventas.xlsx):")
-    print(f"  {PERIODO_TEXTO} ({DIAS_PERIODO} días)")
-    
     # Buscar archivos de clasificación
     print("\n[1/2] Buscando archivos de clasificacion ABC+D...")
     archivos = obtener_archivos_clasificacion()
     
     if not archivos:
         print("    ERROR: No se encontraron archivos CLASIFICACION_ABC+D_*.xlsx")
-        print("    Asegúrate de que el script clasificacionABC.py ha generado los archivos.")
+        print("    Asegurate de que el script clasificacionABC.py ha generado los archivos.")
         return
     
     print(f"    Se encontraron {len(archivos)} archivo(s):")

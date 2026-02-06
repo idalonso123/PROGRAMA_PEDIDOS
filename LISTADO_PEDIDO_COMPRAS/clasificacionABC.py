@@ -1,40 +1,33 @@
 #!/usr/bin/env python3
 """
-Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN V2
-Vivero Aranjuez - Sistema de Clasificación ABC+D por Períodos
+Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN MULTI-SECCIÓN
+Jardinería Aranjuez - Período configurable
 
 Este script combina:
-- Cálculo de clasificación ABC+D por períodos definidos
-- Aplicación de formatos Excel profesionales
-- Soporte para nuevo formato de archivos del ERP (SPA_*.xlsx)
+- Cálculo de clasificación ABC+D
+- Aplicación de formatos Excel
+- Lógica corregida de riesgo
+- Fechas configurables al inicio del script
 - Procesamiento de múltiples secciones
 - Envío automático de emails a los encargados de cada sección
 
 MODO DE USO:
-- Con parámetro --periodo: Procesa el período especificado (1-4)
-- Con parámetro --seccion: Procesa solo la sección especificada
+- Sin parámetros: Procesa TODOS los datos y genera un archivo por cada sección
+- Con parámetro --seccion: Procesa solo la sección especificada (modo compatible)
 
 Ejecutar: 
-    python clasificacionABC.py --periodo 1              # Procesa Período 1 (enero-febrero)
-    python clasificacionABC.py --periodo 2              # Procesa Período 2 (marzo-mayo)
-    python clasificacionABC.py --periodo 3              # Procesa Período 3 (junio-agosto)
-    python clasificacionABC.py --periodo 4              # Procesa Período 4 (septiembre-diciembre)
-    python clasificacionABC.py --periodo 1 --seccion vivero  # Solo sección vivero del período 1
+    python clasificacionABC.py                              # Procesa todas las secciones
+    python clasificacionABC.py --seccion vivero             # Procesa solo vivero
+    python clasificacionABC.py -s interior                  # Procesa solo interior
 
-Los datos se leen de archivos con formato ERP:
-- SPA_Compras.xlsx: Datos de compras del año
-- SPA_Ventas.xlsx: Datos de ventas del año
-- SPA_Stock.xlsx: Datos de stock actual
-- SPA_Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
+Los datos se leen de 4 archivos separados:
+- Compras.xlsx: Datos de compras del período
+- Ventas.xlsx: Datos de ventas del período
+- Stock.xlsx: Datos de stock actual
+- Coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
 Al generar cada archivo de clasificación, se envía automáticamente un email
 al encargado de la sección con el archivo adjunto.
-
-Períodos definidos:
-- Período 1: 1 enero - 28 febrero (59 días)
-- Período 2: 1 marzo - 31 mayo (92 días)
-- Período 3: 1 junio - 31 agosto (92 días)
-- Período 4: 1 septiembre - 31 diciembre (122 días)
 """
 
 import pandas as pd
@@ -54,165 +47,429 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from pathlib import Path
-
-# Importar el módulo de configuración centralizada
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-from config_loader import (
-    get_abc_config,
-    get_secciones_config,
-    get_encargados_config,
-    get_smtp_config,
-    get_rotaciones_familia,
-    get_iva_familia,
-    get_iva_subfamilia,
-    calcular_periodo_ventas
-)
-from file_finder import find_latest_file
-
 warnings.filterwarnings('ignore')
 
 # ============================================================================
-# DEFINICIÓN DE PERÍODOS (según manual del sistema V2)
+# CONFIGURACIÓN DE SECCIONES
 # ============================================================================
 
-DEFINICION_PERIODOS = {
-    1: {
-        'nombre': 'Periodo_1',
-        'descripcion': 'Enero - Febrero',
-        'fecha_inicio': '01/01',
-        'fecha_fin': '28/02',
-        'dias': 59
+# Códigos de animales vivos (tienen tratamiento especial dentro de sección 2)
+CODIGOS_MASCOTAS_VIVO = ['2104', '2204', '2305', '2405', '2504', '2606', '2705', '2707', '2708', '2805', '2806', '2906']
+
+# Definición de todas las secciones y sus rangos de códigos
+SECCIONES = {
+    'interior': {
+        'descripcion': 'Plantas de interior',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['1']}]
     },
-    2: {
-        'nombre': 'Periodo_2',
-        'descripcion': 'Marzo - Mayo',
-        'fecha_inicio': '01/03',
-        'fecha_fin': '31/05',
-        'dias': 92
+    'utiles_jardin': {
+        'descripcion': 'Útiles de jardín',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['4']}]
     },
-    3: {
-        'nombre': 'Periodo_3',
-        'descripcion': 'Junio - Agosto',
-        'fecha_inicio': '01/06',
-        'fecha_fin': '31/08',
-        'dias': 92
+    'semillas': {
+        'descripcion': 'Semillas y bulbos',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['5']}]
     },
-    4: {
-        'nombre': 'Periodo_4',
-        'descripcion': 'Septiembre - Diciembre',
-        'fecha_inicio': '01/09',
-        'fecha_fin': '31/12',
-        'dias': 122
+    'deco_interior': {
+        'descripcion': 'Decoración interior',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['6']}]
+    },
+    'maf': {
+        'descripcion': 'Planta de temporada y floristería',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['7']}]
+    },
+    'vivero': {
+        'descripcion': 'Vivero y plantas exterior',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['8']}]
+    },
+    'deco_exterior': {
+        'descripcion': 'Decoración exterior',
+        'rangos': [{'tipo': 'prefijos', 'valores': ['9']}]
+    },
+    'mascotas_manufacturado': {
+        'descripcion': 'Mascotas (productos manufacturados)',
+        'rangos': [
+            {'tipo': 'prefijos', 'valores': ['2'], 'excluir': CODIGOS_MASCOTAS_VIVO}
+        ]
+    },
+    'mascotas_vivo': {
+        'descripcion': 'Mascotas (animales vivos)',
+        'rangos': [
+            {'tipo': 'codigos_exactos', 'valores': CODIGOS_MASCOTAS_VIVO}
+        ]
+    },
+    'tierra_aridos': {
+        'descripcion': 'Tierras y áridos',
+        'rangos': [
+            {'tipo': 'prefijos', 'valores': ['31', '32']}
+        ]
+    },
+    'fitos': {
+        'descripcion': 'Fitosanitarios y abonos',
+        'rangos': [
+            {'tipo': 'rango', 'valores': ['33', '34', '35', '36', '37', '38', '39']}
+        ]
     }
 }
 
 # ============================================================================
-# FUNCIONES DE NORMALIZACIÓN PARA BÚSQUEDA FLEXIBLE DE COLUMNAS
+# CONFIGURACIÓN DE FECHAS - MODIFICAR AQUÍ EL PERÍODO DE ANÁLISIS
 # ============================================================================
 
-import unicodedata
+FECHA_INICIO = datetime(2025, 3, 1)  # Fecha de inicio del período
+FECHA_FIN = datetime(2025, 5, 31)    # Fecha de fin del período
+DIAS_PERIODO = (FECHA_FIN - FECHA_INICIO).days + 1
 
-def normalizar_texto(texto):
-    """
-    Normaliza un texto eliminando acentos y convirtiéndolo a minúsculas.
-    
-    Args:
-        texto: String a normalizar
-    
-    Returns:
-        str: Texto normalizado (sin acentos y en minúsculas)
-    """
-    if pd.isna(texto):
-        return ''
-    # Eliminar acentos usando unicodedata
-    texto_normalizado = unicodedata.normalize('NFD', str(texto))
-    texto_sin_acentos = ''.join(c for c in texto_normalizado if unicodedata.category(c) != 'Mn')
-    return texto_sin_acentos.lower().strip()
+# ============================================================================
+# CONFIGURACIÓN DE FORMATOS EXCEL
+# ============================================================================
 
-def buscar_columna_normalizada(df, nombre_columna):
-    """
-    Busca una columna en el DataFrame ignorando mayúsculas/minúsculas y acentos.
-    
-    Args:
-        df: DataFrame donde buscar
-        nombre_columna: Nombre de la columna a buscar
-    
-    Returns:
-        str: Nombre de la columna encontrada o None si no existe
-    """
-    nombre_normalizado = normalizar_texto(nombre_columna)
-    
-    for col in df.columns:
-        if normalizar_texto(col) == nombre_normalizado:
-            return col
-    
-    return None
-
-# Mapeo de nombres de columnas antiguas a nuevas para el archivo Coste.xlsx
-# Formato: nombre_nuevo: [nombres_posibles_antiguos]
-MAPEO_COLUMNAS_COSTE = {
-    'Artículo': ['Codigo', 'codigo', 'CODIGO', 'Código', 'codigó', 'CODIGÓ', 'Articulo', 'articulo', 'ARTICULO', 'Artículo', 'artículo', 'ARTÍCULO'],
-    'Talla': ['Talla', 'talla', 'TALLA'],
-    'Color': ['Color', 'color', 'COLOR'],
-    'Coste': ['Coste', 'coste', 'COSTE', 'Costo', 'costo', 'COSTO', 'Precio coste', 'precio coste', 'PRECIO COSTE', 'PrecioCoste', 'preciocoste'],
-    'Últ. Compra': ['Fecha ultcom', 'fecha ultcom', 'FECHA ULTCOM', 'Fecha Ult Compra', 'fecha ult compra', 'FECHA ULT COMPRA', 'Fecha última compra', 'fecha última compra', 'Fecha ultima compra', 'fecha ultima compra', 'FechaUltCompra', 'fechaultcompra', 'FECHAULTCOMPRA', 'Ult. Compra', 'ult. compra', 'ULT. COMPRA', 'Ult Compra', 'ult compra', 'ULT COMPRA']
+COLORES_RIESGO = {
+    'Bajo': '90EE90',      # Verde claro
+    'Medio': 'FFFF00',     # Amarillo
+    'Alto': 'FFA500',      # Naranja
+    'Crítico': 'FF6B6B',   # Rojo claro
+    'Cero': '90EE90',      # Verde para riesgo cero
 }
 
-def renombrar_columnas_flexible(df, mapeo):
-    """
-    Renombra las columnas de un DataFrame usando un mapeo flexible.
-    
-    Args:
-        df: DataFrame a modificar
-        mapeo: Diccionario con nombres nuevos como clave y lista de nombres posibles como valor
-    
-    Returns:
-        DataFrame: DataFrame con columnas renombradas
-    """
-    df = df.copy()
-    renombrados = {}
-    
-    for nombre_nuevo, nombres_posibles in mapeo.items():
-        # Primero buscar coincidencia exacta (case-insensitive y sin acentos)
-        for col in df.columns:
-            if normalizar_texto(col) == normalizar_texto(nombre_nuevo):
-                renombrados[col] = nombre_nuevo
-                break
-        else:
-            # Si no se encuentra, buscar entre los nombres posibles
-            for nombre_buscar in nombres_posibles:
-                col_encontrada = buscar_columna_normalizada(df, nombre_buscar)
-                if col_encontrada:
-                    renombrados[col_encontrada] = nombre_nuevo
-                    break
-    
-    # Aplicar renombrados
-    if renombrados:
-        df = df.rename(columns=renombrados)
-    
-    return df, renombrados
+COLOR_CABECERA = '008000'
+COLOR_TEXTO_CABECERA = 'FFFFFF'
 
 # ============================================================================
-# CARGA DE CONFIGURACIÓN DESDE EL SISTEMA CENTRALIZADO
+# TABLA DE ROTACIONES POR FAMILIA
 # ============================================================================
 
-# Cargar configuraciones desde el sistema centralizado
-ABC_CONFIG = get_abc_config()
-SECCIONES = get_secciones_config()
-ENCARGADOS = get_encargados_config()['ENCARGADOS']
-SMTP_CONFIG = get_smtp_config()
-ROTACIONES_FAMILIA = get_rotaciones_familia()
-IVA_FAMILIA = get_iva_familia()
-IVA_SUBFAMILIA = get_iva_subfamilia()
+ROTACIONES_FAMILIA = {
+    # Plantas (2 dígitos)
+    '11': ('PLANTAS VERDES', 30),
+    '12': ('ORQUIDEAS', 15),
+    '13': ('PLANTAS DE FLOR', 15),
+    '14': ('FLOR CORTADA', 7),
+    '15': ('CACTUS', 30),
+    '16': ('COMPOSICIONES', 30),
+    '17': ('BONSAIS', 30),
+    
+    # Animales - familias con 4 dígitos (empiezan por 2)
+    '2101': ('ALIMENTACION PAJARO', 60),
+    '2102': ('JAULAS PAJARO', 60),
+    '2103': ('HIGIENE/CUIDADO PAJARO', 60),
+    '2104': ('ANIMAL VIVO PAJARO', 30),
+    '2201': ('ALIMENTACION PEQUEÑOS MAMIFEROS', 60),
+    '2202': ('JAULAS PEQUEÑOS MAMIFEROS', 60),
+    '2203': ('HIGIENE/CUIDADO PEQUEÑOS MAMIFEROS', 60),
+    '2204': ('ANIMAL VIVO PEQUEÑOS MAMIFEROS', 30),
+    '2301': ('ALIMENTACION PERRO', 60),
+    '2302': ('CONFORT PERRO', 60),
+    '2303': ('CORREAS Y COLLARES PERRO', 60),
+    '2304': ('HIGIENE/CUIDADO PERRO', 60),
+    '2305': ('ANIMAL VIVO PERRO', 30),
+    '2401': ('ALIMENTACION GATO', 60),
+    '2402': ('CONFORT GATO', 60),
+    '2403': ('CORREAS Y COLLARES GATO', 60),
+    '2404': ('HIGIENE/CUIDADO GATO', 60),
+    '2405': ('ANIMAL VIVO GATO', 30),
+    '2501': ('ALIMENTACION ANIMALES DE GRANJA', 60),
+    '2502': ('HABITAT / ACCES ANIMALES DE GRANJA', 60),
+    '2503': ('HIGIENE/CUIDADO ANIMALES DE GRANJA', 60),
+    '2504': ('ANIMAL VIVO GRANJA', 30),
+    '2601': ('ALIMENTACION REPTILES', 60),
+    '2602': ('TERRARIO REPTILES', 60),
+    '2603': ('ACCESORIOS REPTILES', 60),
+    '2604': ('DECO INERTE REPTILES', 60),
+    '2605': ('HIGIENE/CUIDADO REPTILES', 60),
+    '2606': ('ANIMAL VIVO REPTILES', 30),
+    '2701': ('ALIMENTACION ACUARIOFILIA', 60),
+    '2702': ('ACUARIOS', 60),
+    '2703': ('ACCESORIOS ACUARIOFILIA', 60),
+    '2704': ('DECO INERTE ACUARIOFILIA', 60),
+    '2705': ('PLANTA ACUATICA DECORACION ACUARIOFILIA', 15),
+    '2706': ('HIGIENE/CUIDADO ACUARIOFILIA', 60),
+    '2707': ('PECES AGUA CALIENTE ACUARIOFILIA', 15),
+    '2708': ('PECES AGUA FRIA ACUARIOFILIA', 15),
+    '2709': ('AGUA OSMOSIS ACUARIOFILIA', 60),
+    '2801': ('ALIMENTACION JARDIN ACUATICO', 60),
+    '2802': ('ACCESORIOS JARDIN ACUATICO', 60),
+    '2803': ('HIGIENE/CUIDADO JARDIN ACUATICO', 60),
+    '2804': ('DECORACION JARDIN ACUATICO', 60),
+    '2805': ('PLANTAS JARDIN ACUATICO', 30),
+    '2806': ('PECES JARDIN ACUATICO', 15),
+    '2906': ('INSECTO VIVO', 15),
+    
+    # Mantenimiento/tratamiento/cuidados (2 dígitos)
+    '31': ('TIERRAS', 90),
+    '32': ('MANTENIMIENTO', 90),
+    '33': ('ABONOS', 90),
+    '34': ('ABONO NATURAL', 90),
+    '35': ('FITOSANITARIOS', 90),
+    '36': ('FITOSANITARIO NATURAL', 90),
+    '37': ('HERBICIDAS', 90),
+    '39': ('ANTI-PLAGAS', 90),
 
-# Extraer configuraciones específicas (sin fechas, se calculan automáticamente)
-CODIGOS_MASCOTAS_VIVO = ABC_CONFIG.get('codigos_mascotas_vivo', [])
+    # Utiles jardin (2 dígitos)
+    '41': ('UTILES JARDIN', 90),
+    '42': ('PODA', 90),
+    '43': ('PULVERIZACION', 90),
+    '44': ('PROTECCION CULTIVO', 90),
+    '45': ('PROTECCION PERSONAL', 90),
+    '46': ('RIEGO', 90),
+    '48': ('OTRAS MAQUINAS MOTOR', 90),
+    '49': ('ACCESS/PIEZAS', 90),
 
-# Configuración de formatos Excel
-COLORES_RIESGO = ABC_CONFIG['colores_riesgo']
-COLOR_CABECERA = ABC_CONFIG['color_cabecera']
-COLOR_TEXTO_CABECERA = ABC_CONFIG['color_texto_cabecera']
+    # Semillas (2 dígitos)
+    '51': ('BULBOS DE FLOR', 60),
+    '53': ('CESPED', 60),
+    '54': ('SEMILLAS', 60),
+
+    # Decoracion casa (2 dígitos)
+    '61': ('DECORACION NAVIDAD', 90),
+    '62': ('DECORACION FLORAL', 90),
+    '63': ('RECIPIENTES', 90),
+    '64': ('DECORACION AMBIENTE', 90),
+    '65': ('LIB/PAP/SON/IMAG.', 90),
+
+    # Planta de temporada (2 dígitos)
+    '71': ('PLANTAS PARA MACIZOS EN BDJA.', 15),
+    '72': ('PLANTAS PARA MACIZOS EN MAC.', 15),
+    '74': ('VIVACES EN MACETA', 15),
+    '75': ('PLANTAS TRADICIONALES', 15),
+    '77': ('PELARGONIUM EN MACETA', 15),
+    '78': ('AROMATICAS', 15),
+    '79': ('FRESALES/HORTICOLAS', 15),
+
+    # Vivero (2 dígitos)
+    '81': ('ARBOLES/ARBUSTOS DECO', 30),
+    '82': ('CONIFERAS', 30),
+    '83': ('ROSALES', 30),
+    '84': ('FRUTALES', 30),
+    '85': ('PLANTAS TIERRA DE BREZO', 30),
+    '86': ('PLANTAS PARA SETOS', 30),
+    '87': ('PLANTAS TREPADORAS', 30),
+    '88': ('PLANTAS CLIMA MEDITERRANEO', 30),
+    '89': ('ABETOS NAVIDAD', 30),
+
+    # Decoracion exterior (2 dígitos)
+    '91': ('MOBILIARIO JARDIN', 90),
+    '92': ('EQUIP. JARDIN', 90),
+    '93': ('AIRE LIBRE', 90),
+    '94': ('MACETERIA/SOPORTES', 90),
+    '95': ('DECORACION', 90),
+    '96': ('COBERTIZOS', 90),
+    '97': ('CERRAMIENTOS/SOMBREO', 90),
+}
+
+# ============================================================================
+# TABLA DE IVA POR FAMILIA (2 dígitos)
+# ============================================================================
+
+IVA_FAMILIA = {
+    # Plantas (IVA 10%)
+    '11': 10,  # PLANTAS VERDES
+    '12': 10,  # ORQUIDEAS
+    '13': 10,  # PLANTAS DE FLOR
+    '14': 10,  # FLOR CORTADA
+    '15': 10,  # CACTUS
+    '16': 10,  # COMPOSICIONES
+    '17': 10,  # BONSAIS
+    '18': 10,  # MUGUET
+    
+    # Mantenimiento/tratamiento/cuidados (IVA 21%)
+    '31': 21,  # TIERRAS
+    '32': 21,  # MANTENIMIENTO
+    '33': 21,  # ABONOS
+    '34': 21,  # ABONO NATURAL
+    '35': 21,  # FITOSANITARIOS
+    '36': 21,  # FITOSANITARIO NATURAL
+    '37': 21,  # HERBICIDAS
+    '38': 21,  # HERBICIDA NATURAL
+    '39': 21,  # ANTI-PLAGAS
+
+    # Utiles jardin (IVA 21%)
+    '41': 21,  # UTILES JARDIN
+    '42': 21,  # PODA
+    '43': 21,  # PULVERIZACION
+    '44': 21,  # PROTECCION CULTIVO
+    '45': 21,  # PROTECCION PERSONAL
+    '46': 21,  # RIEGO
+    '47': 21,  # CORTACESPEDES
+    '48': 21,  # OTRAS MAQUINAS MOTOR
+    '49': 21,  # ACCESS/PIEZAS
+
+    # Semillas (IVA 10%)
+    '51': 10,  # BULBOS DE FLOR
+    '52': 10,  # BULBOS DE HORTICOLAS
+    '53': 10,  # CESPED
+    '54': 10,  # SEMILLAS
+    '55': 10,  # PATATAS
+
+    # Decoracion casa (IVA 21%)
+    '61': 21,  # DECORACION NAVIDAD
+    '62': 21,  # DECORACION FLORAL
+    '63': 21,  # RECIPIENTES
+    '64': 21,  # DECORACION AMBIENTE
+    '65': 21,  # LIB/PAP/SON/IMAG.
+    '66': 21,  # CHIMENEAS
+    '67': 21,  # ALIMENTACION
+
+    # Planta de temporada (IVA 10%)
+    '71': 10,  # PLANTAS PARA MACIZOS EN BDJA.
+    '72': 10,  # PLANTAS PARA MACIZOS EN MAC.
+    '73': 10,  # VIVACES EN BANDEJA
+    '74': 10,  # VIVACES EN MACETA
+    '75': 10,  # PLANTAS TRADICIONALES
+    '76': 10,  # PELARGONIUM EN BANDEJA
+    '77': 10,  # PELARGONIUM EN MACETA
+    '78': 10,  # AROMATICAS
+    '79': 10,  # FRESALES/HORTICOLAS
+
+    # Vivero (IVA 10%)
+    '81': 10,  # ARBOLES/ARBUSTOS DECO
+    '82': 10,  # CONIFERAS
+    '83': 10,  # ROSALES
+    '84': 10,  # FRUTALES
+    '85': 10,  # PLANTAS TIERRA DE BREZO
+    '86': 10,  # PLANTAS PARA SETOS
+    '87': 10,  # PLANTAS TREPADORAS
+    '88': 10,  # PLANTAS CLIMA MEDITERRANEO
+    '89': 10,  # ABETOS NAVIDAD
+
+    # Decoracion exterior (IVA 21%)
+    '91': 21,  # MOBILIARIO JARDIN
+    '92': 21,  # EQUIP. JARDIN
+    '93': 21,  # AIRE LIBRE
+    '94': 21,  # MACETERIA/SOPORTES
+    '95': 21,  # DECORACION
+    '96': 21,  # COBERTIZOS
+    '97': 21,  # CERRAMIENTOS/SOMBREO
+}
+
+# ============================================================================
+# TABLA DE IVA POR SUBFAMILIA (4 dígitos, empiezan por 2)
+# ============================================================================
+
+IVA_SUBFAMILIA = {
+    # Familia 21 - MUGUET
+    '2101': 10,  # ALIMENTACION
+    '2102': 21,  # JAULAS
+    '2103': 21,  # HIGIENE/CUIDADO
+    '2104': 21,  # ANIMAL VIVO
+
+    # Familia 22 - PEQUEÑOS MAMÍFEROS
+    '2201': 10,  # ALIMENTACION
+    '2202': 21,  # JAULAS
+    '2203': 21,  # HIGIENE/CUIDADO
+    '2204': 21,  # ANIMAL VIVO
+
+    # Familia 23 - PERROS
+    '2301': 10,  # ALIMENTACION
+    '2302': 21,  # CONFORT
+    '2303': 21,  # CORREAS Y COLLARES
+    '2304': 21,  # HIGIENE/CUIDADO
+    '2305': 21,  # ANIMAL VIVO PERRO
+    '2306': 21,  # PELUQUERIA
+
+    # Familia 24 - GATOS
+    '2401': 10,  # ALIMENTACION
+    '2402': 21,  # CONFORT
+    '2403': 21,  # CORREAS Y COLLARES
+    '2404': 21,  # HIGIENE/CUIDADO
+    '2405': 21,  # ANIMAL VIVO GATO
+
+    # Familia 25 - ANIMALES DE GRANJA
+    '2501': 10,  # ALIMENTACION
+    '2502': 21,  # HABITAT / ACCES
+    '2503': 21,  # HIGIENE/CUIDADO
+    '2504': 21,  # ANIMAL VIVO GRANJA
+
+    # Familia 26 - REPTILES
+    '2601': 10,  # ALIMENTACION
+    '2602': 21,  # TERRARIO
+    '2603': 21,  # ACCESORIOS
+    '2604': 21,  # DECO INERTE
+    '2605': 21,  # HIGIENE/CUIDADO
+    '2606': 21,  # ANIMAL VIVO REPTILES
+
+    # Familia 27 - ACUARIOFILIA
+    '2701': 10,  # ALIMENTACION
+    '2702': 21,  # ACUARIOS
+    '2703': 21,  # ACCESORIOS
+    '2704': 21,  # DECO INERTE
+    '2705': 10,  # PLANTA ACUATICA DECORACION
+    '2706': 21,  # HIGIENE/CUIDADO
+    '2707': 21,  # PECES AGUA CALIENTE
+    '2708': 21,  # PECES AGUA FRIA
+    '2709': 21,  # AGUA OSMOSIS
+
+    # Familia 28 - JARDÍN ACUÁTICO
+    '2801': 10,  # ALIMENTACION
+    '2802': 21,  # ACCESORIOS
+    '2803': 21,  # HIGIENE/CUIDADO
+    '2804': 21,  # DECORACION
+    '2805': 10,  # PLANTAS
+    '2806': 21,  # PECES
+
+    # Familia 29 - JARDÍN ACUÁTICO
+    '2906': 21,  # INSECTO VIVO
+}
+
+# ============================================================================
+# TABLA DE ENCARGADOS POR SECCIÓN (HARDCODED - SIN VINCULACIÓN A EXCEL)
+# ============================================================================
+
+# Datos extraídos de encargados.xlsx - Mapeo de secciones a encargados y sus emails
+ENCARGADOS = {
+    'interior': {
+        'nombre': 'Iris',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'mascotas_manufacturado': {
+        'nombre': 'María',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'mascotas_vivo': {
+        'nombre': 'María',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'deco_exterior': {
+        'nombre': 'Pablo',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'tierras_aridos': {
+        'nombre': 'Pablo',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'fitos': {
+        'nombre': 'Ivan',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'semillas': {
+        'nombre': 'Ivan',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'utiles_jardin': {
+        'nombre': 'Ivan',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'deco_interior': {
+        'nombre': 'Rocío',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'maf': {
+        'nombre': 'Jose',
+        'email': 'ivan.delgado@viveverde.es'
+    },
+    'vivero': {
+        'nombre': 'Jose',
+        'email': 'ivan.delgado@viveverde.es'
+    }
+}
+
+# Configuración del servidor SMTP
+SMTP_CONFIG = {
+    'servidor': 'smtp.serviciodecorreo.es',
+    'puerto': 465,
+    'remitente_email': 'ivan.delgado@viveverde.es',
+    'remitente_nombre': 'Sistema de Pedidos automáticos VIVEVERDE'
+}
 
 # ============================================================================
 # FUNCIÓN PARA ENVIAR EMAIL CON ARCHIVO ADJUNTO
@@ -374,6 +631,7 @@ def determinar_seccion(codigo_articulo):
     
     # 1. Verificar códigos de mascotas vivos (primero, tienen prioridad)
     # Los códigos de mascotas vivos son códigos de 4 dígitos (2104, 2204, etc.)
+    #，所以我们需要检查代码的前4位是否在这个列表中
     if codigo_str.startswith('2') and codigo_str[:4] in CODIGOS_MASCOTAS_VIVO:
         return 'mascotas_vivo'
     
@@ -417,8 +675,7 @@ def determinar_seccion(codigo_articulo):
 # FUNCIÓN PARA PROCESAR UNA SECCIÓN ESPECÍFICA
 # ============================================================================
 
-def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, seccion_info, 
-                     FECHA_INICIO, FECHA_FIN, DIAS_PERIODO):
+def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, seccion_info):
     """
     Procesa los datos de una sección específica y genera su archivo Excel.
     
@@ -429,9 +686,6 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
         coste_df: DataFrame de costes
         nombre_seccion: Nombre de la sección a procesar
         seccion_info: Información de la sección (diccionario con descripción)
-        FECHA_INICIO: Fecha de inicio del período (calculada automáticamente)
-        FECHA_FIN: Fecha de fin del período (calculada automáticamente)
-        DIAS_PERIODO: Número de días del período
     
     Returns:
         dict: Estadísticas del procesamiento o None si no hay datos
@@ -824,8 +1078,8 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
         '23': "LIQUIDAR Y DESCATALOGAR: Aplicar descuento [descuento]% para agotar stock. NO recomprar próxima temporada. Producto sin demanda suficiente.",
         '24': "COMPRAS CONSERVADORAS: Aplicar descuento [descuento]% al stock actual. Reducir compras 50% próxima temporada. Demanda limitada confirmada.",
         '25': "AUMENTAR STOCK: Producto de alto interés. Incrementar compras 30% próxima temporada. Stock actual: [unidades] unidades. Alta rotación confirmada.",
-        '26A': "URGENTE - RUPTURA DE STOCK: Producto de alta demanda agotado. Recompra inmediata prioritaria. Aumentar compras 50%. Stock objetivo: [unidades] unidades. Pérdida de ventas estimada.",
-        '26B': "RECOMPRA PRIORITARIA: Producto agotado con demanda reciente. Aumentar compras 30%. Stock objetivo: [unidades] unidades. Monitorear demanda próximas semanas.",
+        '26A': "URGENTE - RUPTURA DE STOCK: Producto de alta demanda agotado. Recompra inmediata prioritaria. Aumentar compras 50%. Stock objetivo: [unidades] unidades.",
+        '26B': "RECOMPRA PRIORITARIA: Producto agotado con demanda reciente. Aumentar compras 30%. Stock objetivo: [unidades] unidades. Monitorear demanda.",
         '26C': "RECOMPRA MODERADA: Stock agotado con rotación moderada. Mantener nivel de compras anterior. Stock objetivo: [unidades] unidades. Demanda estable.",
         '26D': "RECOMPRA CONSERVADORA: Producto agotado de baja rotación. Reducir compras 40% próxima temporada. Stock objetivo mínimo: [unidades] unidades.",
     }
@@ -894,9 +1148,7 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # GUARDAR ARCHIVO EXCEL
     # =========================================================================
     
-    # Generar nombre de archivo con período
-    periodo_str = f"{FECHA_INICIO.strftime('%Y%m%d')}-{FECHA_FIN.strftime('%Y%m%d')}"
-    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}_{periodo_str}.xlsx"
+    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}.xlsx"
     
     with pd.ExcelWriter(nombre_archivo, engine='openpyxl') as writer:
         df_categoria_a.to_excel(writer, sheet_name='CATEGORIA A – BASICOS', index=False)
@@ -988,11 +1240,6 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # Enviar email con el archivo adjunto
     email_enviado = enviar_email_clasificacion(nombre_seccion, nombre_archivo, periodo_str)
     
-    if email_enviado:
-        print(f"  ✓ Email enviado correctamente a {ENCARGADOS.get(nombre_seccion.lower(), {}).get('nombre', nombre_seccion)}")
-    else:
-        print(f"  ✗ No se pudo enviar el email a {ENCARGADOS.get(nombre_seccion.lower(), {}).get('nombre', nombre_seccion)}")
-    
     # Retornar estadísticas
     return {
         'seccion': nombre_seccion,
@@ -1014,19 +1261,13 @@ def main():
     
     # Parsear argumentos de línea de comandos
     parser = argparse.ArgumentParser(
-        description='Motor de Cálculo ABC+D para Gestión de Inventarios - Versión V2',
+        description='Motor de Cálculo ABC+D para Gestión de Inventarios',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Períodos disponibles:
-  --periodo 1: Enero - Febrero (59 días)
-  --periodo 2: Marzo - Mayo (92 días)
-  --periodo 3: Junio - Agosto (92 días)
-  --periodo 4: Septiembre - Diciembre (122 días)
-
 Ejemplos de uso:
-  python clasificacionABC.py --periodo 1              # Procesa Período 1 completo
-  python clasificacionABC.py --periodo 2 --seccion vivero  # Solo sección vivero del período 2
-  python clasificacionABC.py --periodo 3 --verbose         # Modo verbose para período 3
+  python clasificacionABC.py                              # Procesa todas las secciones
+  python clasificacionABC.py --seccion vivero             # Procesa solo vivero
+  python clasificacionABC.py -s interior                  # Procesa solo interior
 
 Secciones disponibles:
   interior, utiles_jardin, semillas, deco_interior, maf, vivero, 
@@ -1034,27 +1275,11 @@ Secciones disponibles:
         """
     )
     parser.add_argument(
-        '-p', '--periodo',
-        type=int,
-        help='Número del período a procesar (1-4). Si no se especifica, usa fechas de Ventas.xlsx'
-    )
-    parser.add_argument(
         '-s', '--seccion',
         type=str,
-        help='Procesar solo una sección específica (opcional)'
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Activar modo verbose con logs detallados'
+        help='Procesar solo una sección específica (modo mono-sección)'
     )
     args = parser.parse_args()
-    
-    # Validar período si se especificó
-    if args.periodo and args.periodo not in DEFINICION_PERIODOS:
-        print(f"ERROR: Período '{args.periodo}' no válido.")
-        print(f"Períodos disponibles: {', '.join(map(str, DEFINICION_PERIODOS.keys()))}")
-        sys.exit(1)
     
     seccion_especifica = args.seccion.lower() if args.seccion else None
     
@@ -1065,17 +1290,19 @@ Secciones disponibles:
         sys.exit(1)
     
     print("=" * 80)
-    print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS - V2")
+    print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS")
     print("=" * 80)
     
-    if args.periodo:
-        print(f"\nMODO: Por Período")
-        print(f"Período seleccionado: {DEFINICION_PERIODOS[args.periodo]['descripcion']}")
-    elif seccion_especifica:
+    if seccion_especifica:
         print(f"\nMODO: Mono-sección")
         print(f"Sección seleccionada: {seccion_especifica}")
     else:
         print(f"\nMODO: Multi-sección (todas las secciones)")
+    
+    print(f"\nPeríodo configurado:")
+    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
+    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
+    print(f"   Días: {DIAS_PERIODO}")
     
     # =========================================================================
     # CARGA DE DATOS DESDE ARCHIVOS SEPARADOS
@@ -1086,77 +1313,10 @@ Secciones disponibles:
     print("=" * 80)
     
     try:
-        # Cargar archivos del ERP con soporte para timestamps y case-insensitive
-        import glob
-        
-        def buscar_archivo_erp(nombre_base):
-            """Busca archivo con múltiples variaciones de mayúsculas/minúsculas"""
-            variaciones = [
-                nombre_base,
-                nombre_base.lower(),
-                nombre_base.capitalize(),
-                nombre_base.upper()
-            ]
-            for var in variaciones:
-                # Primero intentar con timestamp
-                archivo = find_latest_file('data/input', var)
-                if archivo:
-                    return archivo
-            
-            # Si no encontramos con timestamp, buscar archivos que coincidan case-insensitive
-            base_lower = nombre_base.lower()
-            for archivo in glob.glob('data/input/*.xlsx'):
-                nombre_archivo = os.path.basename(archivo)
-                if nombre_archivo.lower().startswith(base_lower.lower()):
-                    return archivo
-            
-            return None
-
-        archivo_compras = buscar_archivo_erp('SPA_Compras')
-        if archivo_compras:
-            compras_df = pd.read_excel(archivo_compras)
-            print(f"COMPRAS: {os.path.basename(archivo_compras)}")
-        else:
-            compras_df = pd.read_excel('data/input/compras.xlsx')
-            print("COMPRAS: compras.xlsx (formato legacy)")
-
-        archivo_ventas = buscar_archivo_erp('SPA_Ventas')
-        if archivo_ventas:
-            ventas_df = pd.read_excel(archivo_ventas)
-            print(f"VENTAS: {os.path.basename(archivo_ventas)}")
-        else:
-            ventas_df = pd.read_excel('data/input/Ventas.xlsx')
-            print("VENTAS: Ventas.xlsx (formato legacy)")
-
-        archivo_stock = buscar_archivo_erp('SPA_Stock')
-        if archivo_stock:
-            stock_df = pd.read_excel(archivo_stock)
-            print(f"STOCK: {os.path.basename(archivo_stock)}")
-        else:
-            stock_df = pd.read_excel('data/input/Stock.xlsx')
-            print("STOCK: Stock.xlsx (formato legacy)")
-
-        archivo_coste = buscar_archivo_erp('SPA_Coste')
-        if archivo_coste:
-            coste_df = pd.read_excel(archivo_coste)
-            print(f"COSTE: {os.path.basename(archivo_coste)}")
-        else:
-            coste_df = pd.read_excel('data/input/Coste.xlsx')
-            print("COSTE: Coste.xlsx (formato legacy)")
-        
-        # Aplicar renombrado flexible de columnas para el archivo Coste.xlsx
-        coste_df, columnas_renombradas = renombrar_columnas_flexible(coste_df, MAPEO_COLUMNAS_COSTE)
-        if columnas_renombradas:
-            print(f"COSTE: Columnas renombradas automáticamente: {columnas_renombradas}")
-        
-        # Verificar que las columnas esenciales existan después del renombrado
-        columnas_esenciales = ['Artículo', 'Talla', 'Color', 'Coste']
-        columnas_faltantes = [col for col in columnas_esenciales if col not in coste_df.columns]
-        if columnas_faltantes:
-            print(f"ERROR: Faltan columnas esenciales en Coste.xlsx después del renombrado: {columnas_faltantes}")
-            print(f"Columnas disponibles en Coste.xlsx: {list(coste_df.columns)}")
-            sys.exit(1)
-            
+        compras_df = pd.read_excel('data/input/compras.xlsx')
+        ventas_df = pd.read_excel('data/input/Ventas.xlsx')
+        stock_df = pd.read_excel('data/input/stock.xlsx')
+        coste_df = pd.read_excel('data/input/Coste.xlsx')
     except FileNotFoundError as e:
         print(f"ERROR: No se encontró el archivo: {e.filename}")
         sys.exit(1)
@@ -1168,38 +1328,6 @@ Secciones disponibles:
     print(f"VENTAS: {len(ventas_df)} registros cargados")
     print(f"STOCK: {len(stock_df)} registros cargados")
     print(f"COSTE: {len(coste_df)} registros cargados")
-    
-    # =========================================================================
-    # CÁLCULO DEL PERÍODO DE ANÁLISIS
-    # =========================================================================
-    
-    print("\n" + "=" * 80)
-    print("FASE 1A: DETERMINACIÓN DEL PERÍODO DE ANÁLISIS")
-    print("=" * 80)
-    
-    if args.periodo:
-        # Usar período predefinido
-        periodo_info = DEFINICION_PERIODOS[args.periodo]
-        año_actual = datetime.now().year
-        fecha_inicio_str = f"{periodo_info['fecha_inicio']}/{año_actual}"
-        fecha_fin_str = f"{periodo_info['fecha_fin']}/{año_actual}"
-        FECHA_INICIO = datetime.strptime(fecha_inicio_str, '%d/%m/%Y')
-        FECHA_FIN = datetime.strptime(fecha_fin_str, '%d/%m/%Y')
-        DIAS_PERIODO = periodo_info['dias']
-        
-        print(f"\nPeríodo configurado manualmente:")
-        print(f"   Período: {periodo_info['nombre']} ({periodo_info['descripcion']})")
-        print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
-        print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
-        print(f"   Días: {DIAS_PERIODO}")
-    else:
-        # Calcular automáticamente las fechas mínima y máxima del archivo de ventas
-        FECHA_INICIO, FECHA_FIN, DIAS_PERIODO = calcular_periodo_ventas(ventas_df)
-        
-        print(f"\nPeríodo calculado automáticamente desde Ventas.xlsx:")
-        print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
-        print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
-        print(f"   Días: {DIAS_PERIODO}")
     
     # Filtrar filas con Artículo vacío en Compras
     filas_antes = len(compras_df)
@@ -1231,23 +1359,8 @@ Secciones disponibles:
     print(f"VENTAS: {filas_ventas_total} filas totales → {len(ventas_df)} filas de Detalle")
     
     # Normalizar claves de unión en Coste
-    # Usar la columna 'Últ. Compra' si existe, si no usar cualquier columna de fecha disponible
-    columna_fecha = buscar_columna_normalizada(coste_df, 'Últ. Compra')
-    if columna_fecha:
-        coste_df_sorted = coste_df.sort_values(columna_fecha, ascending=False)
-    else:
-        # Buscar cualquier columna que parezca una fecha
-        for col in coste_df.columns:
-            if 'fecha' in normalizar_texto(col) or 'date' in normalizar_texto(col).lower():
-                print(f"  AVISO: Usando columna '{col}' como fecha de última compra")
-                coste_df_sorted = coste_df.sort_values(col, ascending=False)
-                break
-        else:
-            # Si no hay columna de fecha, no ordenar
-            coste_df_sorted = coste_df.copy()
-    
-    # Usar las nuevas columnas renombradas: Artículo, Talla, Color
-    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Artículo', 'Talla', 'Color'], keep='first').copy()
+    coste_df_sorted = coste_df.sort_values('Fecha ultcom', ascending=False)
+    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Codigo', 'Talla', 'Color'], keep='first').copy()
     
     def normalize_keys(df):
         df = df.copy()
@@ -1257,10 +1370,9 @@ Secciones disponibles:
         return df
     
     def normalize_keys_coste(df):
-        """Normalizar claves para el archivo Coste.xlsx (usa 'Artículo' en lugar de 'Codigo')"""
+        """Normalizar claves para el archivo Coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
         df = df.copy()
-        # Usar la columna 'Artículo' que ya fue renombrada del original 'Codigo'
-        df['Artículo'] = df['Artículo'].astype(str).str.replace(r'\.0$', '', regex=True)
+        df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
         df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()
         df['Color'] = df['Color'].fillna('').astype(str).str.strip()
         return df
@@ -1441,8 +1553,7 @@ Secciones disponibles:
     for nombre_seccion, seccion_info in secciones_a_procesar:
         resultado = procesar_seccion(
             compras_df, ventas_df, stock_df, coste_df,
-            nombre_seccion, seccion_info,
-            FECHA_INICIO, FECHA_FIN, DIAS_PERIODO
+            nombre_seccion, seccion_info
         )
         
         if resultado:
@@ -1460,12 +1571,7 @@ Secciones disponibles:
     print("RESUMEN DEL PROCESAMIENTO")
     print("=" * 80)
     
-    if args.periodo:
-        periodo_info = DEFINICION_PERIODOS[args.periodo]
-        print(f"\nPeríodo: {periodo_info['nombre']} ({periodo_info['descripcion']})")
-        print(f"Fechas: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
-    else:
-        print(f"\nPeríodo: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
+    print(f"\nPeríodo: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
     
     print(f"\nSecciones procesadas: {len(secciones_procesadas)}")
     if secciones_procesadas:
