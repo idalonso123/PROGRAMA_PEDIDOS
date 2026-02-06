@@ -1,0 +1,1671 @@
+2026-02-06 17:38:41 - INFO - ======================================================================
+2026-02-06 17:38:41 - INFO - SISTEMA DE PEDIDOS DE COMPRA - VIVERO ARANJUEZ V2
+2026-02-06 17:38:41 - INFO - Fecha de ejecución: 2026-02-06 17:38:41
+2026-02-06 17:38:41 - INFO - ======================================================================
+2026-02-06 17:38:41 - INFO - Modo de ejecución: FASE 1 + FASE 2
+2026-02-06 17:38:41 - INFO - Envío de emails: Sí
+2026-02-06 17:38:41 - INFO - StateManager inicializado. Archivo de estado: .\./data\state.json
+2026-02-06 17:38:41 - INFO - Cargando estado desde: .\./data\state.json
+2026-02-06 17:38:41 - WARNING - Archivo de estado no encontrado. Creando nuevo: .\./data\state.json
+2026-02-06 17:38:41 - INFO - Estado guardado correctamente
+2026-02-06 17:38:41 - INFO - SchedulerService inicializado correctamente
+2026-02-06 17:38:41 - INFO - Horario configurado: sunday a las 15:00
+2026-02-06 17:38:41 - INFO - Semana forzada por argumento: 14
+2026-02-06 17:38:41 - INFO - ======================================================================
+2026-02-06 17:38:41 - INFO - PROCESANDO PEDIDO PARA SEMANA 14
+2026-02-06 17:38:41 - INFO - ======================================================================
+2026-02-06 17:38:41 - INFO - MODO: FASE 1 (Forecast) + FASE 2 (Corrección)
+2026-02-06 17:38:41 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:38:41 - INFO - ForecastEngine inicializado correctamente
+2026-02-06 17:38:41 - INFO - OrderGenerator inicializado correctamente
+2026-02-06 17:38:41 - INFO - SchedulerService inicializado correctamente
+2026-02-06 17:38:41 - INFO - Horario configurado: sunday a las 15:00
+2026-02-06 17:38:41 - INFO - Período de la semana: 2026-03-30 al 2026-04-05
+2026-02-06 17:38:41 - INFO - Stock acumulado cargado: 0 artículos
+2026-02-06 17:38:41 - INFO - 
+==================================================
+2026-02-06 17:38:41 - INFO - SECCION: MAF
+2026-02-06 17:38:41 - INFO - ==================================================
+2026-02-06 17:38:41 - INFO - === LEYENDO DATOS PARA SECCIÓN: MAF ===
+2026-02-06 17:38:41 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:38:41 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: maf
+2026-02-06 17:38:41 - INFO - Archivo ABC encontrado (nuevo formato) para 'maf': .\./data/input\CLASIFICACION_ABC+D_MAF_P2_2025.xlsx
+2026-02-06 17:38:41 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_MAF_P2_2025.xlsx
+2026-02-06 17:38:41 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:38:41 - INFO - Clasificación ABC cargada para 'maf': 499 registros
+2026-02-06 17:38:41 - DEBUG - [DEBUG] ABC leído: 499 registros
+2026-02-06 17:38:41 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:38:41 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:38:41 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:38:45 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:45 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:38:45 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:38:45 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Filtrando ventas por sección: maf
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:38:45 - DEBUG -   maf: 10970 registros
+2026-02-06 17:38:45 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:38:45 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:38:45 - DEBUG -   interior: 3624 registros
+2026-02-06 17:38:45 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:38:45 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:38:45 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:38:45 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:38:45 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:38:45 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:38:45 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Tras filtrar por 'maf': 10970 registros
+2026-02-06 17:38:45 - INFO - Filtrados 10970 registros de sección 'maf' de 44082 total
+2026-02-06 17:38:45 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:38:45 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:38:47 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:47 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:38:47 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:38:47 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:38:47 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:38:47 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MAF ===
+2026-02-06 17:38:47 - INFO -   ABC: 499 registros
+2026-02-06 17:38:47 - INFO -   Ventas: 10970 registros
+2026-02-06 17:38:47 - INFO -   Costes: 22145 registros
+2026-02-06 17:38:47 - DEBUG - [DEBUG] abc_df: 499 registros
+2026-02-06 17:38:47 - DEBUG - [DEBUG] ventas_df: 10970 registros
+2026-02-06 17:38:47 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:38:47 - INFO - Datos de ventas: 1011 registros
+2026-02-06 17:38:47 - INFO - Calculando pedido para semana 14 (1011 registros)
+2026-02-06 17:38:48 - INFO -   Objetivo: 7050.65€, Actual (ABC): 5840.61€
+2026-02-06 17:38:48 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:38:48 - INFO -   Factor total: 1.3125
+2026-02-06 17:38:48 - INFO -   Factor escalado: 1.5844
+2026-02-06 17:38:48 - INFO -   Ventas preliminares (con ceil): 9933.75€
+2026-02-06 17:38:48 - INFO -   Objetivo final: 9253.98€
+2026-02-06 17:38:48 - INFO -   Delta: 679.77€
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:38:48 - DEBUG -   Total registros: 222
+2026-02-06 17:38:48 - DEBUG -   Registros con Unidades_Finales > 0: 191
+2026-02-06 17:38:48 - DEBUG -   Ventas finales: 9254.53€
+2026-02-06 17:38:48 - INFO -   Ventas finales: 9254.53€
+2026-02-06 17:38:48 - INFO - 
+============================================================
+2026-02-06 17:38:48 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:38:48 - INFO - ============================================================
+2026-02-06 17:38:48 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:38:48 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:38:48 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:38:48 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:38:48 - INFO - ============================================================
+2026-02-06 17:38:48 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:38:48 - INFO - ============================================================
+2026-02-06 17:38:48 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:38:48 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:38:48 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:48 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:48 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:48 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:48 - DEBUG - Usando hoja: Stock
+2026-02-06 17:38:48 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:38:48 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:38:48 - INFO -   Stock: 30 registros
+2026-02-06 17:38:48 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:38:48 - INFO - Fusión completada: 222 registros
+2026-02-06 17:38:48 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:38:48 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:38:48 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:38:48 - INFO - 
+============================================================
+2026-02-06 17:38:48 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:38:48 - INFO - ============================================================
+2026-02-06 17:38:48 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:38:48 - INFO - Corrección completada:
+2026-02-06 17:38:48 - INFO -   - Artículos corregidos: 191/222
+2026-02-06 17:38:48 - INFO -   - Artículos aumentados: 191
+2026-02-06 17:38:48 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:38:48 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:38:48 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:38:48 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:38:48 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 222 registros
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:38:48 - DEBUG -   Con valor 0: 31
+2026-02-06 17:38:48 - DEBUG -   Con valor > 0: 191
+2026-02-06 17:38:48 - DEBUG -   Suma Ventas_Objetivo: 9254.53€
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 191 registros
+2026-02-06 17:38:48 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_maf.xlsx
+2026-02-06 17:38:48 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_maf.xlsx
+2026-02-06 17:38:48 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_maf.xlsx
+2026-02-06 17:38:48 - INFO -   Articulos: 191
+2026-02-06 17:38:48 - INFO -   Importe: 9254.53€
+2026-02-06 17:38:48 - INFO - 
+==================================================
+2026-02-06 17:38:48 - INFO - SECCION: DECO_INTERIOR
+2026-02-06 17:38:48 - INFO - ==================================================
+2026-02-06 17:38:48 - INFO - === LEYENDO DATOS PARA SECCIÓN: DECO_INTERIOR ===
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:38:48 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: deco_interior
+2026-02-06 17:38:48 - INFO - Archivo ABC encontrado (nuevo formato) para 'deco_interior': .\./data/input\CLASIFICACION_ABC+D_DECO_INTERIOR_P2_2025.xlsx
+2026-02-06 17:38:48 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_DECO_INTERIOR_P2_2025.xlsx
+2026-02-06 17:38:49 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:38:49 - INFO - Clasificación ABC cargada para 'deco_interior': 1827 registros
+2026-02-06 17:38:49 - DEBUG - [DEBUG] ABC leído: 1827 registros
+2026-02-06 17:38:49 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:38:49 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:38:49 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:38:52 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:52 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:38:52 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:38:52 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:38:52 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:38:52 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:38:52 - DEBUG - [DEBUG] Filtrando ventas por sección: deco_interior
+2026-02-06 17:38:53 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:38:53 - DEBUG -   maf: 10970 registros
+2026-02-06 17:38:53 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:38:53 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:38:53 - DEBUG -   interior: 3624 registros
+2026-02-06 17:38:53 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:38:53 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:38:53 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:38:53 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:38:53 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:38:53 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:38:53 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:38:53 - DEBUG - [DEBUG] Tras filtrar por 'deco_interior': 2468 registros
+2026-02-06 17:38:53 - INFO - Filtrados 2468 registros de sección 'deco_interior' de 44082 total
+2026-02-06 17:38:53 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:38:53 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:38:55 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:55 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:38:55 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:38:55 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA DECO_INTERIOR ===
+2026-02-06 17:38:55 - INFO -   ABC: 1827 registros
+2026-02-06 17:38:55 - INFO -   Ventas: 2468 registros
+2026-02-06 17:38:55 - INFO -   Costes: 22145 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] abc_df: 1827 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] ventas_df: 2468 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:38:55 - INFO - Datos de ventas: 180 registros
+2026-02-06 17:38:55 - INFO - Calculando pedido para semana 14 (180 registros)
+2026-02-06 17:38:55 - INFO -   Objetivo: 1962.99€, Actual (ABC): 1636.15€
+2026-02-06 17:38:55 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:38:55 - INFO -   Factor total: 1.3125
+2026-02-06 17:38:55 - INFO -   Factor escalado: 1.5747
+2026-02-06 17:38:55 - INFO -   Ventas preliminares (con ceil): 2950.01€
+2026-02-06 17:38:55 - INFO -   Objetivo final: 2576.42€
+2026-02-06 17:38:55 - INFO -   Delta: 373.59€
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:38:55 - DEBUG -   Total registros: 139
+2026-02-06 17:38:55 - DEBUG -   Registros con Unidades_Finales > 0: 135
+2026-02-06 17:38:55 - DEBUG -   Ventas finales: 2580.73€
+2026-02-06 17:38:55 - INFO -   Ventas finales: 2580.73€
+2026-02-06 17:38:55 - INFO - 
+============================================================
+2026-02-06 17:38:55 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:38:55 - INFO - ============================================================
+2026-02-06 17:38:55 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:38:55 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:38:55 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:38:55 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:38:55 - INFO - ============================================================
+2026-02-06 17:38:55 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:38:55 - INFO - ============================================================
+2026-02-06 17:38:55 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:38:55 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:38:55 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:55 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:55 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:38:55 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:55 - DEBUG - Usando hoja: Stock
+2026-02-06 17:38:55 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:38:55 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:38:55 - INFO -   Stock: 30 registros
+2026-02-06 17:38:55 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:38:55 - INFO - Fusión completada: 139 registros
+2026-02-06 17:38:55 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:38:55 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:38:55 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:38:55 - INFO - 
+============================================================
+2026-02-06 17:38:55 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:38:55 - INFO - ============================================================
+2026-02-06 17:38:55 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:38:55 - INFO - Corrección completada:
+2026-02-06 17:38:55 - INFO -   - Artículos corregidos: 135/139
+2026-02-06 17:38:55 - INFO -   - Artículos aumentados: 135
+2026-02-06 17:38:55 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:38:55 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:38:55 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:38:55 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:38:55 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 139 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:38:55 - DEBUG -   Con valor 0: 4
+2026-02-06 17:38:55 - DEBUG -   Con valor > 0: 135
+2026-02-06 17:38:55 - DEBUG -   Suma Ventas_Objetivo: 2580.73€
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 135 registros
+2026-02-06 17:38:55 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_deco_interior.xlsx
+2026-02-06 17:38:55 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_deco_interior.xlsx
+2026-02-06 17:38:55 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_deco_interior.xlsx
+2026-02-06 17:38:55 - INFO -   Articulos: 135
+2026-02-06 17:38:55 - INFO -   Importe: 2580.73€
+2026-02-06 17:38:55 - INFO - 
+==================================================
+2026-02-06 17:38:55 - INFO - SECCION: SEMILLAS
+2026-02-06 17:38:55 - INFO - ==================================================
+2026-02-06 17:38:55 - INFO - === LEYENDO DATOS PARA SECCIÓN: SEMILLAS ===
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: semillas
+2026-02-06 17:38:55 - INFO - Archivo ABC encontrado (nuevo formato) para 'semillas': .\./data/input\CLASIFICACION_ABC+D_SEMILLAS_P2_2025.xlsx
+2026-02-06 17:38:55 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_SEMILLAS_P2_2025.xlsx
+2026-02-06 17:38:55 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:38:55 - INFO - Clasificación ABC cargada para 'semillas': 218 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] ABC leído: 218 registros
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:38:55 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:38:55 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:38:59 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:38:59 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:38:59 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:38:59 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Filtrando ventas por sección: semillas
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:38:59 - DEBUG -   maf: 10970 registros
+2026-02-06 17:38:59 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:38:59 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:38:59 - DEBUG -   interior: 3624 registros
+2026-02-06 17:38:59 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:38:59 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:38:59 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:38:59 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:38:59 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:38:59 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:38:59 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Tras filtrar por 'semillas': 1180 registros
+2026-02-06 17:38:59 - INFO - Filtrados 1180 registros de sección 'semillas' de 44082 total
+2026-02-06 17:38:59 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:38:59 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:01 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:01 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:01 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:01 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:01 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:01 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA SEMILLAS ===
+2026-02-06 17:39:01 - INFO -   ABC: 218 registros
+2026-02-06 17:39:01 - INFO -   Ventas: 1180 registros
+2026-02-06 17:39:01 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:01 - DEBUG - [DEBUG] abc_df: 218 registros
+2026-02-06 17:39:01 - DEBUG - [DEBUG] ventas_df: 1180 registros
+2026-02-06 17:39:01 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:01 - INFO - Datos de ventas: 136 registros
+2026-02-06 17:39:01 - INFO - Calculando pedido para semana 14 (136 registros)
+2026-02-06 17:39:02 - INFO -   Objetivo: 694.34€, Actual (ABC): 455.14€
+2026-02-06 17:39:02 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:02 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:02 - INFO -   Factor escalado: 2.0023
+2026-02-06 17:39:02 - INFO -   Ventas preliminares (con ceil): 1129.15€
+2026-02-06 17:39:02 - INFO -   Objetivo final: 911.32€
+2026-02-06 17:39:02 - INFO -   Delta: 217.83€
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:02 - DEBUG -   Total registros: 84
+2026-02-06 17:39:02 - DEBUG -   Registros con Unidades_Finales > 0: 84
+2026-02-06 17:39:02 - DEBUG -   Ventas finales: 911.60€
+2026-02-06 17:39:02 - INFO -   Ventas finales: 911.60€
+2026-02-06 17:39:02 - INFO - 
+============================================================
+2026-02-06 17:39:02 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:02 - INFO - ============================================================
+2026-02-06 17:39:02 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:02 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:02 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:02 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:02 - INFO - ============================================================
+2026-02-06 17:39:02 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:02 - INFO - ============================================================
+2026-02-06 17:39:02 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:02 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:02 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:02 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:02 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:02 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:02 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:02 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:02 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:02 - INFO -   Stock: 30 registros
+2026-02-06 17:39:02 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:02 - INFO - Fusión completada: 84 registros
+2026-02-06 17:39:02 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:02 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:02 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:02 - INFO - 
+============================================================
+2026-02-06 17:39:02 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:02 - INFO - ============================================================
+2026-02-06 17:39:02 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:02 - INFO - Corrección completada:
+2026-02-06 17:39:02 - INFO -   - Artículos corregidos: 84/84
+2026-02-06 17:39:02 - INFO -   - Artículos aumentados: 84
+2026-02-06 17:39:02 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:02 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:02 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:02 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:02 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 84 registros
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:02 - DEBUG -   Con valor 0: 0
+2026-02-06 17:39:02 - DEBUG -   Con valor > 0: 84
+2026-02-06 17:39:02 - DEBUG -   Suma Ventas_Objetivo: 911.60€
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 84 registros
+2026-02-06 17:39:02 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_semillas.xlsx
+2026-02-06 17:39:02 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_semillas.xlsx
+2026-02-06 17:39:02 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_semillas.xlsx
+2026-02-06 17:39:02 - INFO -   Articulos: 84
+2026-02-06 17:39:02 - INFO -   Importe: 911.60€
+2026-02-06 17:39:02 - INFO - 
+==================================================
+2026-02-06 17:39:02 - INFO - SECCION: MASCOTAS_VIVO
+2026-02-06 17:39:02 - INFO - ==================================================
+2026-02-06 17:39:02 - INFO - === LEYENDO DATOS PARA SECCIÓN: MASCOTAS_VIVO ===
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: mascotas_vivo
+2026-02-06 17:39:02 - INFO - Archivo ABC encontrado (nuevo formato) para 'mascotas_vivo': .\./data/input\CLASIFICACION_ABC+D_MASCOTAS_VIVO_P2_2025.xlsx
+2026-02-06 17:39:02 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_MASCOTAS_VIVO_P2_2025.xlsx
+2026-02-06 17:39:02 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:02 - INFO - Clasificación ABC cargada para 'mascotas_vivo': 205 registros
+2026-02-06 17:39:02 - DEBUG - [DEBUG] ABC leído: 205 registros
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:02 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:02 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:06 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:06 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:06 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:06 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Filtrando ventas por sección: mascotas_vivo
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:06 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:06 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:06 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:06 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:06 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:06 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:06 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:06 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:06 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:06 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:06 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Tras filtrar por 'mascotas_vivo': 1124 registros
+2026-02-06 17:39:06 - INFO - Filtrados 1124 registros de sección 'mascotas_vivo' de 44082 total
+2026-02-06 17:39:06 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:06 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:08 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:08 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:08 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:08 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MASCOTAS_VIVO ===
+2026-02-06 17:39:08 - INFO -   ABC: 205 registros
+2026-02-06 17:39:08 - INFO -   Ventas: 1124 registros
+2026-02-06 17:39:08 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] abc_df: 205 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] ventas_df: 1124 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:08 - INFO - Datos de ventas: 88 registros
+2026-02-06 17:39:08 - INFO - Calculando pedido para semana 14 (88 registros)
+2026-02-06 17:39:08 - INFO -   Objetivo: 1087.15€, Actual (ABC): 846.63€
+2026-02-06 17:39:08 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:08 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:08 - INFO -   Factor escalado: 1.6854
+2026-02-06 17:39:08 - INFO -   Ventas preliminares (con ceil): 1773.66€
+2026-02-06 17:39:08 - INFO -   Objetivo final: 1426.88€
+2026-02-06 17:39:08 - INFO -   Delta: 346.78€
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:08 - DEBUG -   Total registros: 43
+2026-02-06 17:39:08 - DEBUG -   Registros con Unidades_Finales > 0: 36
+2026-02-06 17:39:08 - DEBUG -   Ventas finales: 1455.34€
+2026-02-06 17:39:08 - INFO -   Ventas finales: 1455.34€
+2026-02-06 17:39:08 - INFO - 
+============================================================
+2026-02-06 17:39:08 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:08 - INFO - ============================================================
+2026-02-06 17:39:08 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:08 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:08 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:08 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:08 - INFO - ============================================================
+2026-02-06 17:39:08 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:08 - INFO - ============================================================
+2026-02-06 17:39:08 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:08 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:08 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:08 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:08 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:08 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:08 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:08 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:08 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:08 - INFO -   Stock: 30 registros
+2026-02-06 17:39:08 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:08 - INFO - Fusión completada: 43 registros
+2026-02-06 17:39:08 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:08 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:08 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:08 - INFO - 
+============================================================
+2026-02-06 17:39:08 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:08 - INFO - ============================================================
+2026-02-06 17:39:08 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:08 - INFO - Corrección completada:
+2026-02-06 17:39:08 - INFO -   - Artículos corregidos: 36/43
+2026-02-06 17:39:08 - INFO -   - Artículos aumentados: 36
+2026-02-06 17:39:08 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:08 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:08 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:08 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:08 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 43 registros
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:08 - DEBUG -   Con valor 0: 7
+2026-02-06 17:39:08 - DEBUG -   Con valor > 0: 36
+2026-02-06 17:39:08 - DEBUG -   Suma Ventas_Objetivo: 1455.34€
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 36 registros
+2026-02-06 17:39:08 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_mascotas_vivo.xlsx
+2026-02-06 17:39:08 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_mascotas_vivo.xlsx
+2026-02-06 17:39:08 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_mascotas_vivo.xlsx
+2026-02-06 17:39:08 - INFO -   Articulos: 36
+2026-02-06 17:39:08 - INFO -   Importe: 1455.34€
+2026-02-06 17:39:08 - INFO - 
+==================================================
+2026-02-06 17:39:08 - INFO - SECCION: MASCOTAS_MANUFACTURADO
+2026-02-06 17:39:08 - INFO - ==================================================
+2026-02-06 17:39:08 - INFO - === LEYENDO DATOS PARA SECCIÓN: MASCOTAS_MANUFACTURADO ===
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:08 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: mascotas_manufacturado
+2026-02-06 17:39:08 - INFO - Archivo ABC encontrado (nuevo formato) para 'mascotas_manufacturado': .\./data/input\CLASIFICACION_ABC+D_MASCOTAS_MANUFACTURADO_P2_2025.xlsx
+2026-02-06 17:39:08 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_MASCOTAS_MANUFACTURADO_P2_2025.xlsx
+2026-02-06 17:39:09 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:09 - INFO - Clasificación ABC cargada para 'mascotas_manufacturado': 2749 registros
+2026-02-06 17:39:09 - DEBUG - [DEBUG] ABC leído: 2749 registros
+2026-02-06 17:39:09 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:09 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:09 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:13 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:13 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:13 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:13 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Filtrando ventas por sección: mascotas_manufacturado
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:13 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:13 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:13 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:13 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:13 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:13 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:13 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:13 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:13 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:13 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:13 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Tras filtrar por 'mascotas_manufacturado': 9784 registros
+2026-02-06 17:39:13 - INFO - Filtrados 9784 registros de sección 'mascotas_manufacturado' de 44082 total
+2026-02-06 17:39:13 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:13 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:15 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:15 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:15 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:15 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:15 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:15 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA MASCOTAS_MANUFACTURADO ===
+2026-02-06 17:39:15 - INFO -   ABC: 2749 registros
+2026-02-06 17:39:15 - INFO -   Ventas: 9784 registros
+2026-02-06 17:39:15 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:15 - DEBUG - [DEBUG] abc_df: 2749 registros
+2026-02-06 17:39:15 - DEBUG - [DEBUG] ventas_df: 9784 registros
+2026-02-06 17:39:15 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:15 - INFO - Datos de ventas: 822 registros
+2026-02-06 17:39:15 - INFO - Calculando pedido para semana 14 (822 registros)
+2026-02-06 17:39:17 - INFO -   Objetivo: 6839.82€, Actual (ABC): 8742.92€
+2026-02-06 17:39:17 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:17 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:17 - INFO -   Factor escalado: 1.0268
+2026-02-06 17:39:17 - INFO -   Ventas preliminares (con ceil): 12379.25€
+2026-02-06 17:39:17 - INFO -   Objetivo final: 8977.26€
+2026-02-06 17:39:17 - INFO -   Delta: 3401.99€
+2026-02-06 17:39:17 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:17 - DEBUG -   Total registros: 538
+2026-02-06 17:39:17 - DEBUG -   Registros con Unidades_Finales > 0: 411
+2026-02-06 17:39:17 - DEBUG -   Ventas finales: 8993.98€
+2026-02-06 17:39:17 - INFO -   Ventas finales: 8993.98€
+2026-02-06 17:39:17 - INFO - 
+============================================================
+2026-02-06 17:39:17 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:17 - INFO - ============================================================
+2026-02-06 17:39:17 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:17 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:17 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:17 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:17 - INFO - ============================================================
+2026-02-06 17:39:17 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:17 - INFO - ============================================================
+2026-02-06 17:39:17 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:17 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:17 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:17 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:17 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:17 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:17 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:17 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:17 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:17 - INFO -   Stock: 30 registros
+2026-02-06 17:39:17 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:17 - INFO - Fusión completada: 538 registros
+2026-02-06 17:39:17 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:17 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:17 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:17 - INFO - 
+============================================================
+2026-02-06 17:39:17 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:17 - INFO - ============================================================
+2026-02-06 17:39:17 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:17 - INFO - Corrección completada:
+2026-02-06 17:39:17 - INFO -   - Artículos corregidos: 411/538
+2026-02-06 17:39:17 - INFO -   - Artículos aumentados: 411
+2026-02-06 17:39:17 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:17 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:17 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:17 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:17 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 538 registros
+2026-02-06 17:39:17 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:17 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:17 - DEBUG -   Con valor 0: 127
+2026-02-06 17:39:17 - DEBUG -   Con valor > 0: 411
+2026-02-06 17:39:17 - DEBUG -   Suma Ventas_Objetivo: 8993.98€
+2026-02-06 17:39:17 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 411 registros
+2026-02-06 17:39:17 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_mascotas_manufacturado.xlsx
+2026-02-06 17:39:18 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_mascotas_manufacturado.xlsx
+2026-02-06 17:39:18 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_mascotas_manufacturado.xlsx
+2026-02-06 17:39:18 - INFO -   Articulos: 411
+2026-02-06 17:39:18 - INFO -   Importe: 8993.98€
+2026-02-06 17:39:18 - INFO - 
+==================================================
+2026-02-06 17:39:18 - INFO - SECCION: INTERIOR
+2026-02-06 17:39:18 - INFO - ==================================================
+2026-02-06 17:39:18 - INFO - === LEYENDO DATOS PARA SECCIÓN: INTERIOR ===
+2026-02-06 17:39:18 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:18 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: interior
+2026-02-06 17:39:18 - INFO - Archivo ABC encontrado (nuevo formato) para 'interior': .\./data/input\CLASIFICACION_ABC+D_INTERIOR_P2_2025.xlsx
+2026-02-06 17:39:18 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_INTERIOR_P2_2025.xlsx
+2026-02-06 17:39:18 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:18 - INFO - Clasificación ABC cargada para 'interior': 555 registros
+2026-02-06 17:39:18 - DEBUG - [DEBUG] ABC leído: 555 registros
+2026-02-06 17:39:18 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:18 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:18 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:22 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:22 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:22 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:22 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Filtrando ventas por sección: interior
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:22 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:22 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:22 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:22 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:22 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:22 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:22 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:22 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:22 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:22 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:22 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Tras filtrar por 'interior': 3624 registros
+2026-02-06 17:39:22 - INFO - Filtrados 3624 registros de sección 'interior' de 44082 total
+2026-02-06 17:39:22 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:22 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:24 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:24 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:24 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:24 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA INTERIOR ===
+2026-02-06 17:39:24 - INFO -   ABC: 555 registros
+2026-02-06 17:39:24 - INFO -   Ventas: 3624 registros
+2026-02-06 17:39:24 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] abc_df: 555 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] ventas_df: 3624 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:24 - INFO - Datos de ventas: 286 registros
+2026-02-06 17:39:24 - INFO - Calculando pedido para semana 14 (286 registros)
+2026-02-06 17:39:24 - INFO -   Objetivo: 2930.63€, Actual (ABC): 2408.44€
+2026-02-06 17:39:24 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:24 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:24 - INFO -   Factor escalado: 1.5971
+2026-02-06 17:39:24 - INFO -   Ventas preliminares (con ceil): 4531.82€
+2026-02-06 17:39:24 - INFO -   Objetivo final: 3846.45€
+2026-02-06 17:39:24 - INFO -   Delta: 685.37€
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:24 - DEBUG -   Total registros: 138
+2026-02-06 17:39:24 - DEBUG -   Registros con Unidades_Finales > 0: 121
+2026-02-06 17:39:24 - DEBUG -   Ventas finales: 3862.17€
+2026-02-06 17:39:24 - INFO -   Ventas finales: 3862.17€
+2026-02-06 17:39:24 - INFO - 
+============================================================
+2026-02-06 17:39:24 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:24 - INFO - ============================================================
+2026-02-06 17:39:24 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:24 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:24 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:24 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:24 - INFO - ============================================================
+2026-02-06 17:39:24 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:24 - INFO - ============================================================
+2026-02-06 17:39:24 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:24 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:24 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:24 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:24 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:24 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:24 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:24 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:24 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:24 - INFO -   Stock: 30 registros
+2026-02-06 17:39:24 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:24 - INFO - Fusión completada: 138 registros
+2026-02-06 17:39:24 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:24 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:24 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:24 - INFO - 
+============================================================
+2026-02-06 17:39:24 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:24 - INFO - ============================================================
+2026-02-06 17:39:24 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:24 - INFO - Corrección completada:
+2026-02-06 17:39:24 - INFO -   - Artículos corregidos: 121/138
+2026-02-06 17:39:24 - INFO -   - Artículos aumentados: 121
+2026-02-06 17:39:24 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:24 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:24 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:24 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:24 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 138 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:24 - DEBUG -   Con valor 0: 17
+2026-02-06 17:39:24 - DEBUG -   Con valor > 0: 121
+2026-02-06 17:39:24 - DEBUG -   Suma Ventas_Objetivo: 3862.17€
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 121 registros
+2026-02-06 17:39:24 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_interior.xlsx
+2026-02-06 17:39:24 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_interior.xlsx
+2026-02-06 17:39:24 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_interior.xlsx
+2026-02-06 17:39:24 - INFO -   Articulos: 121
+2026-02-06 17:39:24 - INFO -   Importe: 3862.17€
+2026-02-06 17:39:24 - INFO - 
+==================================================
+2026-02-06 17:39:24 - INFO - SECCION: FITOS
+2026-02-06 17:39:24 - INFO - ==================================================
+2026-02-06 17:39:24 - INFO - === LEYENDO DATOS PARA SECCIÓN: FITOS ===
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: fitos
+2026-02-06 17:39:24 - INFO - Archivo ABC encontrado (nuevo formato) para 'fitos': .\./data/input\CLASIFICACION_ABC+D_FITOS_P2_2025.xlsx
+2026-02-06 17:39:24 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_FITOS_P2_2025.xlsx
+2026-02-06 17:39:24 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:24 - INFO - Clasificación ABC cargada para 'fitos': 247 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] ABC leído: 247 registros
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:24 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:24 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:28 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:28 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:28 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:28 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Filtrando ventas por sección: fitos
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:28 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:28 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:28 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:28 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:28 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:28 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:28 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:28 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:28 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:28 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:28 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Tras filtrar por 'fitos': 1987 registros
+2026-02-06 17:39:28 - INFO - Filtrados 1987 registros de sección 'fitos' de 44082 total
+2026-02-06 17:39:28 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:28 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:30 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:30 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:30 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:30 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:30 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:30 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA FITOS ===
+2026-02-06 17:39:30 - INFO -   ABC: 247 registros
+2026-02-06 17:39:30 - INFO -   Ventas: 1987 registros
+2026-02-06 17:39:30 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] abc_df: 247 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] ventas_df: 1987 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:31 - INFO - Datos de ventas: 157 registros
+2026-02-06 17:39:31 - INFO - Calculando pedido para semana 14 (157 registros)
+2026-02-06 17:39:31 - INFO -   Objetivo: 1798.25€, Actual (ABC): 1679.26€
+2026-02-06 17:39:31 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:31 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:31 - INFO -   Factor escalado: 1.4055
+2026-02-06 17:39:31 - INFO -   Ventas preliminares (con ceil): 2784.94€
+2026-02-06 17:39:31 - INFO -   Objetivo final: 2360.20€
+2026-02-06 17:39:31 - INFO -   Delta: 424.74€
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:31 - DEBUG -   Total registros: 84
+2026-02-06 17:39:31 - DEBUG -   Registros con Unidades_Finales > 0: 82
+2026-02-06 17:39:31 - DEBUG -   Ventas finales: 2365.92€
+2026-02-06 17:39:31 - INFO -   Ventas finales: 2365.92€
+2026-02-06 17:39:31 - INFO - 
+============================================================
+2026-02-06 17:39:31 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:31 - INFO - ============================================================
+2026-02-06 17:39:31 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:31 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:31 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:31 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:31 - INFO - ============================================================
+2026-02-06 17:39:31 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:31 - INFO - ============================================================
+2026-02-06 17:39:31 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:31 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:31 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:31 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:31 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:31 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:31 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:31 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:31 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:31 - INFO -   Stock: 30 registros
+2026-02-06 17:39:31 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:31 - INFO - Fusión completada: 84 registros
+2026-02-06 17:39:31 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:31 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:31 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:31 - INFO - 
+============================================================
+2026-02-06 17:39:31 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:31 - INFO - ============================================================
+2026-02-06 17:39:31 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:31 - INFO - Corrección completada:
+2026-02-06 17:39:31 - INFO -   - Artículos corregidos: 82/84
+2026-02-06 17:39:31 - INFO -   - Artículos aumentados: 82
+2026-02-06 17:39:31 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:31 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:31 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:31 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:31 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 84 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:31 - DEBUG -   Con valor 0: 2
+2026-02-06 17:39:31 - DEBUG -   Con valor > 0: 82
+2026-02-06 17:39:31 - DEBUG -   Suma Ventas_Objetivo: 2365.92€
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 82 registros
+2026-02-06 17:39:31 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_fitos.xlsx
+2026-02-06 17:39:31 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_fitos.xlsx
+2026-02-06 17:39:31 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_fitos.xlsx
+2026-02-06 17:39:31 - INFO -   Articulos: 82
+2026-02-06 17:39:31 - INFO -   Importe: 2365.92€
+2026-02-06 17:39:31 - INFO - 
+==================================================
+2026-02-06 17:39:31 - INFO - SECCION: VIVERO
+2026-02-06 17:39:31 - INFO - ==================================================
+2026-02-06 17:39:31 - INFO - === LEYENDO DATOS PARA SECCIÓN: VIVERO ===
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: vivero
+2026-02-06 17:39:31 - INFO - Archivo ABC encontrado (nuevo formato) para 'vivero': .\./data/input\CLASIFICACION_ABC+D_VIVERO_P2_2025.xlsx
+2026-02-06 17:39:31 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_VIVERO_P2_2025.xlsx
+2026-02-06 17:39:31 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:31 - INFO - Clasificación ABC cargada para 'vivero': 565 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] ABC leído: 565 registros
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:31 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:31 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:35 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:35 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:35 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:35 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Filtrando ventas por sección: vivero
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:35 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:35 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:35 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:35 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:35 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:35 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:35 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:35 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:35 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:35 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:35 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Tras filtrar por 'vivero': 2460 registros
+2026-02-06 17:39:35 - INFO - Filtrados 2460 registros de sección 'vivero' de 44082 total
+2026-02-06 17:39:35 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:35 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:38 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:38 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:38 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:38 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA VIVERO ===
+2026-02-06 17:39:38 - INFO -   ABC: 565 registros
+2026-02-06 17:39:38 - INFO -   Ventas: 2460 registros
+2026-02-06 17:39:38 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] abc_df: 565 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] ventas_df: 2460 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:38 - INFO - Datos de ventas: 189 registros
+2026-02-06 17:39:38 - INFO - Calculando pedido para semana 14 (189 registros)
+2026-02-06 17:39:38 - INFO -   Objetivo: 5297.17€, Actual (ABC): 4117.24€
+2026-02-06 17:39:38 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:38 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:38 - INFO -   Factor escalado: 1.6886
+2026-02-06 17:39:38 - INFO -   Ventas preliminares (con ceil): 8761.94€
+2026-02-06 17:39:38 - INFO -   Objetivo final: 6952.54€
+2026-02-06 17:39:38 - INFO -   Delta: 1809.40€
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:38 - DEBUG -   Total registros: 107
+2026-02-06 17:39:38 - DEBUG -   Registros con Unidades_Finales > 0: 96
+2026-02-06 17:39:38 - DEBUG -   Ventas finales: 6990.51€
+2026-02-06 17:39:38 - INFO -   Ventas finales: 6990.51€
+2026-02-06 17:39:38 - INFO - 
+============================================================
+2026-02-06 17:39:38 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:38 - INFO - ============================================================
+2026-02-06 17:39:38 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:38 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:38 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:38 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:38 - INFO - ============================================================
+2026-02-06 17:39:38 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:38 - INFO - ============================================================
+2026-02-06 17:39:38 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:38 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:38 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:38 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:38 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:38 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:38 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:38 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:38 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:38 - INFO -   Stock: 30 registros
+2026-02-06 17:39:38 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:38 - INFO - Fusión completada: 107 registros
+2026-02-06 17:39:38 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:38 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:38 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:38 - INFO - 
+============================================================
+2026-02-06 17:39:38 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:38 - INFO - ============================================================
+2026-02-06 17:39:38 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:38 - INFO - Corrección completada:
+2026-02-06 17:39:38 - INFO -   - Artículos corregidos: 96/107
+2026-02-06 17:39:38 - INFO -   - Artículos aumentados: 96
+2026-02-06 17:39:38 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:38 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:38 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:38 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:38 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 107 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:38 - DEBUG -   Con valor 0: 11
+2026-02-06 17:39:38 - DEBUG -   Con valor > 0: 96
+2026-02-06 17:39:38 - DEBUG -   Suma Ventas_Objetivo: 6990.51€
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 96 registros
+2026-02-06 17:39:38 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_vivero.xlsx
+2026-02-06 17:39:38 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_vivero.xlsx
+2026-02-06 17:39:38 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_vivero.xlsx
+2026-02-06 17:39:38 - INFO -   Articulos: 96
+2026-02-06 17:39:38 - INFO -   Importe: 6990.51€
+2026-02-06 17:39:38 - INFO - 
+==================================================
+2026-02-06 17:39:38 - INFO - SECCION: UTILES_JARDIN
+2026-02-06 17:39:38 - INFO - ==================================================
+2026-02-06 17:39:38 - INFO - === LEYENDO DATOS PARA SECCIÓN: UTILES_JARDIN ===
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: utiles_jardin
+2026-02-06 17:39:38 - INFO - Archivo ABC encontrado (nuevo formato) para 'utiles_jardin': .\./data/input\CLASIFICACION_ABC+D_UTILES_JARDIN_P2_2025.xlsx
+2026-02-06 17:39:38 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_UTILES_JARDIN_P2_2025.xlsx
+2026-02-06 17:39:38 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:38 - INFO - Clasificación ABC cargada para 'utiles_jardin': 433 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] ABC leído: 433 registros
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:38 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:38 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:42 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:42 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:42 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:42 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Filtrando ventas por sección: utiles_jardin
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:42 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:42 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:42 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:42 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:42 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:42 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:42 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:42 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:42 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:42 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:42 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Tras filtrar por 'utiles_jardin': 1009 registros
+2026-02-06 17:39:42 - INFO - Filtrados 1009 registros de sección 'utiles_jardin' de 44082 total
+2026-02-06 17:39:42 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:42 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:44 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:45 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:45 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:45 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA UTILES_JARDIN ===
+2026-02-06 17:39:45 - INFO -   ABC: 433 registros
+2026-02-06 17:39:45 - INFO -   Ventas: 1009 registros
+2026-02-06 17:39:45 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] abc_df: 433 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] ventas_df: 1009 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:45 - INFO - Datos de ventas: 89 registros
+2026-02-06 17:39:45 - INFO - Calculando pedido para semana 14 (89 registros)
+2026-02-06 17:39:45 - INFO -   Objetivo: 1044.77€, Actual (ABC): 818.79€
+2026-02-06 17:39:45 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:45 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:45 - INFO -   Factor escalado: 1.6747
+2026-02-06 17:39:45 - INFO -   Ventas preliminares (con ceil): 1929.56€
+2026-02-06 17:39:45 - INFO -   Objetivo final: 1371.26€
+2026-02-06 17:39:45 - INFO -   Delta: 558.30€
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:45 - DEBUG -   Total registros: 78
+2026-02-06 17:39:45 - DEBUG -   Registros con Unidades_Finales > 0: 78
+2026-02-06 17:39:45 - DEBUG -   Ventas finales: 1390.00€
+2026-02-06 17:39:45 - INFO -   Ventas finales: 1390.00€
+2026-02-06 17:39:45 - INFO - 
+============================================================
+2026-02-06 17:39:45 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:45 - INFO - ============================================================
+2026-02-06 17:39:45 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:45 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:45 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:45 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:45 - INFO - ============================================================
+2026-02-06 17:39:45 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:45 - INFO - ============================================================
+2026-02-06 17:39:45 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:45 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:45 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:45 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:45 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:45 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:45 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:45 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:45 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:45 - INFO -   Stock: 30 registros
+2026-02-06 17:39:45 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:45 - INFO - Fusión completada: 78 registros
+2026-02-06 17:39:45 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:45 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:45 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:45 - INFO - 
+============================================================
+2026-02-06 17:39:45 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:45 - INFO - ============================================================
+2026-02-06 17:39:45 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:45 - INFO - Corrección completada:
+2026-02-06 17:39:45 - INFO -   - Artículos corregidos: 78/78
+2026-02-06 17:39:45 - INFO -   - Artículos aumentados: 78
+2026-02-06 17:39:45 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:45 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:45 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:45 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:45 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 78 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:45 - DEBUG -   Con valor 0: 0
+2026-02-06 17:39:45 - DEBUG -   Con valor > 0: 78
+2026-02-06 17:39:45 - DEBUG -   Suma Ventas_Objetivo: 1390.00€
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 78 registros
+2026-02-06 17:39:45 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_utiles_jardin.xlsx
+2026-02-06 17:39:45 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_utiles_jardin.xlsx
+2026-02-06 17:39:45 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_utiles_jardin.xlsx
+2026-02-06 17:39:45 - INFO -   Articulos: 78
+2026-02-06 17:39:45 - INFO -   Importe: 1390.00€
+2026-02-06 17:39:45 - INFO - 
+==================================================
+2026-02-06 17:39:45 - INFO - SECCION: TIERRAS_ARIDOS
+2026-02-06 17:39:45 - INFO - ==================================================
+2026-02-06 17:39:45 - INFO - === LEYENDO DATOS PARA SECCIÓN: TIERRAS_ARIDOS ===
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: tierras_aridos
+2026-02-06 17:39:45 - WARNING - No se encontró archivo específico para 'tierras_aridos', usando: .\./data/input\CLASIFICACION_ABC+D_FITOS_P2_2025.xlsx
+2026-02-06 17:39:45 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_FITOS_P2_2025.xlsx
+2026-02-06 17:39:45 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:45 - INFO - Clasificación ABC cargada para 'tierras_aridos': 247 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] ABC leído: 247 registros
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:45 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:45 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:49 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:49 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:49 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:49 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Filtrando ventas por sección: tierras_aridos
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:49 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:49 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:49 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:49 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:49 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:49 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:49 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:49 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:49 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:49 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:49 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Tras filtrar por 'tierras_aridos': 3264 registros
+2026-02-06 17:39:49 - INFO - Filtrados 3264 registros de sección 'tierras_aridos' de 44082 total
+2026-02-06 17:39:49 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:49 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:51 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:51 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:51 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:51 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA TIERRAS_ARIDOS ===
+2026-02-06 17:39:51 - INFO -   ABC: 247 registros
+2026-02-06 17:39:51 - INFO -   Ventas: 3264 registros
+2026-02-06 17:39:51 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] abc_df: 247 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] ventas_df: 3264 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:51 - INFO - Datos de ventas: 302 registros
+2026-02-06 17:39:51 - INFO - Calculando pedido para semana 14 (302 registros)
+2026-02-06 17:39:51 - INFO -   Objetivo: 4097.24€, Actual (ABC): 4019.19€
+2026-02-06 17:39:51 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:51 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:51 - INFO -   Factor escalado: 1.3380
+2026-02-06 17:39:51 - INFO -   Ventas preliminares (con ceil): 5809.66€
+2026-02-06 17:39:51 - INFO -   Objetivo final: 5377.63€
+2026-02-06 17:39:51 - INFO -   Delta: 432.03€
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:51 - DEBUG -   Total registros: 72
+2026-02-06 17:39:51 - DEBUG -   Registros con Unidades_Finales > 0: 71
+2026-02-06 17:39:51 - DEBUG -   Ventas finales: 5387.14€
+2026-02-06 17:39:51 - INFO -   Ventas finales: 5387.14€
+2026-02-06 17:39:51 - INFO - 
+============================================================
+2026-02-06 17:39:51 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:51 - INFO - ============================================================
+2026-02-06 17:39:51 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:51 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:51 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:51 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:51 - INFO - ============================================================
+2026-02-06 17:39:51 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:51 - INFO - ============================================================
+2026-02-06 17:39:51 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:51 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:51 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:51 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:51 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:51 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:51 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:51 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:51 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:51 - INFO -   Stock: 30 registros
+2026-02-06 17:39:51 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:51 - INFO - Fusión completada: 72 registros
+2026-02-06 17:39:51 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:51 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:51 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:51 - INFO - 
+============================================================
+2026-02-06 17:39:51 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:51 - INFO - ============================================================
+2026-02-06 17:39:51 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:51 - INFO - Corrección completada:
+2026-02-06 17:39:51 - INFO -   - Artículos corregidos: 71/72
+2026-02-06 17:39:51 - INFO -   - Artículos aumentados: 71
+2026-02-06 17:39:51 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:51 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:51 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:51 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:51 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 72 registros
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:51 - DEBUG -   Con valor 0: 1
+2026-02-06 17:39:51 - DEBUG -   Con valor > 0: 71
+2026-02-06 17:39:51 - DEBUG -   Suma Ventas_Objetivo: 5387.14€
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 71 registros
+2026-02-06 17:39:51 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_tierras_aridos.xlsx
+2026-02-06 17:39:51 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_tierras_aridos.xlsx
+2026-02-06 17:39:51 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_tierras_aridos.xlsx
+2026-02-06 17:39:51 - INFO -   Articulos: 71
+2026-02-06 17:39:51 - INFO -   Importe: 5387.14€
+2026-02-06 17:39:51 - INFO - 
+==================================================
+2026-02-06 17:39:51 - INFO - SECCION: DECO_EXTERIOR
+2026-02-06 17:39:51 - INFO - ==================================================
+2026-02-06 17:39:51 - INFO - === LEYENDO DATOS PARA SECCIÓN: DECO_EXTERIOR ===
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Secciones activas configuradas: ['maf', 'deco_interior', 'semillas', 'mascotas_vivo', 'mascotas_manufacturado', 'interior', 'fitos', 'vivero', 'utiles_jardin', 'tierras_aridos', 'deco_exterior']
+2026-02-06 17:39:51 - DEBUG - [DEBUG] Intentando leer clasificación ABC para sección: deco_exterior
+2026-02-06 17:39:51 - INFO - Archivo ABC encontrado (nuevo formato) para 'deco_exterior': .\./data/input\CLASIFICACION_ABC+D_DECO_EXTERIOR_P2_2025.xlsx
+2026-02-06 17:39:51 - INFO - Leyendo archivo: .\./data/input\CLASIFICACION_ABC+D_DECO_EXTERIOR_P2_2025.xlsx
+2026-02-06 17:39:52 - INFO - Archivo leído exitosamente: 4 hojas
+2026-02-06 17:39:52 - INFO - Clasificación ABC cargada para 'deco_exterior': 995 registros
+2026-02-06 17:39:52 - DEBUG - [DEBUG] ABC leído: 995 registros
+2026-02-06 17:39:52 - DEBUG - [DEBUG] Columnas en ABC: ['Artículo', 'Nombre artículo', 'Talla', 'Color', 'Familia', 'Nombre Familia', 'Rotación Familia (días)', 'Ventas (unidades)', 'Importe ventas (€)', 'Beneficio (importe €)', 'Tasa de venta (%)', 'Rotación excedida (unidades)', 'Stock mínimo (unidades)', 'Stock máximo (unidades)', 'Stock Final (unidades)', 'Antigüedad Última Venta (días)', 'Antigüedad Stock (días)', '% Rotación Consumido', 'Descuento Sugerido (%)', 'Riesgo de Merma/ inmovilizado', 'Acción Sugerida', 'Origen Stock Final', 'Escenario', 'Categoria', 'Clave']
+2026-02-06 17:39:52 - DEBUG - [DEBUG] Intentando leer archivo de ventas...
+2026-02-06 17:39:52 - INFO - Leyendo archivo: .\./data/input\Ventas.xlsx
+2026-02-06 17:39:56 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:56 - INFO - Usando hoja: Ventas por vendedor
+2026-02-06 17:39:56 - INFO - Filtrados 44082 registros de tipo 'Detalle'
+2026-02-06 17:39:56 - INFO - Ventas cargadas: 44082 registros
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Ventas leído: 44082 registros
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Columnas en Ventas: ['Vendedor', 'Serie', 'Documento', 'Fecha', 'Factura', 'Artículo', 'Nombre artículo', 'Talla', 'Color', 'Unidades', 'Precio', 'Importe', 'Comisión', 'Tipo registro', 'Codigo', 'Nombre']
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Filtrando ventas por sección: deco_exterior
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Distribución de secciones antes de filtrar:
+2026-02-06 17:39:56 - DEBUG -   maf: 10970 registros
+2026-02-06 17:39:56 - DEBUG -   mascotas_manufacturado: 9784 registros
+2026-02-06 17:39:56 - DEBUG -   deco_exterior: 4018 registros
+2026-02-06 17:39:56 - DEBUG -   interior: 3624 registros
+2026-02-06 17:39:56 - DEBUG -   tierras_aridos: 3264 registros
+2026-02-06 17:39:56 - DEBUG -   deco_interior: 2468 registros
+2026-02-06 17:39:56 - DEBUG -   vivero: 2460 registros
+2026-02-06 17:39:56 - DEBUG -   fitos: 1987 registros
+2026-02-06 17:39:56 - DEBUG -   semillas: 1180 registros
+2026-02-06 17:39:56 - DEBUG -   mascotas_vivo: 1124 registros
+2026-02-06 17:39:56 - DEBUG -   utiles_jardin: 1009 registros
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Tras filtrar por 'deco_exterior': 4018 registros
+2026-02-06 17:39:56 - INFO - Filtrados 4018 registros de sección 'deco_exterior' de 44082 total
+2026-02-06 17:39:56 - DEBUG - [DEBUG] Intentando leer archivo de costes...
+2026-02-06 17:39:56 - INFO - Leyendo archivo: .\./data/input\Coste.xlsx
+2026-02-06 17:39:58 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:58 - DEBUG - Usando primera hoja del archivo de costes: INFORME
+2026-02-06 17:39:58 - INFO - Costes cargados: 22145 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Costes leído: 22145 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Columnas en Costes: ['Codigo', 'Nombre', 'Tarifa10', 'Talla', 'Color', 'Proveedor', 'Nombre proveedor', 'Barras', 'Codigo antiguo', 'Ref proveedor', 'Coste', 'Fecha ultcom', 'Margen subf', 'Margen', 'Clave']
+2026-02-06 17:39:58 - INFO - === DATOS LEÍDOS CORRECTAMENTE PARA DECO_EXTERIOR ===
+2026-02-06 17:39:58 - INFO -   ABC: 995 registros
+2026-02-06 17:39:58 - INFO -   Ventas: 4018 registros
+2026-02-06 17:39:58 - INFO -   Costes: 22145 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] abc_df: 995 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] ventas_df: 4018 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] costes_df: 22145 registros
+2026-02-06 17:39:58 - INFO - Datos de ventas: 316 registros
+2026-02-06 17:39:58 - INFO - Calculando pedido para semana 14 (316 registros)
+2026-02-06 17:39:58 - INFO -   Objetivo: 3740.34€, Actual (ABC): 4104.66€
+2026-02-06 17:39:58 - INFO -   Factor crecimiento: 0.05, Factor festivo: 0.25
+2026-02-06 17:39:58 - INFO -   Factor total: 1.3125
+2026-02-06 17:39:58 - INFO -   Factor escalado: 1.1960
+2026-02-06 17:39:58 - INFO -   Ventas preliminares (con ceil): 6094.59€
+2026-02-06 17:39:58 - INFO -   Objetivo final: 4909.20€
+2026-02-06 17:39:58 - INFO -   Delta: 1185.39€
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Resumen final del cálculo:
+2026-02-06 17:39:58 - DEBUG -   Total registros: 224
+2026-02-06 17:39:58 - DEBUG -   Registros con Unidades_Finales > 0: 205
+2026-02-06 17:39:58 - DEBUG -   Ventas finales: 4923.89€
+2026-02-06 17:39:58 - INFO -   Ventas finales: 4923.89€
+2026-02-06 17:39:58 - INFO - 
+============================================================
+2026-02-06 17:39:58 - INFO - FASE 2: APLICANDO CORRECCIÓN AL PEDIDO
+2026-02-06 17:39:58 - INFO - ============================================================
+2026-02-06 17:39:58 - INFO - Archivo de stock encontrado: Stock_actual.xlsx
+2026-02-06 17:39:58 - INFO - Archivos de corrección disponibles: {'stock': True, 'ventas': False, 'compras': False}
+2026-02-06 17:39:58 - INFO - DataLoader inicializado correctamente
+2026-02-06 17:39:58 - INFO - CorrectionDataLoader inicializado correctamente
+2026-02-06 17:39:58 - INFO - ============================================================
+2026-02-06 17:39:58 - INFO - CARGANDO DATOS DE CORRECCIÓN PARA SEMANA 14
+2026-02-06 17:39:58 - INFO - ============================================================
+2026-02-06 17:39:58 - WARNING - Archivo de corrección no encontrado: Stock_actual_Semana_14.xlsx
+2026-02-06 17:39:58 - WARNING - Archivo de corrección no encontrado: Stock_semana_14.xlsx
+2026-02-06 17:39:58 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:58 - INFO - Archivo de corrección encontrado: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:58 - INFO - Leyendo archivo de corrección: .\./data/input\Stock_actual.xlsx
+2026-02-06 17:39:58 - INFO - Archivo leído exitosamente: 1 hojas
+2026-02-06 17:39:58 - DEBUG - Usando hoja: Stock
+2026-02-06 17:39:58 - DEBUG - Columnas renombradas en stock: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Stock_Fisico', 'Fecha_Ultimo_Movimiento']
+2026-02-06 17:39:58 - INFO - Stock actual cargado: 30 registros
+2026-02-06 17:39:58 - INFO -   Stock: 30 registros
+2026-02-06 17:39:58 - INFO - Fusionando datos de corrección con pedido teórico...
+2026-02-06 17:39:58 - INFO - Fusión completada: 224 registros
+2026-02-06 17:39:58 - INFO - CorrectionEngine inicializado correctamente
+2026-02-06 17:39:58 - DEBUG - Política de stock mínimo: {'A': 1.5, 'B': 1.0, 'C': 0.5, 'D': 0.0}
+2026-02-06 17:39:58 - INFO - Aplicando corrección a DataFrame de pedidos...
+2026-02-06 17:39:58 - INFO - 
+============================================================
+2026-02-06 17:39:58 - INFO - APLICANDO CORRECCIÓN POR TENDENCIA DE VENTAS (ÚLTIMA VARIABLE)
+2026-02-06 17:39:58 - INFO - ============================================================
+2026-02-06 17:39:58 - WARNING - No hay datos de ventas reales u objetivo. Omitiendo corrección de tendencia.
+2026-02-06 17:39:58 - INFO - Corrección completada:
+2026-02-06 17:39:58 - INFO -   - Artículos corregidos: 205/224
+2026-02-06 17:39:58 - INFO -   - Artículos aumentados: 205
+2026-02-06 17:39:58 - INFO -   - Artículos reducidos: 0
+2026-02-06 17:39:58 - ERROR - Error al aplicar corrección: 'Unidades_Vendidas'
+2026-02-06 17:39:58 - ERROR - Traceback (most recent call last):
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3812, in get_loc
+    return self._engine.get_loc(casted_key)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "pandas/_libs/index.pyx", line 167, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 196, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7088, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7096, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Unidades_Vendidas'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\main.py", line 174, in aplicar_correccion_pedido
+    alertas = engine.generar_alertas(pedido_corregido)
+  File "D:\ALMACENAMIENTO\Ivan\viveverde\Trabajos\IA\PROGRAMA_COMPRAS_AUTOMATICAS\2_LISTADO_PEDIDO_COMPRAS\LISTADO_PEDIDO_COMPRAS\src\correction_engine.py", line 737, in generar_alertas
+    sin_ventas_con_stock = df[(df['Unidades_Vendidas'] == 0) & (df['Stock_Fisico'] > 0)]
+                               ~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\idalo\AppData\Local\Programs\Python\Python313\Lib\site-packages\pandas\core\indexes\base.py", line 3819, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Unidades_Vendidas'
+
+2026-02-06 17:39:58 - INFO - Usando pedido teórico (sin corrección)
+2026-02-06 17:39:58 - DEBUG - [DEBUG generar_archivo_pedido] Recibido DataFrame con 224 registros
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Columnas disponibles: ['Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color', 'Seccion', 'Unidades_Base', 'Unidades_ABC', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria', 'Accion_Aplicada', 'Peso_Categoria', 'Ventas_Preliminares', 'Unidades_Escaladas', 'Unidades_Finales', 'Ventas_Objetivo', 'Beneficio_Objetivo', 'Stock_Minimo_Objetivo', 'Unidades_Pedido', 'Diferencia_Stock']
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Distribución de Unidades_Pedido:
+2026-02-06 17:39:58 - DEBUG -   Con valor 0: 19
+2026-02-06 17:39:58 - DEBUG -   Con valor > 0: 205
+2026-02-06 17:39:58 - DEBUG -   Suma Ventas_Objetivo: 4923.89€
+2026-02-06 17:39:58 - DEBUG - [DEBUG] Tras filtrar Unidades_Pedido > 0: 205 registros
+2026-02-06 17:39:58 - INFO - Generando archivo: .\./data/output\Pedido_Semana_14_06022026_deco_exterior.xlsx
+2026-02-06 17:39:59 - INFO - Archivo guardado: .\./data/output\Pedido_Semana_14_06022026_deco_exterior.xlsx
+2026-02-06 17:39:59 - INFO - Archivo generado: .\./data/output\Pedido_Semana_14_06022026_deco_exterior.xlsx
+2026-02-06 17:39:59 - INFO -   Articulos: 205
+2026-02-06 17:39:59 - INFO -   Importe: 4923.89€
+2026-02-06 17:39:59 - INFO - Estado guardado correctamente
+2026-02-06 17:39:59 - INFO - Generando resumen: .\./data/output\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:39:59 - INFO - Resumen guardado: .\./data/output\Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:39:59 - INFO - Estado guardado correctamente
+2026-02-06 17:39:59 - INFO - 
+============================================================
+2026-02-06 17:39:59 - INFO - PREPARANDO ENVÍO DE EMAILS
+2026-02-06 17:39:59 - INFO - ============================================================
+2026-02-06 17:39:59 - DEBUG - [DEBUG] Archivos agrupados por sección: {'maf': ['.\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx'], 'interior': ['.\\./data/output\\Pedido_Semana_14_06022026_deco_interior.xlsx', '.\\./data/output\\Pedido_Semana_14_06022026_interior.xlsx'], 'semillas': ['.\\./data/output\\Pedido_Semana_14_06022026_semillas.xlsx'], 'vivo': ['.\\./data/output\\Pedido_Semana_14_06022026_mascotas_vivo.xlsx'], 'manufacturado': ['.\\./data/output\\Pedido_Semana_14_06022026_mascotas_manufacturado.xlsx'], 'fitos': ['.\\./data/output\\Pedido_Semana_14_06022026_fitos.xlsx'], 'vivero': ['.\\./data/output\\Pedido_Semana_14_06022026_vivero.xlsx'], 'jardin': ['.\\./data/output\\Pedido_Semana_14_06022026_utiles_jardin.xlsx'], 'aridos': ['.\\./data/output\\Pedido_Semana_14_06022026_tierras_aridos.xlsx'], 'exterior': ['.\\./data/output\\Pedido_Semana_14_06022026_deco_exterior.xlsx']}
+2026-02-06 17:39:59 - INFO - 
+============================================================
+2026-02-06 17:39:59 - INFO - ENVÍO DE EMAILS A RESPONSABLES
+2026-02-06 17:39:59 - INFO - ============================================================
+2026-02-06 17:39:59 - DEBUG - Configuración de email cargada desde config.json
+2026-02-06 17:39:59 - INFO - Encargados cargados desde config\encargados.json: 11 secciones
+2026-02-06 17:39:59 - DEBUG - Mapping de encargados: {'interior': 'Iris', 'mascotas_manufacturado': 'María', 'mascotas_vivo': 'María', 'deco_exterior': 'Pablo', 'tierras_aridos': 'Pablo', 'fitos': 'Ivan', 'semillas': 'Ivan', 'utiles_jardin': 'Ivan', 'deco_interior': 'Sandra', 'maf': 'Jose', 'vivero': 'Jose'}
+2026-02-06 17:39:59 - INFO - EmailService inicializado correctamente
+2026-02-06 17:39:59 - INFO - Remitente: ivan.delgado@viveverde.es
+2026-02-06 17:39:59 - INFO - Secciones con destinatarios: ['maf', 'interior', 'mascotas_vivo', 'mascotas_manufacturado', 'deco_interior', 'deco_exterior', 'tierras_aridos', 'fitos', 'semillas', 'utiles_jardin', 'vivero']
+2026-02-06 17:39:59 - INFO - 
+Enviando email para sección: maf
+2026-02-06 17:39:59 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_maf.xlsx']
+2026-02-06 17:39:59 - DEBUG - Destinatarios para maf: [{'email': 'ivan.delgado@viveverde.es', 'nombre': 'Jose'}]
+2026-02-06 17:39:59 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_maf.xlsx
+2026-02-06 17:39:59 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:39:59 - INFO - Email enviado para sección maf (semana 14)
+2026-02-06 17:39:59 - ERROR - ✗ Error al enviar email a maf: None
+2026-02-06 17:39:59 - INFO - 
+Enviando email para sección: interior
+2026-02-06 17:39:59 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_deco_interior.xlsx', '.\\./data/output\\Pedido_Semana_14_06022026_interior.xlsx']
+2026-02-06 17:39:59 - DEBUG - Destinatarios para interior: [{'email': 'ivan.delgado@viveverde.es', 'nombre': 'Iris'}]
+2026-02-06 17:39:59 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_deco_interior.xlsx
+2026-02-06 17:39:59 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_interior.xlsx
+2026-02-06 17:39:59 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:39:59 - INFO - Email enviado para sección interior (semana 14)
+2026-02-06 17:39:59 - ERROR - ✗ Error al enviar email a interior: None
+2026-02-06 17:39:59 - INFO - 
+Enviando email para sección: semillas
+2026-02-06 17:39:59 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_semillas.xlsx']
+2026-02-06 17:39:59 - DEBUG - Destinatarios para semillas: [{'email': 'ivan.delgado@viveverde.es', 'nombre': 'Ivan'}]
+2026-02-06 17:39:59 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_semillas.xlsx
+2026-02-06 17:40:00 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:40:00 - INFO - Email enviado para sección semillas (semana 14)
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a semillas: None
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: vivo
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_mascotas_vivo.xlsx']
+2026-02-06 17:40:00 - WARNING - No hay destinatarios configurados para la sección: vivo
+2026-02-06 17:40:00 - WARNING - No se puede enviar email para vivo: No hay destinatarios configurados
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a vivo: No hay destinatarios configurados
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: manufacturado
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_mascotas_manufacturado.xlsx']
+2026-02-06 17:40:00 - WARNING - No hay destinatarios configurados para la sección: manufacturado
+2026-02-06 17:40:00 - WARNING - No se puede enviar email para manufacturado: No hay destinatarios configurados
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a manufacturado: No hay destinatarios configurados
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: fitos
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_fitos.xlsx']
+2026-02-06 17:40:00 - DEBUG - Destinatarios para fitos: [{'email': 'ivan.delgado@viveverde.es', 'nombre': 'Ivan'}]
+2026-02-06 17:40:00 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_fitos.xlsx
+2026-02-06 17:40:00 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:40:00 - INFO - Email enviado para sección fitos (semana 14)
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a fitos: None
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: vivero
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_vivero.xlsx']
+2026-02-06 17:40:00 - DEBUG - Destinatarios para vivero: [{'email': 'ivan.delgado@viveverde.es', 'nombre': 'Jose'}]
+2026-02-06 17:40:00 - DEBUG - Adjunto añadido: Pedido_Semana_14_06022026_vivero.xlsx
+2026-02-06 17:40:00 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:40:00 - INFO - Email enviado para sección vivero (semana 14)
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a vivero: None
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: jardin
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_utiles_jardin.xlsx']
+2026-02-06 17:40:00 - WARNING - No hay destinatarios configurados para la sección: jardin
+2026-02-06 17:40:00 - WARNING - No se puede enviar email para jardin: No hay destinatarios configurados
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a jardin: No hay destinatarios configurados
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: aridos
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_tierras_aridos.xlsx']
+2026-02-06 17:40:00 - WARNING - No hay destinatarios configurados para la sección: aridos
+2026-02-06 17:40:00 - WARNING - No se puede enviar email para aridos: No hay destinatarios configurados
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a aridos: No hay destinatarios configurados
+2026-02-06 17:40:00 - INFO - 
+Enviando email para sección: exterior
+2026-02-06 17:40:00 - INFO - Archivos: ['.\\./data/output\\Pedido_Semana_14_06022026_deco_exterior.xlsx']
+2026-02-06 17:40:00 - WARNING - No hay destinatarios configurados para la sección: exterior
+2026-02-06 17:40:00 - WARNING - No se puede enviar email para exterior: No hay destinatarios configurados
+2026-02-06 17:40:00 - ERROR - ✗ Error al enviar email a exterior: No hay destinatarios configurados
+2026-02-06 17:40:00 - INFO - 
+============================================================
+2026-02-06 17:40:00 - INFO - RESUMEN DE ENVÍO DE EMAILS
+2026-02-06 17:40:00 - INFO - ============================================================
+2026-02-06 17:40:00 - INFO - Emails enviados exitosamente: 0
+2026-02-06 17:40:00 - INFO - Emails fallidos: 10
+2026-02-06 17:40:00 - INFO - Secciones procesadas: 10
+2026-02-06 17:40:00 - INFO - 
+============================================================
+2026-02-06 17:40:00 - INFO - PREPARANDO ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN
+2026-02-06 17:40:00 - INFO - ============================================================
+2026-02-06 17:40:00 - INFO - Archivo de resumen encontrado: Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:40:00 - INFO - 
+============================================================
+2026-02-06 17:40:00 - INFO - ENVÍO DE RESUMEN A RESPONSABLES DE GESTIÓN
+2026-02-06 17:40:00 - INFO - ============================================================
+2026-02-06 17:40:00 - DEBUG - Adjunto añadido: Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:40:01 - INFO - Email enviado exitosamente a: sandra.delgado@viveverde.es
+2026-02-06 17:40:01 - INFO - ✓ Resumen enviado a Sandra (sandra.delgado@viveverde.es)
+2026-02-06 17:40:01 - DEBUG - Adjunto añadido: Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:40:01 - INFO - Email enviado exitosamente a: ivan.delgado@viveverde.es
+2026-02-06 17:40:01 - INFO - ✓ Resumen enviado a Ivan (ivan.delgado@viveverde.es)
+2026-02-06 17:40:01 - DEBUG - Adjunto añadido: Resumen_Pedidos_CONSOLIDADO_06022026.xlsx
+2026-02-06 17:40:01 - INFO - Email enviado exitosamente a: pedro.delgado@viveverde.es
+2026-02-06 17:40:01 - INFO - ✓ Resumen enviado a Pedro (pedro.delgado@viveverde.es)
+2026-02-06 17:40:01 - INFO - 
+============================================================
+2026-02-06 17:40:01 - INFO - RESUMEN DE ENVÍO A RESPONSABLES DE GESTIÓN
+2026-02-06 17:40:01 - INFO - ============================================================
+2026-02-06 17:40:01 - INFO - Emails enviados: 3
+2026-02-06 17:40:01 - INFO - Emails fallidos: 0
+2026-02-06 17:40:01 - INFO - 
+======================================================================
+2026-02-06 17:40:01 - INFO - RESUMEN DE EJECUCION
+2026-02-06 17:40:01 - INFO - ======================================================================
+2026-02-06 17:40:01 - INFO - Semana procesada: 14
+2026-02-06 17:40:01 - INFO - Archivos generados: 12
+2026-02-06 17:40:01 - INFO - Total articulos: 1510
+2026-02-06 17:40:01 - INFO - Total importe: 48115.81€
+2026-02-06 17:40:01 - WARNING - 
+✗ EMAILS FALLIDOS: 10
+2026-02-06 17:40:01 - INFO - 
+✓ RESUMEN ENVIADO A RESPONSABLES DE GESTIÓN: 3/3
+2026-02-06 17:40:01 - INFO - ======================================================================
+2026-02-06 17:40:01 - INFO - 
+¡PEDIDO GENERADO EXITOSAMENTE!
+2026-02-06 17:40:01 - INFO - Archivo principal: .\./data/output\Pedido_Semana_14_06022026_maf.xlsx
+2026-02-06 17:40:01 - INFO - Artículos: 1510
+2026-02-06 17:40:01 - INFO - Importe: 48115.81€
+2026-02-06 17:40:01 - INFO - Resumen enviado a responsables de gestión: 3/3

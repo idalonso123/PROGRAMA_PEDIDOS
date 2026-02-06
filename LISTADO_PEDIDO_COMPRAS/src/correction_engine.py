@@ -339,14 +339,14 @@ class CorrectionEngine:
     def aplicar_correccion_dataframe(
         self, 
         df: pd.DataFrame,
-        columna_pedido: str = 'Unidades_Pedido',
+        columna_pedido: str = 'Pedido_Corregido_Stock',
         columna_stock_minimo: str = 'Stock_Minimo_Objetivo',
         columna_stock_real: str = 'Stock_Fisico',
         columna_categoria: str = 'Categoria',
         columna_ventas_reales: str = 'Unidades_Vendidas',
         columna_ventas_objetivo: str = 'Ventas_Objetivo',
         columna_compras_reales: str = 'Unidades_Recibidas',
-        columna_compras_sugeridas: str = 'Unidades_Pedido'
+        columna_compras_sugeridas: str = 'Pedido_Corregido_Stock'
     ) -> pd.DataFrame:
         """
         Aplica la corrección a todo un DataFrame de pedidos.
@@ -613,7 +613,7 @@ class CorrectionEngine:
     def calcular_metricas_correccion(
         self, 
         df: pd.DataFrame,
-        columna_pedido_original: str = 'Unidades_Pedido',
+        columna_pedido_original: str = 'Pedido_Corregido_Stock',
         columna_pedido_corregido: str = 'Pedido_Corregido',
         columna_ventas_reales: str = 'Unidades_Vendidas',
         columna_ventas_objetivo: str = 'Ventas_Objetivo'
@@ -723,7 +723,7 @@ class CorrectionEngine:
             })
         
         # Artículos con corrección significativa (más del 50%)
-        df['pct_cambio'] = abs(df['Pedido_Corregido'] - df['Unidades_Pedido']) / df['Unidades_Pedido'].replace(0, 1)
+        df['pct_cambio'] = abs(df['Pedido_Corregido'] - df['Pedido_Corregido_Stock']) / df['Pedido_Corregido_Stock'].replace(0, 1)
         cambios_significativos = df[df['pct_cambio'] > 0.5]
         if len(cambios_significativos) > 0:
             alertas.append({

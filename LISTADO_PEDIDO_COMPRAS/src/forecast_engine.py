@@ -381,7 +381,10 @@ class ForecastEngine:
         return pedidos_df
     
     def aplicar_stock_minimo(self, pedidos_df: pd.DataFrame, semana: int,
-                              stock_acumulado_dict: Dict[str, int]) -> Tuple[pd.DataFrame, Dict[str, int], Dict[str, int]]:
+                              stock_acumulado_dict: Dict[str, int],
+                              stock_real_dict: Dict[str, int] = None,
+                              ventas_reales_dict: Dict[str, int] = None,
+                              ventas_objetivo_dict: Dict[str, float] = None) -> Tuple[pd.DataFrame, Dict[str, int], Dict[str, int]]:
         """
         Aplica el cálculo de stock mínimo dinámico POR ARTÍCULO.
         
@@ -389,6 +392,9 @@ class ForecastEngine:
             pedidos_df (pd.DataFrame): DataFrame con los pedidos calculados
             semana (int): Número de semana actual
             stock_acumulado_dict (Dict[str, int]): Stock acumulado por artículo
+            stock_real_dict (Dict[str, int]): Stock real actual por artículo (para corrección FASE 2)
+            ventas_reales_dict (Dict[str, int]): Ventas reales de la semana anterior
+            ventas_objetivo_dict (Dict[str, float]): Ventas objetivo de la semana anterior
         
         Returns:
             Tuple: (pedidos_actualizados, nuevo_stock_acumulado, ajustes_articulo)
@@ -397,6 +403,14 @@ class ForecastEngine:
             return pedidos_df, {}, {}
         
         stock_minimo_porcentaje = self.parametros.get('stock_minimo_porcentaje', 0.30)
+        
+        # Inicializar diccionarios si no se proporcionan
+        if stock_real_dict is None:
+            stock_real_dict = {}
+        if ventas_reales_dict is None:
+            ventas_reales_dict = {}
+        if ventas_objetivo_dict is None:
+            ventas_objetivo_dict = {}
         
         nuevo_stock_acumulado = {}
         ajustes_articulo = {}
@@ -414,11 +428,38 @@ class ForecastEngine:
             stock_acumulado_anterior = stock_acumulado_dict.get(clave_articulo, 0)
             diferencia_stock = stock_minimo - stock_acumulado_anterior
             
-            unidades_pedido = row['Unidades_Finales'] + diferencia_stock
+            # ================================================================
+            # FASE 2 - CORRECCIÓN 1: Corrección por Desviación de Stock
+            # Objetivo: Mantener siempre el stock mínimo configurado
+            # Fórmula: Pedido_Corregido_Stock = max(0, Unidades_Finales + (Stock_Mínimo - Stock_Real))
+            # ================================================================
+            stock_real = stock_real_dict.get(clave_articulo, 0)
+            pedido_corregido_stock = max(0, row['Unidades_Finales'] + (stock_minimo - stock_real))
+            
+            # ================================================================
+            # FASE 2 - CORRECCIÓN 2: Corrección por Tendencia de Ventas
+            # Objetivo: Detectar si hay una tendencia de aumento de ventas
+            # Lógica: Si se consumió parte del stock mínimo (ventas > objetivo),
+            #         incrementar el pedido预防 futuras tendencias al alza
+            # Fórmula: Tendencia_Consumo = max(0, Ventas_Reales - Ventas_Objetivo)
+            # ================================================================
+            ventas_reales = ventas_reales_dict.get(clave_articulo, 0)
+            ventas_objetivo = ventas_objetivo_dict.get(clave_articulo, 0)
+            
+            # Calcular cuánto se consumió del stock mínimo (ventas por encima del objetivo)
+            tendencia_consumo = max(0, ventas_reales - ventas_objetivo)
+            
+            # Pedido final = Corrección Stock + Corrección Tendencia
+            pedido_final = pedido_corregido_stock + tendencia_consumo
+            # ================================================================
             
             pedidos_df.at[idx, 'Stock_Minimo_Objetivo'] = stock_minimo
-            pedidos_df.at[idx, 'Unidades_Pedido'] = unidades_pedido
             pedidos_df.at[idx, 'Diferencia_Stock'] = diferencia_stock
+            # Columnas de corrección FASE 2
+            pedidos_df.at[idx, 'Pedido_Corregido_Stock'] = pedido_corregido_stock
+            pedidos_df.at[idx, 'Ventas_Reales'] = ventas_reales
+            pedidos_df.at[idx, 'Tendencia_Consumo'] = tendencia_consumo
+            pedidos_df.at[idx, 'Pedido_Final'] = pedido_final
             
             nuevo_stock_acumulado[clave_articulo] = stock_minimo
             ajustes_articulo[clave_articulo] = diferencia_stock
@@ -551,8 +592,8 @@ class ForecastEngine:
         if len(pedidos_df) == 0:
             return {}
         
-        # Filtrar artículos con Unidades_Pedido > 0
-        pedidos_filtrados = pedidos_df[pedidos_df['Unidades_Pedido'] > 0]
+        # Filtrar artículos con Pedido_Corregido_Stock > 0
+        pedidos_filtrados = pedidos_df[pedidos_df['Pedido_Corregido_Stock'] > 0]
         
         if len(pedidos_filtrados) == 0:
             return {}
@@ -578,7 +619,7 @@ class ForecastEngine:
             'Obj. semana + % crec. anual': round(objetivo * (1 + crecimiento), 2),
             'Obj. semana + % crec. + Festivos': objetivo_final,
             '% Obj. crecim. + Festivos': crecimiento_unidades,
-            'Total_Unidades': int(pedidos_filtrados['Unidades_Pedido'].sum()),
+            'Total_Unidades': int(pedidos_filtrados['Pedido_Final'].sum()),
             'Total_Articulos': len(pedidos_filtrados),
             'Total_Importe': round(pedidos_filtrados['Ventas_Objetivo'].sum(), 2),
             'Alcance_Objetivo_%': round(pedidos_filtrados['Ventas_Objetivo'].sum() / objetivo * 100, 1) if objetivo > 0 else 0,

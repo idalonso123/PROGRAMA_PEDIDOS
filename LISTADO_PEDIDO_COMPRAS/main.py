@@ -146,19 +146,19 @@ def aplicar_correccion_pedido(
         
         pedido_corregido = engine.aplicar_correccion_dataframe(
             pedido_fusionado,
-            columna_pedido='Unidades_Pedido',
+            columna_pedido='Pedido_Corregido_Stock',
             columna_stock_minimo='Stock_Minimo_Objetivo',
             columna_stock_real='Stock_Fisico',
             columna_categoria='Categoria',
             columna_ventas_reales='Unidades_Vendidas',
             columna_ventas_objetivo='Ventas_Objetivo',
             columna_compras_reales='Unidades_Recibidas',
-            columna_compras_sugeridas='Unidades_Pedido'
+            columna_compras_sugeridas='Pedido_Corregido_Stock'
         )
         
         metricas = engine.calcular_metricas_correccion(
             pedido_corregido,
-            columna_pedido_original='Unidades_Pedido',
+            columna_pedido_original='Pedido_Corregido_Stock',
             columna_pedido_corregido='Pedido_Corregido',
             columna_ventas_reales='Unidades_Vendidas',
             columna_ventas_objetivo='Ventas_Objetivo'
@@ -218,7 +218,7 @@ def generar_archivo_pedido_corregido(
         if fecha_lunes < datetime.now():
             fecha_lunes = datetime.now()
         
-        fecha_lunes_str = fecha_lunes.strftime('%Y-%m-%d')
+        fecha_lunes_str = fecha_lunes.strftime('%d%m%Y')
         
         dir_salida = config.get('rutas', {}).get('directorio_salida', './data/output')
         nombre_archivo = f"Pedido_Semana_{semana}_{fecha_lunes_str}_{seccion}_CORREGIDO.xlsx"
@@ -227,7 +227,7 @@ def generar_archivo_pedido_corregido(
         df_exportar = pedido_corregido.copy()
         
         renombrar = {
-            'Unidades_Pedido': 'Pedido_Teorico',
+            'Pedido_Corregido_Stock': 'Pedido_Teorico',
             'Pedido_Corregido': 'Pedido_Final',
             'Stock_Minimo_Objetivo': 'Stock_Minimo',
             'Stock_Fisico': 'Stock_Real',
@@ -536,7 +536,7 @@ def procesar_pedido_semana(
                     articulos = len(pedidos_validos)
                     importe = pedidos_validos['Ventas_Objetivo'].sum()
                 else:
-                    pedidos_validos = pedidos_final[pedidos_final['Unidades_Pedido'] > 0]
+                    pedidos_validos = pedidos_final[pedidos_final['Pedido_Corregido_Stock'] > 0]
                     articulos = len(pedidos_validos)
                     importe = pedidos_validos['Ventas_Objetivo'].sum()
                 

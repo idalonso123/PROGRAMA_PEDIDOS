@@ -97,7 +97,7 @@ class OrderGenerator:
         prefijo = self.formato.get('prefijo_archivo', 'Pedido_Semana')
         
         if incluir_fecha:
-            fecha_actual = datetime.now().strftime('%Y-%m-%d')
+            fecha_actual = datetime.now().strftime('%d%m%Y')
             nombre = f"{prefijo}_{semana:02d}_{fecha_actual}"
         else:
             nombre = f"{prefijo}_{semana:02d}"
@@ -126,10 +126,10 @@ class OrderGenerator:
         logger.debug(f"[DEBUG generar_archivo_pedido] Recibido DataFrame con {len(pedidos_df)} registros")
         if len(pedidos_df) > 0:
             logger.debug(f"[DEBUG] Columnas disponibles: {list(pedidos_df.columns)}")
-            if 'Unidades_Pedido' in pedidos_df.columns:
-                logger.debug(f"[DEBUG] Distribución de Unidades_Pedido:")
-                logger.debug(f"  Con valor 0: {len(pedidos_df[pedidos_df['Unidades_Pedido'] == 0])}")
-                logger.debug(f"  Con valor > 0: {len(pedidos_df[pedidos_df['Unidades_Pedido'] > 0])}")
+            if 'Pedido_Corregido_Stock' in pedidos_df.columns:
+                logger.debug(f"[DEBUG] Distribución de Pedido_Corregido_Stock:")
+                logger.debug(f"  Con valor 0: {len(pedidos_df[pedidos_df['Pedido_Corregido_Stock'] == 0])}")
+                logger.debug(f"  Con valor > 0: {len(pedidos_df[pedidos_df['Pedido_Corregido_Stock'] > 0])}")
                 if 'Ventas_Objetivo' in pedidos_df.columns:
                     logger.debug(f"  Suma Ventas_Objetivo: {pedidos_df['Ventas_Objetivo'].sum():.2f}€")
         
@@ -137,14 +137,14 @@ class OrderGenerator:
             logger.warning(f"No hay pedidos para generar en semana {semana}")
             return None
         
-        # Filtrar artículos con Unidades_Pedido > 0
-        pedidos_filtrados = pedidos_df[pedidos_df['Unidades_Pedido'] > 0].copy()
+        # Filtrar artículos con Pedido_Corregido_Stock > 0
+        pedidos_filtrados = pedidos_df[pedidos_df['Pedido_Corregido_Stock'] > 0].copy()
         
-        logger.debug(f"[DEBUG] Tras filtrar Unidades_Pedido > 0: {len(pedidos_filtrados)} registros")
+        logger.debug(f"[DEBUG] Tras filtrar Pedido_Corregido_Stock > 0: {len(pedidos_filtrados)} registros")
         
         if len(pedidos_filtrados) == 0:
             logger.warning(f"Tras filtrar, no hay artículos con pedido > 0 para semana {semana}")
-            logger.warning(f"[DEBUG] Posible causa: Todos los artículos tienen Unidades_Pedido = 0")
+            logger.warning(f"[DEBUG] Posible causa: Todos los artículos tienen Pedido_Corregido_Stock = 0")
             return None
         
         # Ordenar por proveedor y código
@@ -179,11 +179,14 @@ class OrderGenerator:
                 'I': 10.00,  # Categoría
                 'J': 15.00,  # Acción Aplicada
                 'K': 12.50,  # Stock Mínimo Objetivo
-                'L': 10.00,  # Unidades Pedido
-                'M': 10.50,  # Diferencia Stock
-                'N': 9.70,   # Ventas Objetivo
-                'O': 11.50,  # Beneficio Objetivo
-                'P': 27.00   # Proveedor
+                'L': 10.50,  # Diferencia Stock (era M)
+                'M': 9.70,   # Ventas Objetivo (era N)
+                'N': 11.50,  # Beneficio Objetivo (era O)
+                'O': 27.00,  # Proveedor (era P)
+                'P': 11.00,  # Pedido Corregido Stock (FASE 2) (era Q)
+                'Q': 11.00,  # Ventas Reales (FASE 2) (era R)
+                'R': 11.00,  # Tendencia Consumo (FASE 2) (era S)
+                'S': 11.00   # Pedido Final (FASE 2) (era T)
             }
             
             COLUMN_HEADERS = [
@@ -198,11 +201,14 @@ class OrderGenerator:
                 'Categoría',            # I
                 'Acción Aplicada',      # J
                 'Stock Mínimo Objetivo',# K
-                'Unidades Pedido',      # L
-                'Diferencia Stock',     # M
-                'Ventas Objetivo',      # N
-                'Beneficio Objetivo',   # O
-                'Proveedor'             # P
+                'Diferencia Stock',     # L (era M)
+                'Ventas Objetivo',      # M (era N)
+                'Beneficio Objetivo',   # N (era O)
+                'Proveedor',            # O (era P)
+                'Pedido Corregido Stock',# P (FASE 2 - Corrección 1) (era Q)
+                'Ventas Reales',        # Q (FASE 2 - Datos) (era R)
+                'Tendencia Consumo',    # R (FASE 2 - Corrección 2) (era S)
+                'Pedido Final'          # S (FASE 2 - Resultado) (era T)
             ]
             
             COLUMN_MAPPING = {
@@ -217,11 +223,14 @@ class OrderGenerator:
                 'Categoria': 'Categoría',
                 'Accion_Aplicada': 'Acción Aplicada',
                 'Stock_Minimo_Objetivo': 'Stock Mínimo Objetivo',
-                'Unidades_Pedido': 'Unidades Pedido',
                 'Diferencia_Stock': 'Diferencia Stock',
                 'Ventas_Objetivo': 'Ventas Objetivo',
                 'Beneficio_Objetivo': 'Beneficio Objetivo',
-                'Proveedor': 'Proveedor'
+                'Proveedor': 'Proveedor',
+                'Pedido_Corregido_Stock': 'Pedido Corregido Stock',
+                'Ventas_Reales': 'Ventas Reales',
+                'Tendencia_Consumo': 'Tendencia Consumo',
+                'Pedido_Final': 'Pedido Final'
             }
             
             # Escribir cabeceras
@@ -249,8 +258,10 @@ class OrderGenerator:
                             cell.value = round(value, 2)
                         cell.number_format = '#,##0.00'
                         
-                    elif header_name in ['Unidades Calculadas', 'Stock Mínimo Objetivo', 
-                                         'Unidades Pedido', 'Diferencia Stock']:
+                    elif header_name in ['Unidades Calculadas', 'Stock Mínimo Objetivo',
+                                         'Diferencia Stock', 
+                                         'Pedido Corregido Stock', 'Ventas Reales', 
+                                         'Tendencia Consumo', 'Pedido Final']:
                         if isinstance(value, (int, float)):
                             cell.number_format = '#,##0'
                     
@@ -275,7 +286,7 @@ class OrderGenerator:
             
             # Métricas
             metricas_labels = [
-                ("Total_Unidades:", int(pedidos_filtrados['Unidades_Pedido'].sum())),
+                ("Total_Unidades:", int(pedidos_filtrados['Pedido_Final'].sum())),
                 ("Total_Articulos:", len(pedidos_filtrados)),
                 ("Total_Importe:", f"{pedidos_filtrados['Ventas_Objetivo'].sum():.2f}€"),
                 ("Objetivo_Semana:", f"{parametros.get('objetivos_semanales', {}).get(str(semana), 0)}€"),
@@ -328,7 +339,7 @@ class OrderGenerator:
         
         # Generar nombre del archivo
         dir_salida = self.obtener_directorio_salida()
-        nombre_archivo = f"Resumen_Pedidos_{seccion}_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
+        nombre_archivo = f"Resumen_Pedidos_{seccion}_{datetime.now().strftime('%d%m%Y')}.xlsx"
         ruta_completa = os.path.join(dir_salida, nombre_archivo)
         
         logger.info(f"Generando resumen: {ruta_completa}")
@@ -445,22 +456,22 @@ class OrderGenerator:
         if len(pedidos_df) == 0:
             return None
         
-        # Filtrar artículos con Unidades_Pedido > 0
-        pedidos_filtrados = pedidos_df[pedidos_df['Unidades_Pedido'] > 0].copy()
+        # Filtrar artículos con Pedido_Corregido_Stock > 0
+        pedidos_filtrados = pedidos_df[pedidos_df['Pedido_Corregido_Stock'] > 0].copy()
         
         if len(pedidos_filtrados) == 0:
             return None
         
         # Generar nombre del archivo
         dir_salida = self.obtener_directorio_salida()
-        nombre_archivo = f"Pedido_Semana_{semana:02d}_{seccion}_{datetime.now().strftime('%Y%m%d')}.csv"
+        nombre_archivo = f"Pedido_Semana_{semana:02d}_{seccion}_{datetime.now().strftime('%d%m%Y')}.csv"
         ruta_completa = os.path.join(dir_salida, nombre_archivo)
         
         try:
             # Seleccionar columnas relevantes para CSV
             columnas_csv = [
                 'Codigo_Articulo', 'Nombre_Articulo', 'Talla', 'Color',
-                'Unidades_Pedido', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria'
+                'Pedido_Corregido_Stock', 'PVP', 'Coste_Pedido', 'Proveedor', 'Categoria'
             ]
             
             pedidos_csv = pedidos_filtrados[columnas_csv].copy()

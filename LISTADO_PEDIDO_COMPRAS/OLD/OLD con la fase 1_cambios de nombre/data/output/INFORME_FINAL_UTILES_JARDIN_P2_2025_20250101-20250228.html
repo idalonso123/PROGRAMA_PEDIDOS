@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Final - Sección UTILES_JARDIN_P2_2025 | Enero-Febrero 2025</title>
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --secondary: #1565C0;
+            --danger: #D32F2F;
+            --warning: #F9A825;
+            --success: #388E3C;
+            --text: #37474F;
+            --bg: #FAFAFA;
+            --white: #FFFFFF;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        
+        .cover {
+            background: linear-gradient(135deg, var(--primary) 0%, #1B5E20 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cover h1 { font-size: 2.5em; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .cover .subtitle { font-size: 1.3em; opacity: 0.9; margin-bottom: 30px; }
+        .cover .meta { font-size: 1em; opacity: 0.8; }
+        
+        section {
+            background: var(--white);
+            margin-bottom: 30px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            page-break-inside: avoid;
+        }
+        
+        h2 { color: var(--primary); font-size: 1.6em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px solid var(--primary); }
+        h3 { color: var(--secondary); font-size: 1.3em; margin: 20px 0 15px 0; }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .kpi-card {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .kpi-card.danger { border-left-color: var(--danger); }
+        .kpi-card.warning { border-left-color: var(--warning); }
+        .kpi-card.success { border-left-color: var(--success); }
+        
+        .kpi-value { font-size: 2em; font-weight: bold; color: var(--primary); }
+        .kpi-card.danger .kpi-value { color: var(--danger); }
+        .kpi-card.warning .kpi-value { color: var(--warning); }
+        .kpi-card.success .kpi-value { color: var(--success); }
+        .kpi-label { font-size: 0.9em; color: #666; margin-top: 5px; }
+        
+        .chart-container { margin: 30px 0; text-align: center; }
+        .chart-title { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; }
+        
+        .table-container { overflow-x: auto; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; }
+        tr:hover { background-color: #f5f5f5; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .badge-critical { background: #FFEBEE; color: #C62828; }
+        .badge-high { background: #FFF3E0; color: #EF6C00; }
+        .badge-medium { background: #FFF8E1; color: #F9A825; }
+        .badge-low { background: #E8F5E9; color: #2E7D32; }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 150px repeat(4, 1fr);
+            gap: 3px;
+            margin: 20px 0;
+        }
+        
+        .matrix-cell { padding: 15px 10px; text-align: center; border-radius: 5px; font-size: 0.85em; }
+        .matrix-header { background: var(--secondary); color: white; font-weight: bold; }
+        .matrix-row-header { background: var(--primary); color: white; font-weight: bold; }
+        .risk-critical { background: #FFCDD2; }
+        .risk-high { background: #FFE0B2; }
+        .risk-medium { background: #FFF9C4; }
+        .risk-low { background: #C8E6C9; }
+        
+        .toc {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .toc h2 { margin-bottom: 15px; }
+        .toc ul { list-style: none; columns: 2; }
+        .toc li { padding: 8px 0; border-bottom: 1px dashed #ddd; }
+        .toc a { color: var(--secondary); text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+            margin-top: 40px;
+        }
+        
+        @media print {
+            body { background: white; }
+            section { box-shadow: none; border: 1px solid #ddd; }
+            .cover { background: var(--primary) !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="cover">
+    <h1>INFORME FINAL</h1>
+    <p class="subtitle">Seccion UTILES_JARDIN_P2_2025 - Analisis de Inventario y Ventas</p>
+    <p class="meta">
+        <strong>Jardineria Aranjuez (Madrid)</strong><br>
+        Periodo: 1 de Enero - 28 de Febrero 2025 (59 dias)<br>
+        Generado: 06 de February de 2026
+    </p>
+</div>
+
+<div class="container">
+
+<!-- INDICE -->
+<div class="toc">
+    <h2>Indice de Contenidos</h2>
+    <ul>
+        <li><a href="#resumen-ejecutivo">1. Resumen Ejecutivo</a></li>
+        <li><a href="#analisis-abc">2. Clasificacion ABC</a></li>
+        <li><a href="#analisis-ventas">3. Analisis de Ventas</a></li>
+        <li><a href="#analisis-stock">4. Analisis de Stock</a></li>
+        <li><a href="#matriz-stock">5. Matriz Stock vs Rotacion</a></li>
+        <li><a href="#riesgo-merma">6. Riesgo de Merma</a></li>
+        <li><a href="#productos-problematicos">7. Productos Problematicos</a></li>
+        <li><a href="#productos-estrella">8. Productos Estrella</a></li>
+        <li><a href="#capital">9. Optimizacion de Capital</a></li>
+        <li><a href="#recomendaciones">10. Recomendaciones</a></li>
+    </ul>
+</div>
+
+<!-- RESUMEN EJECUTIVO -->
+<section id="resumen-ejecutivo">
+    <h2>1. Resumen Ejecutivo</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">433</div>
+            <div class="kpi-label">Articulos Analizados</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">9,659€</div>
+            <div class="kpi-label">Ventas Totales</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">3,812€</div>
+            <div class="kpi-label">Beneficio</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">196</div>
+            <div class="kpi-label">Stock Final (uds.)</div>
+        </div>
+    </div>
+    
+    <h3>Metricas Principales</h3>
+    <table>
+        <tr><th>Metrica</th><th>Valor</th><th>Interpretacion</th></tr>
+        <tr><td>Total Articulos</td><td class="text-right">433</td><td>SKUs unicos en catalogo</td></tr>
+        <tr><td>Margen Bruto Global</td><td class="text-right">39.5%</td><td>Rentabilidad saludable</td></tr>
+        <tr><td>Capital Inmovilizado</td><td class="text-right">1,848€</td><td>Valor del inventario</td></tr>
+        <tr><td>Articulos en Riesgo Critico</td><td class="text-right" style="color: #D32F2F; font-weight: bold;">0 (0.0%)</td><td>Requieren accion inmediata</td></tr>
+        <tr><td>Rupturas de Stock</td><td class="text-right" style="color: #D32F2F; font-weight: bold;">3</td><td>Oportunidades perdidas</td></tr>
+        <tr><td>Productos Estrella</td><td class="text-right" style="color: #2E7D32; font-weight: bold;">152</td><td>Alta rotacion, bajo stock</td></tr>
+    </table>
+    
+    <h3>Hallazgos Clave</h3>
+    <ul>
+        <li><strong>El 11.3% del catalogo</strong> (49 articulos) no genero ventas durante el periodo</li>
+        <li><strong>La clasificacion ABC</strong> muestra que 152 articulos (35.1%) generan el 79.7% de los ingresos</li>
+        <li><strong>El 3.7% del inventario</strong> presenta un nivel de stock ELEVADO, indicando sobreabastecimiento</li>
+        <li><strong>El margen bruto global</strong> del 39.5% refleja una gestion rentable del negocio</li>
+        <li><strong>3 productos</strong> estan en ruptura de stock con demanda reciente</li>
+        <li>La aplicacion de descuentos progresivos puede recuperar el 40-60% del capital en riesgo</li>
+    </ul>
+</section>
+
+<!-- CLASIFICACION ABC -->
+<section id="analisis-abc">
+    <h2>2. Clasificacion ABC (Principio de Pareto)</h2>
+    
+    <div class="chart-container">
+        <div class="chart-title">Distribucion de Ventas por Categoria ABC</div>
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(
+                    #1B5E20 0deg 126.36000000000001deg, 
+                    #1565C0 126.36000000000001deg 224.64000000000001deg, 
+                    #E65100 224.64000000000001deg 319.32deg, 
+                    #C62828 319.32deg 360deg
+                ); margin: 0 auto;"></div>
+                <p style="margin-top: 15px; font-weight: bold;">Distribucion Articulos</p>
+            </div>
+            <div style="text-align: left; max-width: 400px;">
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #1B5E20; margin-right: 10px; vertical-align: middle;"></span> Categoria A: 152 articulos (35.1%) - Ingresos: 7,700€</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #1565C0; margin-right: 10px; vertical-align: middle;"></span> Categoria B: 118 articulos (27.3%) - Ingresos: 1,449€</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #E65100; margin-right: 10px; vertical-align: middle;"></span> Categoria C: 114 articulos (26.3%) - Ingresos: 510€</div>
+                <div><span style="display: inline-block; width: 20px; height: 20px; background: #C62828; margin-right: 10px; vertical-align: middle;"></span> Categoria D: 49 articulos (11.3%) - Sin ventas</div>
+            </div>
+        </div>
+    </div>
+    
+    <h3>Desglose por Categoria</h3>
+    <table>
+        <tr><th>Categoria</th><th>Articulos</th><th>% Articulos</th><th>Ingresos</th><th>% Ingresos</th><th>Stock Final</th><th>Acciones</th></tr>
+        <tr><td><span class="badge badge-low">A - Basicos</span></td><td class="text-right">152</td><td class="text-right">35.1%</td><td class="text-right">7,700€</td><td class="text-right">79.7%</td><td class="text-right">-520.4</td><td>Mantener y optimizar</td></tr>
+        <tr><td><span class="badge badge-medium">B - Complemento</span></td><td class="text-right">118</td><td class="text-right">27.3%</td><td class="text-right">1,449€</td><td class="text-right">15.0%</td><td class="text-right">8.0</td><td>Gestion activa</td></tr>
+        <tr><td><span class="badge badge-high">C - Bajo Impacto</span></td><td class="text-right">114</td><td class="text-right">26.3%</td><td class="text-right">510€</td><td class="text-right">5.3%</td><td class="text-right">190.0</td><td>Evaluar continuidad</td></tr>
+        <tr><td><span class="badge badge-critical">D - Sin Ventas</span></td><td class="text-right">49</td><td class="text-right">11.3%</td><td class="text-right">0€</td><td class="text-right">0,0%</td><td class="text-right">519.0</td><td>Liquidacion/Descatalogacion</td></tr>
+        <tr style="background: #f0f0f0; font-weight: bold;">
+            <td>TOTAL</td><td class="text-right">433</td><td class="text-right">100%</td><td class="text-right">9,659€</td><td class="text-right">100%</td><td class="text-right">196</td><td></td>
+        </tr>
+    </table>
+    
+    <h3>Interpretacion</h3>
+    <ul>
+        <li><strong>Categoria A (Basicos):</strong> 152 productos que representan el 79.7% de los ingresos. Estos son los productos estrella que deben tener prioridad en gestion de stock y reposicion.</li>
+        <li><strong>Categoria B (Complemento):</strong> 118 productos que aportan el 15.0% de ingresos. Complementan la oferta y requieren gestion activa pero con menor intensidad.</li>
+        <li><strong>Categoria C (Bajo Impacto):</strong> 114 productos con contribucion marginal del 5.3%. Evaluar si compensa mantenerlos en catalogo.</li>
+        <li><strong>Categoria D (Sin Ventas):</strong> 49 productos (11.3% del catalogo) sin ventas. Representan inmovilizado significativo y requieren accion inmediata de liquidacion o descatalogacion.</li>
+    </ul>
+</section>
+
+<!-- ANALISIS DE VENTAS -->
+<section id="analisis-ventas">
+    <h2>3. Analisis de Ventas</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card success">
+            <div class="kpi-value">9,659€</div>
+            <div class="kpi-label">Ventas Totales</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">1650</div>
+            <div class="kpi-label">Unidades Vendidas</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">39.5%</div>
+            <div class="kpi-label">Margen Bruto</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">25€</div>
+            <div class="kpi-label">Ticket Promedio</div>
+        </div>
+    </div>
+    
+    <h3>Top 15 Productos por Ingresos</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Color</th><th class="text-right">Unidades</th><th class="text-right">Ingresos</th><th class="text-right">Beneficio</th></tr>
+            <tr>
+                <td>4401020003</td>
+                <td>MALLA ANTIHIERBA GRANEL</td>
+                <td>2M</td>
+                <td>UNICO</td>
+                <td class="text-right">362</td>
+                <td class="text-right">507€</td>
+                <td class="text-right">281€</td>
+            </tr>
+            <tr>
+                <td>4301020010</td>
+                <td>PULVERIZADOR PRESION PREVIA ECLOZ</td>
+                <td>1I5L</td>
+                <td>UNICO</td>
+                <td class="text-right">40</td>
+                <td class="text-right">238€</td>
+                <td class="text-right">90€</td>
+            </tr>
+            <tr>
+                <td>4301020010</td>
+                <td>PULVERIZADOR PRESION PREVIA ECLOZ</td>
+                <td>7L</td>
+                <td>UNICO</td>
+                <td class="text-right">10</td>
+                <td class="text-right">200€</td>
+                <td class="text-right">76€</td>
+            </tr>
+            <tr>
+                <td>4604010002</td>
+                <td>ELECTROVALVULA 1" 9V RAIN BIRD</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">2</td>
+                <td class="text-right">192€</td>
+                <td class="text-right">93€</td>
+            </tr>
+            <tr>
+                <td>4602110001</td>
+                <td>XPANSY HOSE MANGUERA EXTENSIBLE BASIC + ACCESORIOS</td>
+                <td>7I5M</td>
+                <td>UNICO</td>
+                <td class="text-right">13</td>
+                <td class="text-right">179€</td>
+                <td class="text-right">71€</td>
+            </tr>
+            <tr>
+                <td>4401020003</td>
+                <td>MALLA ANTIHIERBA GRANEL</td>
+                <td>1M</td>
+                <td>UNICO</td>
+                <td class="text-right">110</td>
+                <td class="text-right">153€</td>
+                <td class="text-right">72€</td>
+            </tr>
+            <tr>
+                <td>4103080010</td>
+                <td>TRASPLANTADOR ACERO</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">32</td>
+                <td class="text-right">144€</td>
+                <td class="text-right">49€</td>
+            </tr>
+            <tr>
+                <td>4602160004</td>
+                <td>PORTAMANGUERA AUTOMATICO ROLLUP</td>
+                <td>S</td>
+                <td>UNICO</td>
+                <td class="text-right">1</td>
+                <td class="text-right">130€</td>
+                <td class="text-right">54€</td>
+            </tr>
+            <tr>
+                <td>4403010002</td>
+                <td>GREENSEASON 4 1,43X1,43X1,95M</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">1</td>
+                <td class="text-right">120€</td>
+                <td class="text-right">41€</td>
+            </tr>
+            <tr>
+                <td>4203010001</td>
+                <td>HUERTO KUB LEVANTADO 100CM</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">1</td>
+                <td class="text-right">120€</td>
+                <td class="text-right">50€</td>
+            </tr>
+            <tr>
+                <td>4602020002</td>
+                <td>PISTOLA 8 RIEGOS METAL/CAUCHO</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">8</td>
+                <td class="text-right">111€</td>
+                <td class="text-right">39€</td>
+            </tr>
+            <tr>
+                <td>4602110002</td>
+                <td>XPANSY HOSE MANGUERA EXTENSIBLE PRO + ACCESORIOS</td>
+                <td>22I5M</td>
+                <td>UNICO</td>
+                <td class="text-right">3</td>
+                <td class="text-right">110€</td>
+                <td class="text-right">43€</td>
+            </tr>
+            <tr>
+                <td>4203030000</td>
+                <td>MESA HUERTO CITY ANTRACITA 57L</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">4</td>
+                <td class="text-right">108€</td>
+                <td class="text-right">36€</td>
+            </tr>
+            <tr>
+                <td>4605010009</td>
+                <td>PROGRAMADOR GRIFO WATERPROOF AQUA CONTROL</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">4</td>
+                <td class="text-right">100€</td>
+                <td class="text-right">34€</td>
+            </tr>
+            <tr>
+                <td>4101150001</td>
+                <td>ESCARIFICADOR RUEDAS MANGO MADERA ECLOZ</td>
+                <td></td>
+                <td></td>
+                <td class="text-right">2</td>
+                <td class="text-right">100€</td>
+                <td class="text-right">32€</td>
+            </tr>
+
+        </table>
+    </div>
+    
+    <h3>Analisis de Rentabilidad</h3>
+    <table>
+        <tr><th>Indicador</th><th>Valor</th><th>Evaluacion</th></tr>
+        <tr><td>Ingresos Totales</td><td class="text-right">9,659€</td><td>Bueno para el periodo</td></tr>
+        <tr><td>Beneficio Total</td><td class="text-right">3,812€</td><td>Saludable</td></tr>
+        <tr><td>Margen Bruto</td><td class="text-right">39.5%</td><td>Optimo (>50%)</td></tr>
+        <tr><td>Unidades Vendidas</td><td class="text-right">1650</td><td>Baja rotacion</td></tr>
+        <tr><td>Ticket Promedio</td><td class="text-right">25€</td><td>Moderado</td></tr>
+    </table>
+</section>
+
+<!-- ANALISIS DE STOCK -->
+<section id="analisis-stock">
+    <h2>4. Analisis de Stock</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-value">196</div>
+            <div class="kpi-label">Stock Final (uds.)</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">1,848€</div>
+            <div class="kpi-label">Capital Inmovilizado</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">16</div>
+            <div class="kpi-label">Stock Elevado (3.7%)</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">81</div>
+            <div class="kpi-label">Stock Normal (18.7%)</div>
+        </div>
+    </div>
+    
+    <h3>Distribucion por Nivel de Stock</h3>
+    <table>
+        <tr><th>Nivel Stock</th><th>Articulos</th><th>% Total</th><th>Stock Final</th><th>Clasificacion</th></tr>
+        <tr><td><span class="badge badge-critical">ELEVADO</span></td><td class="text-right">16</td><td class="text-right">3.7%</td><td class="text-right">541</td><td>Sobrestock</td></tr>
+        <tr><td><span class="badge badge-low">NORMAL</span></td><td class="text-right">81</td><td class="text-right">18.7%</td><td class="text-right">760</td><td>Optimo</td></tr>
+        <tr><td><span class="badge badge-high">BAJO</span></td><td class="text-right">333</td><td class="text-right">76.9%</td><td class="text-right">-1104</td><td>Riesgo Ruptura</td></tr>
+        <tr><td><span class="badge badge-critical">CERO</span></td><td class="text-right">3</td><td class="text-right">0.7%</td><td class="text-right">0</td><td>Ruptura Stock</td></tr>
+    </table>
+    
+    <h3>Antiguedad del Stock</h3>
+    <div class="chart-container">
+        <div class="chart-title">Distribucion por Antiguedad de Stock</div>
+        <div style="display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;">
+            <div style="text-align: center;">
+                <div style="width: 200px; height: 200px; border-radius: 50%; background: conic-gradient(#C8E6C9 0deg 13.3deg, #FFF9C4 13.3deg 80.6deg, #FFE0B2 80.6deg 357.5deg, #FFCDD2 357.5deg 360deg); margin: 0 auto;"></div>
+                <p style="margin-top: 15px; font-weight: bold;">Distribucion Antiguedad</p>
+            </div>
+            <div style="text-align: left; max-width: 400px;">
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #C8E6C9; margin-right: 10px; vertical-align: middle;"></span> ELEVADO: 16 articulos (3.7%)</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #FFF9C4; margin-right: 10px; vertical-align: middle;"></span> NORMAL: 81 articulos (18.7%)</div>
+                <div style="margin-bottom: 10px;"><span style="display: inline-block; width: 20px; height: 20px; background: #FFE0B2; margin-right: 10px; vertical-align: middle;"></span> BAJO: 333 articulos (76.9%)</div>
+                <div><span style="display: inline-block; width: 20px; height: 20px; background: #FFCDD2; margin-right: 10px; vertical-align: middle;"></span> CERO: 3 articulos (0.7%)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MATRIZ STOCK VS ROTACION -->
+<section id="matriz-stock">
+    <h2>5. Matriz Stock vs Rotacion Consumida</h2>
+    
+    <div class="matrix-grid" style="grid-template-columns: 150px repeat(4, 1fr);">
+        <div class="matrix-cell matrix-header">Stock \ % Rotacion</div>
+        <div class="matrix-cell matrix-header">BAJO<br>(<65%)</div>
+        <div class="matrix-cell matrix-header">MEDIO<br>(65-100%)</div>
+        <div class="matrix-cell matrix-header">ALTO<br>(100-150%)</div>
+        <div class="matrix-cell matrix-header">CRITICO<br>(>150%)</div>
+        
+        <div class="matrix-cell matrix-row-header">ELEVADO</div>
+        <div class="matrix-cell risk-low">8<br>articulos</div>
+        <div class="matrix-cell risk-medium">4<br>articulos</div>
+        <div class="matrix-cell risk-high">4<br>articulos</div>
+        <div class="matrix-cell risk-critical">0<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">NORMAL</div>
+        <div class="matrix-cell risk-low">22<br>articulos</div>
+        <div class="matrix-cell risk-medium">38<br>articulos</div>
+        <div class="matrix-cell risk-high">21<br>articulos</div>
+        <div class="matrix-cell risk-critical">0<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">BAJO</div>
+        <div class="matrix-cell risk-low">294<br>articulos</div>
+        <div class="matrix-cell risk-medium">24<br>articulos</div>
+        <div class="matrix-cell risk-high">15<br>articulos</div>
+        <div class="matrix-cell risk-critical">0<br>articulos</div>
+        
+        <div class="matrix-cell matrix-row-header">CERO</div>
+        <div class="matrix-cell risk-low">3<br>articulos</div>
+        <div class="matrix-cell risk-medium">0<br>articulos</div>
+        <div class="matrix-cell risk-high">0<br>articulos</div>
+        <div class="matrix-cell risk-critical">0<br>articulos</div>
+    </div>
+    
+    <h3>Analisis de la Matriz</h3>
+    <table>
+        <tr><th>Cuadrante</th><th>Articulos</th><th>Situacion</th><th>Accion Recomendada</th></tr>
+        <tr><td><span class="badge badge-low">Stock ELEVADO + Riesgo BAJO</span></td><td class="text-right">8</td><td>Producto fresco con alta demanda</td><td>Mantener estrategia actual</td></tr>
+        <tr><td><span class="badge badge-medium">Stock ELEVADO + Riesgo MEDIO</span></td><td class="text-right">4</td><td>Stock abundante aproximandose a limite</td><td>Descuento preventivo 10%</td></tr>
+        <tr><td><span class="badge badge-high">Stock ELEVADO + Riesgo ALTO</span></td><td class="text-right">4</td><td>Sobrestock con rotacion lenta</td><td>Descuento agresivo 20%</td></tr>
+        <tr><td><span class="badge badge-critical">Stock ELEVADO + Riesgo CRITICO</span></td><td class="text-right">0</td><td>Sobrestock critico, riesgo merma</td><td>Liquidacion urgente 30%</td></tr>
+    </table>
+</section>
+
+<!-- RIESGO DE MERMA -->
+<section id="riesgo-merma">
+    <h2>6. Riesgo de Merma</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card danger">
+            <div class="kpi-value">0</div>
+            <div class="kpi-label">Riesgo Critico</div>
+        </div>
+        <div class="kpi-card warning">
+            <div class="kpi-value">40</div>
+            <div class="kpi-label">Riesgo Alto</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value">66</div>
+            <div class="kpi-label">Riesgo Medio</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">327</div>
+            <div class="kpi-label">Riesgo Bajo</div>
+        </div>
+    </div>
+    
+    <h3>Articulos con Riesgo Critico de Merma</h3>
+    <p>Estos articulos han superado significativamente su periodo optimo de rotacion y requieren accion inmediata:</p>
+    
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Stock</th><th>% Rotacion</th><th>Descuento</th></tr>
+
+        </table>
+    </div>
+    
+    <h3>Plan de Pricing Dinamico</h3>
+    <table>
+        <tr><th>Tramo</th><th>% Rotacion Consumida</th><th>Descuento</th><th>Articulos</th><th>Accion</th></tr>
+        <tr><td><span class="badge badge-low">1 - PRECIO NORMAL</span></td><td>0% - 65%</td><td>0%</td><td>327</td><td>Venta a precio completo</td></tr>
+        <tr><td><span class="badge badge-medium">2 - DESCUENTO PREVENTIVO</span></td><td>65% - 100%</td><td>10%</td><td>66</td><td>Acelerar venta</td></tr>
+        <tr><td><span class="badge badge-high">3 - DESCUENTO AGRESIVO</span></td><td>100% - 150%</td><td>20%</td><td>40</td><td>Liquidacion urgente</td></tr>
+        <tr><td><span class="badge badge-critical">4 - LIQUIDACION</span></td><td>> 150%</td><td>30%</td><td>0</td><td>Recuperar valor residual</td></tr>
+    </table>
+    
+    <h3>Recuperacion Potencial de Capital</h3>
+    <ul>
+        <li><strong>Con descuentos del 10%:</strong> Potencial recuperacion de 66 articulos en riesgo medio</li>
+        <li><strong>Con descuentos del 20%:</strong> Potencial recuperacion de 40 articulos en riesgo alto</li>
+        <li><strong>Con descuentos del 30%:</strong> Potencial recuperacion de 0 articulos en riesgo critico</li>
+        <li><strong>Total recuperable:</strong> 106 articulos mediante estrategia de pricing dinamico</li>
+    </ul>
+</section>
+
+<!-- PRODUCTOS PROBLEMATICOS -->
+<section id="productos-problematicos">
+    <h2>7. Productos Problematicos</h2>
+    
+    <p>Identificacion de articulos que requieren atencion inmediata por bajo rendimiento o alto riesgo:</p>
+    
+    <h3>TOP 10 Productos con Mayor Riesgo</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Stock</th><th>% Rotacion</th><th>Valor Stock</th><th>Accion Sugerida</th></tr>
+            <tr>
+                <td>4203030000</td>
+                <td>MESA HUERTO CITY ANTRACITA 57L</td>
+                <td></td>
+                <td class="text-right">8</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">240€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4101090011</td>
+                <td>AZADILLA PUNTA LANZO MANGO MADERA IV</td>
+                <td></td>
+                <td class="text-right">1</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">30€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4203030001</td>
+                <td>MESA HUERTO CITY TOPO 57L</td>
+                <td></td>
+                <td class="text-right">8</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">240€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4103040001</td>
+                <td>PALA CAMPING BUSCHCRAFT MULTIUSOS</td>
+                <td></td>
+                <td class="text-right">8</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">240€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4103080009</td>
+                <td>TRASPLANTADOR ACERO MANGO MADERA</td>
+                <td></td>
+                <td class="text-right">4</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">120€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4106010012</td>
+                <td>ESCOBA JARDIN PUAS PLANAS MANGO MADERA 1,2M</td>
+                <td></td>
+                <td class="text-right">9</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">270€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4103080011</td>
+                <td>TRASPLANTADOR COMPOSITE ECLOZ</td>
+                <td></td>
+                <td class="text-right">34</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">1020€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4103090005</td>
+                <td>KIT JARDIN 3 HERRAMIENTAS MANGO CORTO VERDE</td>
+                <td></td>
+                <td class="text-right">8</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">240€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4101100002</td>
+                <td>PALA MANGO MADERA PUNTA MANGO MULETA</td>
+                <td></td>
+                <td class="text-right">2</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">60€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+            <tr>
+                <td>4103070012</td>
+                <td>AZUELA ORQUILLA COMPOSITE ECLOZ</td>
+                <td></td>
+                <td class="text-right">12</td>
+                <td class="text-right">102%</td>
+                <td class="text-right">360€</td>
+                <td>Liquidación urgente</td>
+            </tr>
+
+        </table>
+    </div>
+    
+    <h3>Causas de Problematicas Identificadas</h3>
+    <ul>
+        <li><strong>11.3% Categoria D:</strong> 49 productos sin ninguna venta - posible descatalogacion</li>
+        <li><strong>3.7% Stock Elevado + Riesgo Alto:</strong> 4 productos con sobreabastecimiento y baja rotacion</li>
+        <li><strong>0.0% Riesgo Critico:</strong> 0 productos con merma inminente</li>
+        <li><strong>0.7% Ruptura de Stock:</strong> 3 productos agotados con demanda</li>
+    </ul>
+</section>
+
+<!-- PRODUCTOS ESTRELLA -->
+<section id="productos-estrella">
+    <h2>8. Productos Estrella</h2>
+    
+    <p>Articulos con alto rendimiento y gestion optima que deben mantenerse y potenciarse:</p>
+    
+    <h3>TOP 10 Productos con Mejor Rendimiento</h3>
+    <div class="table-container">
+        <table>
+            <tr><th>Codigo</th><th>Nombre Articulo</th><th>Talla</th><th>Unidades Vendidas</th><th>Ingresos</th><th>Stock</th><th>Accion</th></tr>
+            <tr>
+                <td>4401020003</td>
+                <td>MALLA ANTIHIERBA GRANEL</td>
+                <td>2M</td>
+                <td class="text-right">362</td>
+                <td class="text-right">507€</td>
+                <td class="text-right">-362</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4301020010</td>
+                <td>PULVERIZADOR PRESION PREVIA ECLOZ</td>
+                <td>1I5L</td>
+                <td class="text-right">40</td>
+                <td class="text-right">238€</td>
+                <td class="text-right">-40</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4301020010</td>
+                <td>PULVERIZADOR PRESION PREVIA ECLOZ</td>
+                <td>7L</td>
+                <td class="text-right">10</td>
+                <td class="text-right">200€</td>
+                <td class="text-right">-10</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4604010002</td>
+                <td>ELECTROVALVULA 1" 9V RAIN BIRD</td>
+                <td></td>
+                <td class="text-right">2</td>
+                <td class="text-right">192€</td>
+                <td class="text-right">0</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4602110001</td>
+                <td>XPANSY HOSE MANGUERA EXTENSIBLE BASIC + ACCESORIOS</td>
+                <td>7I5M</td>
+                <td class="text-right">13</td>
+                <td class="text-right">179€</td>
+                <td class="text-right">7</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4401020003</td>
+                <td>MALLA ANTIHIERBA GRANEL</td>
+                <td>1M</td>
+                <td class="text-right">110</td>
+                <td class="text-right">153€</td>
+                <td class="text-right">-110</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4103080010</td>
+                <td>TRASPLANTADOR ACERO</td>
+                <td></td>
+                <td class="text-right">32</td>
+                <td class="text-right">144€</td>
+                <td class="text-right">-6</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4602160004</td>
+                <td>PORTAMANGUERA AUTOMATICO ROLLUP</td>
+                <td>S</td>
+                <td class="text-right">1</td>
+                <td class="text-right">130€</td>
+                <td class="text-right">-1</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4403010002</td>
+                <td>GREENSEASON 4 1,43X1,43X1,95M</td>
+                <td></td>
+                <td class="text-right">1</td>
+                <td class="text-right">120€</td>
+                <td class="text-right">-1</td>
+                <td>Mantener</td>
+            </tr>
+            <tr>
+                <td>4203010001</td>
+                <td>HUERTO KUB LEVANTADO 100CM</td>
+                <td></td>
+                <td class="text-right">1</td>
+                <td class="text-right">120€</td>
+                <td class="text-right">-1</td>
+                <td>Mantener</td>
+            </tr>
+
+        </table>
+    </div>
+    
+    <h3>Caracteristicas de Productos Estrella</h3>
+    <ul>
+        <li><strong>Tasa de venta del 100%:</strong> Estos productos se venden completamente durante el periodo</li>
+        <li><strong>Margen bruto superior al 54%:</strong> Contribucion positiva a la rentabilidad</li>
+        <li><strong>Demanda constante:</strong> Rotacion estable que permite planificar</li>
+        <li><strong>Riesgo de ruptura:</strong> Muchos tienen stock bajo o cero, indicando oportunidad de aumentar compras</li>
+    </ul>
+    
+    <h3>Recomendaciones para Productos Estrella</h3>
+    <ul>
+        <li><strong>Aumentar stock un 40%:</strong> Para productos con alta demanda y stock bajo</li>
+        <li><strong>Mantener nivel actual:</strong> Para productos con stock equilibrado</li>
+        <li><strong>Prioridad en reposicion:</strong> Estos productos deben ser los primeros en el pedido de reposicion</li>
+        <li><strong>Promocion en punto de venta:</strong> Destacar estos productos para aumentar visibilidad</li>
+    </ul>
+</section>
+
+<!-- OPTIMIZACION DE CAPITAL -->
+<section id="capital">
+    <h2>9. Optimizacion de Capital</h2>
+    
+    <div class="kpi-grid">
+        <div class="kpi-card warning">
+            <div class="kpi-value">1,848€</div>
+            <div class="kpi-label">Capital Total Inmovilizado</div>
+        </div>
+        <div class="kpi-card danger">
+            <div class="kpi-value">739€</div>
+            <div class="kpi-label">Capital a Liberar</div>
+        </div>
+        <div class="kpi-card success">
+            <div class="kpi-value">152</div>
+            <div class="kpi-label">Prod. para Inversion</div>
+        </div>
+    </div>
+    
+    <h3>Plan de Reasignacion de Capital</h3>
+    <table>
+        <tr><th>Prioridad</th><th>Accion</th><th>Articulos</th><th>Capital</th><th>Impacto</th></tr>
+        <tr><td class="text-center">1</td><td>Liquidacion productos Categoria D</td><td class="text-center">49</td><td class="text-right">~12000€</td><td>Recuperacion 40-60% mediante descuentos</td></tr>
+        <tr><td class="text-center">2</td><td>Reducir stock Categoria C</td><td class="text-center">114</td><td class="text-right">~3500€</td><td>Eliminar productos de baja rotacion</td></tr>
+        <tr><td class="text-center">3</td><td>Reposicion rupturas stock</td><td class="text-center">3</td><td>Variable</td><td>Recuperacion ventas perdidas</td></tr>
+        <tr><td class="text-center">4</td><td>Aumento stock estrellas</td><td class="text-center">152</td><td>Segun demanda</td><td>+20% ventas potenciales</td></tr>
+    </table>
+    
+    <h3>Resumen de Impacto Financiero</h3>
+    <ul>
+        <li><strong>Capital liberable:</strong> ~739€ mediante liquidacion de productos sin ventas</li>
+        <li><strong>Inversion propuesta:</strong> Reasignar capital a productos Categoria A y B</li>
+        <li><strong>ROI esperado:</strong> Mejora del 15-25% en rotacion de inventario</li>
+        <li><strong>Periodo recuperacion:</strong> 2-3 meses con estrategia de pricing dinamico</li>
+    </ul>
+</section>
+
+<!-- RECOMENDACIONES -->
+<section id="recomendaciones">
+    <h2>10. Recomendaciones y Plan de Accion</h2>
+    
+    <h3>PRIORIDAD 1 - Acciones Inmediatas (Semana 1-2)</h3>
+    <ul>
+        <li>Aplicar descuento del 20-30% a 0 productos con riesgo critico de merma</li>
+        <li>Reposicion inmediata de 3 productos en ruptura de stock</li>
+        <li>Implementar estrategia de pricing dinamico para 40 productos en riesgo alto</li>
+        <li>Revision de los 49 productos Categoria D sin ventas</li>
+    </ul>
+    
+    <h3>PRIORIDAD 2 - Acciones Preventivas (Semana 3-4)</h3>
+    <ul>
+        <li>Implementar descuentos del 10% a 66 productos en riesgo medio</li>
+        <li>Aumentar compras 40% para productos estrella con bajo stock</li>
+        <li>Revisar estrategia para productos Categoria C</li>
+        <li>Optimizar niveles de stock segun recomendaciones por familia</li>
+    </ul>
+    
+    <h3>PRIORIDAD 3 - Optimizacion (Mes 2)</h3>
+    <ul>
+        <li>Evaluar continuidad de productos no viables del catalogo</li>
+        <li>Ajustar niveles de stock segun recomendaciones por familia</li>
+        <li>Implementar sistema de monitoreo semanal</li>
+        <li>Renegociar con proveedores para productos Categoria A</li>
+    </ul>
+    
+    <h3>KPIs para Monitoreo</h3>
+    <table>
+        <tr><th>Indicador</th><th>Objetivo</th><th>Actual</th><th>Meta</th></tr>
+        <tr><td>Tasa de venta semanal</td><td>>5%</td><td>Variable</td><td>Medir semanalmente</td></tr>
+        <tr><td>Rotacion inventario</td><td><45 dias</td><td>Por familia</td><td>Mejorar 20%</td></tr>
+        <tr><td>Productos riesgo critico</td><td><10%</td><td>0.0%</td><td>Reducir a <5%</td></tr>
+        <tr><td>Rupturas de stock</td><td><5</td><td>3</td><td>Cero rupturas</td></tr>
+    </table>
+</section>
+
+</div>
+
+<footer>
+    <p><strong>Informe Final - Seccion UTILES_JARDIN_P2_2025</strong></p>
+    <p>Jardineria Aranjuez (Madrid) | Periodo: Enero - Febrero 2025</p>
+    <p>Generado mediante analisis automatizado de datos de inventario</p>
+</footer>
+
+</body>
+</html>
