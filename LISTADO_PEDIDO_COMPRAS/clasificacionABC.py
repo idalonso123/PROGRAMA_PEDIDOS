@@ -49,12 +49,94 @@ import smtplib
 import ssl
 import os
 import json
+import unicodedata
 from email import encoders
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from pathlib import Path
 warnings.filterwarnings('ignore')
+
+# ============================================================================
+# CONFIGURACIÓN DE RUTAS - DIRECTORIO BASE DEL SCRIPT
+# ============================================================================
+
+# Determinar el directorio base del script (donde está clasificacionABC.py)
+DIRECTORIO_BASE = os.path.dirname(os.path.abspath(__file__))
+DIRECTORIO_DATA = os.path.join(DIRECTORIO_BASE, 'data', 'input')
+DIRECTORIO_CONFIG = os.path.join(DIRECTORIO_BASE, 'config')
+
+# ============================================================================
+# FUNCIONES DE NORMALIZACIÓN PARA COMPARACIONES
+# ============================================================================
+
+def normalizar_texto(texto):
+    """
+    Normaliza un texto para comparación: 
+    - Convierte a minúsculas
+    - Elimina acentos
+    - Elimina puntuación (puntos, guiones, etc.)
+    
+    Ejemplo: 'Cóste' -> 'coste', 'Últ. compra' -> 'ultimacompra', 'ÚLTIMA COMPRA' -> 'ultimacompra'
+    
+    Args:
+        texto: Texto a normalizar
+    
+    Returns:
+        str: Texto normalizado (minúsculas, sin acentos, sin puntuación) o cadena vacía si es None/NaN
+    """
+    if pd.isna(texto):
+        return ''
+    texto = str(texto)
+    # Convertir a minúsculas
+    texto = texto.lower()
+    # Normalizar unicode: á → a, é → e, ñ → n, etc.
+    texto = unicodedata.normalize('NFD', texto)
+    texto = texto.encode('ascii', 'ignore').decode('utf-8')
+    # Eliminar puntuación: puntos, guiones, espacios, paréntesis, etc.
+    texto = ''.join(c for c in texto if c.isalnum())
+    return texto
+
+def encontrar_columna(columnas, nombre_buscado):
+    """
+    Busca una columna por nombre, ignorando mayúsculas y acentos.
+    
+    Esta función permite encontrar columnas aunque sus nombres tengan variaciones:
+    - 'Coste', 'COSTE', 'cósté', 'Cóste' → todas dan positivo para 'coste'
+    - 'Últ. compra', 'ULTIMA COMPRA', 'ultima compra' → todas dan positivo para 'ultima compra'
+    
+    Args:
+        columnas: Lista de nombres de columnas del DataFrame
+        nombre_buscado: Nombre base a buscar (sin acentos, en minúsculas)
+    
+    Returns:
+        str: El nombre real de la columna encontrada, o None si no existe
+    """
+    nombre_normalizado = normalizar_texto(nombre_buscado)
+    
+    for columna in columnas:
+        if normalizar_texto(columna) == nombre_normalizado:
+            return columna
+    
+    return None
+
+def obtener_columna_segura(df, nombre_buscado):
+    """
+    Obtiene una columna del DataFrame buscando por nombre normalizado.
+    
+    Args:
+        df: DataFrame con los datos
+        nombre_buscado: Nombre base a buscar (ej: 'coste', 'fecha')
+    
+    Returns:
+        Series: La columna encontrada, o una serie vacía si no existe
+    """
+    nombre_real = encontrar_columna(list(df.columns), nombre_buscado)
+    if nombre_real:
+        return df[nombre_real]
+    else:
+        print(f"ADVERTENCIA: No se encontró columna '{nombre_buscado}' en el DataFrame")
+        return pd.Series([], dtype='object')
 
 # ============================================================================
 # CONFIGURACIÓN DE SECCIONES
@@ -141,7 +223,7 @@ def cargar_configuracion():
         dict: Configuración cargada o None si hay error
     """
     try:
-        ruta_config = 'config/config_comun.json'
+        ruta_config = os.path.join(DIRECTORIO_CONFIG, 'config_comun.json')
         if os.path.exists(ruta_config):
             with open(ruta_config, 'r', encoding='utf-8') as f:
                 return json.load(f)
@@ -244,33 +326,72 @@ def obtener_periodo_desde_fecha(fecha, config):
     else:
         return "P4"
 
-def configurar_periodo(periodo_seleccionado, config):
+def configurar_periodo(periodo_seleccionado, config, año_datos=None):
     """
     Configura las variables globales de período basándose en el argumento proporcionado.
     
     Args:
         periodo_seleccionado: Período seleccionado (P1, P2, P3, P4) o None
         config: Configuración cargada desde JSON
+        año_datos: Año de los datos (si no se especifica, usa el año actual)
     
     Returns:
-        tuple: (FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO)
+        tuple: (FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO, año_datos)
     """
-    año_actual = datetime.now().year
+    if año_datos is None:
+        año_datos = datetime.now().year
     
     if periodo_seleccionado:
         # Usar el período especificado como argumento
-        fecha_inicio, fecha_fin = obtener_fechas_periodo(periodo_seleccionado, config, año_actual)
+        fecha_inicio, fecha_fin = obtener_fechas_periodo(periodo_seleccionado, config, año_datos)
         if fecha_inicio and fecha_fin:
             dias_periodo = (fecha_fin - fecha_inicio).days + 1
-            return fecha_inicio, fecha_fin, dias_periodo, periodo_seleccionado
+            return fecha_inicio, fecha_fin, dias_periodo, periodo_seleccionado, año_datos
         else:
             print(f"ADVERTENCIA: Período '{periodo_seleccionado}' no encontrado en configuración. Usando valores por defecto.")
     
     # Valores por defecto si no se especifica período o no se encuentra
-    fecha_inicio = datetime(2025, 1, 1)
-    fecha_fin = datetime(2025, 12, 31)
+    fecha_inicio = datetime(año_datos, 1, 1)
+    fecha_fin = datetime(año_datos, 12, 31)
     dias_periodo = (fecha_fin - fecha_inicio).days + 1
-    return fecha_inicio, fecha_fin, dias_periodo, "ANUAL"
+    return fecha_inicio, fecha_fin, dias_periodo, "ANUAL", año_datos
+
+def detectar_año_datos(compras_df, ventas_df):
+    """
+    Detecta automáticamente el año de los datos basándose en las fechas de compras y ventas.
+    
+    Args:
+        compras_df: DataFrame de compras
+        ventas_df: DataFrame de ventas
+    
+    Returns:
+        int: Año detectado o año actual si no se puede detectar
+    """
+    try:
+        # Intentar detectar desde ventas
+        if len(ventas_df) > 0:
+            ventas_df['Fecha'] = pd.to_datetime(ventas_df['Fecha'], errors='coerce')
+            fechas_validas = ventas_df['Fecha'].dropna()
+            if len(fechas_validas) > 0:
+                año_detectado = fechas_validas.max().year
+                print(f"INFO: Año detectado desde VENTAS: {año_detectado}")
+                return año_detectado
+        
+        # Intentar detectar desde compras
+        if len(compras_df) > 0:
+            compras_df['Fecha'] = pd.to_datetime(compras_df['Fecha'], errors='coerce')
+            fechas_validas = compras_df['Fecha'].dropna()
+            if len(fechas_validas) > 0:
+                año_detectado = fechas_validas.max().year
+                print(f"INFO: Año detectado desde COMPRAS: {año_detectado}")
+                return año_detectado
+    except Exception as e:
+        print(f"ADVERTENCIA: No se pudo detectar el año de los datos: {e}")
+    
+    # Fallback: usar el año actual
+    año_actual = datetime.now().year
+    print(f"INFO: Usando año actual por defecto: {año_actual}")
+    return año_actual
 
 # Cargar configuración al inicio
 CONFIG = cargar_configuracion()
@@ -1303,7 +1424,7 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
     # GUARDAR ARCHIVO EXCEL
     # =========================================================================
     
-    nombre_archivo = f"data/input/CLASIFICACION_ABC+D_{nombre_seccion.upper()}_{PERIODO}_{AÑO}.xlsx"
+    nombre_archivo = os.path.join(DIRECTORIO_DATA, f"CLASIFICACION_ABC+D_{nombre_seccion.upper()}_{PERIODO}_{AÑO}.xlsx")
     
     with pd.ExcelWriter(nombre_archivo, engine='openpyxl') as writer:
         df_categoria_a.to_excel(writer, sheet_name='CATEGORIA A – BASICOS', index=False)
@@ -1493,11 +1614,6 @@ Secciones disponibles:
         print(f"Secciones disponibles: {', '.join(sorted(SECCIONES.keys()))}")
         sys.exit(1)
     
-    # Configurar el período desde la configuración
-    global FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO, AÑO
-    FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO = configurar_periodo(periodo_seleccionado, CONFIG)
-    AÑO = str(FECHA_FIN.year)
-    
     print("=" * 80)
     print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS")
     print("=" * 80)
@@ -1513,11 +1629,6 @@ Secciones disponibles:
     else:
         print(f"MODO: Multi-sección (todas las secciones)")
     
-    print(f"\nPeríodo de análisis:")
-    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
-    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
-    print(f"   Días: {DIAS_PERIODO}")
-    
     # =========================================================================
     # CARGA DE DATOS DESDE ARCHIVOS CON DATOS DEL AÑO COMPLETO
     # =========================================================================
@@ -1528,12 +1639,18 @@ Secciones disponibles:
     
     try:
         # Cargar archivos con datos de TODO el año
-        compras_df = pd.read_excel('data/input/SPA_compras.xlsx')
-        ventas_df = pd.read_excel('data/input/SPA_ventas.xlsx')
-        stock_df = pd.read_excel(f'data/input/SPA_stock_{PERIODO}.xlsx')
-        coste_df = pd.read_excel('data/input/SPA_coste.xlsx')
+        compras_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, 'SPA_compras.xlsx'))
+        ventas_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, 'SPA_ventas.xlsx'))
+        # El archivo de stock se cargará después de detectar el año
+        # El archivo de costes puede llamarse SPA_Coste.xlsx o SPA_coste.xlsx
+        if os.path.exists(os.path.join(DIRECTORIO_DATA, 'SPA_Coste.xlsx')):
+            coste_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, 'SPA_Coste.xlsx'))
+        elif os.path.exists(os.path.join(DIRECTORIO_DATA, 'SPA_coste.xlsx')):
+            coste_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, 'SPA_coste.xlsx'))
+        else:
+            raise FileNotFoundError("No se encontró SPA_Coste.xlsx ni SPA_coste.xlsx")
     except FileNotFoundError as e:
-        print(f"ERROR: No se encontró el archivo: {e.filename}")
+        print(f"ERROR: No se encontró el archivo: {e}")
         sys.exit(1)
     except Exception as e:
         print(f"ERROR al cargar archivos: {e}")
@@ -1541,8 +1658,52 @@ Secciones disponibles:
     
     print(f"COMPRAS (año completo): {len(compras_df)} registros cargados")
     print(f"VENTAS (año completo): {len(ventas_df)} registros cargados")
-    print(f"STOCK: {len(stock_df)} registros cargados")
     print(f"COSTE: {len(coste_df)} registros cargados")
+    
+    # =========================================================================
+    # DETECTAR AÑO DE LOS DATOS AUTOMÁTICAMENTE
+    # =========================================================================
+    
+    print("\n" + "=" * 80)
+    print("FASE 1A: DETECCIÓN AUTOMÁTICA DEL AÑO DE DATOS")
+    print("=" * 80)
+    
+    año_datos = detectar_año_datos(compras_df, ventas_df)
+    
+    # =========================================================================
+    # CARGAR STOCK Y CONFIGURAR PERÍODO DESPUÉS DE DETECTAR AÑO
+    # =========================================================================
+    
+    # Determinar el nombre del archivo de stock según el período
+    if periodo_seleccionado:
+        nombre_stock = f'SPA_stock_{periodo_seleccionado}.xlsx'
+    else:
+        # Si no hay período específico, buscar el archivo más reciente
+        nombre_stock = 'SPA_stock_P1.xlsx'  # Valor por defecto
+    
+    try:
+        stock_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, nombre_stock))
+    except FileNotFoundError:
+        print(f"ADVERTENCIA: No se encontró {nombre_stock}, buscando archivo alternativo...")
+        # Buscar cualquier archivo de stock disponible
+        archivos_stock = [f for f in os.listdir(DIRECTORIO_DATA) if f.startswith('SPA_stock') and f.endswith('.xlsx')]
+        if archivos_stock:
+            nombre_stock = archivos_stock[0]
+            stock_df = pd.read_excel(os.path.join(DIRECTORIO_DATA, nombre_stock))
+        else:
+            print("ERROR: No se encontró ningún archivo de stock")
+            sys.exit(1)
+    
+    print(f"STOCK: {len(stock_df)} registros cargados ({nombre_stock})")
+    
+    # Configurar el período usando el año detectado
+    global FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO, AÑO
+    FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO, AÑO = configurar_periodo(periodo_seleccionado, CONFIG, año_datos)
+    
+    print(f"\nPeríodo de análisis:")
+    print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
+    print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
+    print(f"   Días: {DIAS_PERIODO}")
     
     # =========================================================================
     # FILTRAR DATOS POR PERÍODO (SOLO COMPRAS Y VENTAS)
@@ -1611,8 +1772,14 @@ Secciones disponibles:
     print(f"VENTAS: {filas_ventas_total} filas totales → {len(ventas_df)} filas de Detalle")
     
     # Normalizar claves de unión en Coste
-    coste_df_sorted = coste_df.sort_values('Fecha ultcom', ascending=False)
-    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Codigo', 'Talla', 'Color'], keep='first').copy()
+    # Ordenar por fecha de última compra (buscando columna automáticamente)
+    columna_fecha = encontrar_columna(list(coste_df.columns), 'ultima compra')
+    if columna_fecha:
+        coste_df_sorted = coste_df.sort_values(columna_fecha, ascending=False)
+    else:
+        print("ADVERTENCIA: No se encontró columna de fecha de última compra, usando orden original")
+        coste_df_sorted = coste_df.copy()
+    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Artículo', 'Talla', 'Color'], keep='first').copy()
     
     def normalize_keys(df):
         df = df.copy()
@@ -1622,9 +1789,9 @@ Secciones disponibles:
         return df
     
     def normalize_keys_coste(df):
-        """Normalizar claves para el archivo SPA_coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
+        """Normalizar claves para el archivo SPA_Coste.xlsx (ya tiene columna 'Artículo')"""
         df = df.copy()
-        df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
+        df['Artículo'] = df['Artículo'].astype(str).str.replace(r'\.0$', '', regex=True)
         df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()
         df['Color'] = df['Color'].fillna('').astype(str).str.strip()
         return df
