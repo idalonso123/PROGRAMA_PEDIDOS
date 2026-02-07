@@ -1,31 +1,37 @@
 #!/usr/bin/env python3
 """
-Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN MULTI-SECCIÓN
-Jardinería Aranjuez - Período configurable
+Motor de Cálculo ABC+D para Gestión de Inventarios - VERSIÓN MULTI-SECCIÓN CON PERÍODOS
+Jardinería Aranjuez - Período configurable mediante argumentos
 
 Este script combina:
 - Cálculo de clasificación ABC+D
 - Aplicación de formatos Excel
 - Lógica corregida de riesgo
-- Fechas configurables al inicio del script
+- Período configurable mediante argumentos --P1, --P2, --P3, --P4
+- Filtrado automático de datos según el período indicado
 - Procesamiento de múltiples secciones
 - Envío automático de emails a los encargados de cada sección
 
 MODO DE USO:
 - Sin parámetros: Procesa TODOS los datos y genera un archivo por cada sección
-- Con parámetro --seccion: Procesa solo la sección especificada (modo compatible)
+- Con parámetro --P1, --P2, --P3, --P4: Procesa solo el período especificado
+  filtrando automáticamente los datos de compras y ventas
 
 Ejecutar: 
-    python clasificacionABC.py                              # Procesa todas las secciones
-    python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-    python clasificacionABC.py -s interior                  # Procesa solo interior
+    python clasificacionABC.py                              # Procesa todas las secciones (período por defecto)
+    python clasificacionABC.py --P1                          # Procesa período P1 (enero-febrero)
+    python clasificacionABC.py --P2                          # Procesa período P2 (marzo-mayo)
+    python clasificacionABC.py --P3                          # Procesa período P3 (junio-agosto)
+    python clasificacionABC.py --P4                          # Procesa período P4 (septiembre-diciembre)
+    python clasificacionABC.py --P2 --seccion vivero         # Procesa solo vivero en período P2
 
-Los datos se leen de 4 archivos separados:
-- SPA_compras.xlsx: Datos de compras del período
-- SPA_ventas.xlsx: Datos de ventas del período
+Los datos se leen de archivos con datos de TODO el año:
+- SPA_compras.xlsx: Datos de compras de todo el año
+- SPA_ventas.xlsx: Datos de ventas de todo el año
 - SPA_stock_{periodo}.xlsx: Datos de stock actual
 - SPA_coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
+El script filtra automáticamente los datos según las fechas del período indicado.
 Al generar cada archivo de clasificación, se envía automáticamente un email
 al encargado de la sección con el archivo adjunto.
 """
@@ -114,12 +120,14 @@ SECCIONES = {
 }
 
 # ============================================================================
-# CONFIGURACIÓN DE FECHAS - MODIFICAR AQUÍ EL PERÍODO DE ANÁLISIS
+# CONFIGURACIÓN DE FECHAS - PERÍODO CONFIGURABLE MEDIANTE ARGUMENTOS
 # ============================================================================
 
-FECHA_INICIO = datetime(2025, 3, 1)  # Fecha de inicio del período
-FECHA_FIN = datetime(2025, 5, 31)    # Fecha de fin del período
-DIAS_PERIODO = (FECHA_FIN - FECHA_INICIO).days + 1
+# Valores por defecto (se sobrescribirán si se especifica un argumento de período)
+FECHA_INICIO = None  # Se configurará según el argumento --P1, --P2, --P3, --P4
+FECHA_FIN = None     # Se configurará según el argumento --P1, --P2, --P3, --P4
+DIAS_PERIODO = 0
+PERIODO = "PERIODO"
 
 # ============================================================================
 # CARGA DE CONFIGURACIÓN DESDE JSON
@@ -144,9 +152,41 @@ def cargar_configuracion():
         print(f"ERROR al cargar configuración: {e}. Usando valores por defecto.")
         return None
 
-def obtener_periodo(fecha_inicio, config):
+def obtener_fechas_periodo(periodo_nombre, config, año_actual=None):
     """
-    Determina el período (P1 P3, P, P2,4) basándose en la fecha de inicio usando la configuración.
+    Obtiene las fechas de inicio y fin de un período desde la configuración.
+    
+    Args:
+        periodo_nombre: Nombre del período (P1, P2, P3, P4)
+        config: Configuración cargada desde JSON
+        año_actual: Año a utilizar (por defecto el año actual)
+    
+    Returns:
+        tuple: (fecha_inicio, fecha_fin) como objetos datetime, o (None, None) si no se encuentra
+    """
+    if año_actual is None:
+        año_actual = datetime.now().year
+    
+    if config and 'configuracion_periodo_clasificacion' in config and 'periodos' in config['configuracion_periodo_clasificacion']:
+        periodos = config['configuracion_periodo_clasificacion']['periodos']
+        
+        if periodo_nombre in periodos:
+            periodo = periodos[periodo_nombre]
+            mes_inicio = periodo['mes_inicio']
+            dia_inicio = periodo['dia_inicio']
+            mes_fin = periodo['mes_fin']
+            dia_fin = periodo['dia_fin']
+            
+            fecha_inicio = datetime(año_actual, mes_inicio, dia_inicio)
+            fecha_fin = datetime(año_actual, mes_fin, dia_fin)
+            
+            return fecha_inicio, fecha_fin
+    
+    return None, None
+
+def obtener_periodo_desde_fecha(fecha, config):
+    """
+    Determina el período (P1, P2, P3, P4) basándose en una fecha usando la configuración.
     
     Períodos definidos en config:
     - P1: 1 enero a 28 de febrero
@@ -155,7 +195,7 @@ def obtener_periodo(fecha_inicio, config):
     - P4: 1 de septiembre a 31 de diciembre
     
     Args:
-        fecha_inicio: Objeto datetime con la fecha de inicio del período
+        fecha: Objeto datetime con la fecha a verificar
         config: Configuración cargada desde JSON
     
     Returns:
@@ -164,8 +204,8 @@ def obtener_periodo(fecha_inicio, config):
     if config and 'configuracion_periodo_clasificacion' in config and 'periodos' in config['configuracion_periodo_clasificacion']:
         periodos = config['configuracion_periodo_clasificacion']['periodos']
         
-        mes = fecha_inicio.month
-        dia = fecha_inicio.day
+        mes = fecha.month
+        dia = fecha.day
         
         for key, periodo in periodos.items():
             mes_inicio = periodo['mes_inicio']
@@ -182,9 +222,19 @@ def obtener_periodo(fecha_inicio, config):
                 if mes == mes_fin and dia > dia_fin:
                     continue
                 return periodo['nombre']
+        
+        # Si no coincide ningún período completo, buscar el más cercano
+        if mes < 3:
+            return "P1"
+        elif mes < 6:
+            return "P2"
+        elif mes < 9:
+            return "P3"
+        else:
+            return "P4"
     
     # Fallback: cálculo por defecto si no hay configuración
-    print("ADVERTENCIA: Usando cálculo de período por defecto (fallback)")
+    mes = fecha.month
     if mes <= 2:
         return "P1"
     elif mes <= 5:
@@ -194,10 +244,36 @@ def obtener_periodo(fecha_inicio, config):
     else:
         return "P4"
 
+def configurar_periodo(periodo_seleccionado, config):
+    """
+    Configura las variables globales de período basándose en el argumento proporcionado.
+    
+    Args:
+        periodo_seleccionado: Período seleccionado (P1, P2, P3, P4) o None
+        config: Configuración cargada desde JSON
+    
+    Returns:
+        tuple: (FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO)
+    """
+    año_actual = datetime.now().year
+    
+    if periodo_seleccionado:
+        # Usar el período especificado como argumento
+        fecha_inicio, fecha_fin = obtener_fechas_periodo(periodo_seleccionado, config, año_actual)
+        if fecha_inicio and fecha_fin:
+            dias_periodo = (fecha_fin - fecha_inicio).days + 1
+            return fecha_inicio, fecha_fin, dias_periodo, periodo_seleccionado
+        else:
+            print(f"ADVERTENCIA: Período '{periodo_seleccionado}' no encontrado en configuración. Usando valores por defecto.")
+    
+    # Valores por defecto si no se especifica período o no se encuentra
+    fecha_inicio = datetime(2025, 1, 1)
+    fecha_fin = datetime(2025, 12, 31)
+    dias_periodo = (fecha_fin - fecha_inicio).days + 1
+    return fecha_inicio, fecha_fin, dias_periodo, "ANUAL"
+
 # Cargar configuración al inicio
 CONFIG = cargar_configuracion()
-PERIODO = obtener_periodo(FECHA_INICIO, CONFIG)
-AÑO = str(FECHA_FIN.year)
 
 # ============================================================================
 # CONFIGURACIÓN DE FORMATOS EXCEL
@@ -1338,27 +1414,76 @@ def procesar_seccion(compras_df, ventas_df, stock_df, coste_df, nombre_seccion, 
 def main():
     """Función principal del script"""
     
-    # Parsear argumentos de línea de comandos
+    # =========================================================================
+    # PARSEO DE ARGUMENTOS DE LÍNEA DE COMANDOS
+    # =========================================================================
+    
     parser = argparse.ArgumentParser(
         description='Motor de Cálculo ABC+D para Gestión de Inventarios',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos de uso:
-  python clasificacionABC.py                              # Procesa todas las secciones
-  python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-  python clasificacionABC.py -s interior                  # Procesa solo interior
+  python clasificacionABC.py                              # Procesa todas las secciones (año completo)
+  python clasificacionABC.py --P1                          # Procesa período P1 (enero-febrero)
+  python clasificacionABC.py --P2                          # Procesa período P2 (marzo-mayo)
+  python clasificacionABC.py --P3                          # Procesa período P3 (junio-agosto)
+  python clasificacionABC.py --P4                          # Procesa período P4 (septiembre-diciembre)
+  python clasificacionABC.py --P2 --seccion vivero         # Procesa solo vivero en período P2
+  python clasificacionABC.py -P1 -s interior               # Procesa solo interior en período P1
+
+Períodos disponibles:
+  P1: 1 enero a 28 de febrero
+  P2: 1 marzo a 31 mayo
+  P3: 1 junio a 31 de agosto
+  P4: 1 septiembre a 31 de diciembre
 
 Secciones disponibles:
   interior, utiles_jardin, semillas, deco_interior, maf, vivero, 
   deco_exterior, mascotas_manufacturado, mascotas_vivo, tierra_aridos, fitos
         """
     )
+    
+    # Argumentos de período (mutuamente excluyentes)
+    grupo_periodo = parser.add_mutually_exclusive_group()
+    grupo_periodo.add_argument(
+        '--P1',
+        action='store_true',
+        help='Procesar período P1 (enero - febrero)'
+    )
+    grupo_periodo.add_argument(
+        '--P2',
+        action='store_true',
+        help='Procesar período P2 (marzo - mayo)'
+    )
+    grupo_periodo.add_argument(
+        '--P3',
+        action='store_true',
+        help='Procesar período P3 (junio - agosto)'
+    )
+    grupo_periodo.add_argument(
+        '--P4',
+        action='store_true',
+        help='Procesar período P4 (septiembre - diciembre)'
+    )
+    
     parser.add_argument(
         '-s', '--seccion',
         type=str,
         help='Procesar solo una sección específica (modo mono-sección)'
     )
+    
     args = parser.parse_args()
+    
+    # Determinar el período seleccionado
+    periodo_seleccionado = None
+    if args.P1:
+        periodo_seleccionado = "P1"
+    elif args.P2:
+        periodo_seleccionado = "P2"
+    elif args.P3:
+        periodo_seleccionado = "P3"
+    elif args.P4:
+        periodo_seleccionado = "P4"
     
     seccion_especifica = args.seccion.lower() if args.seccion else None
     
@@ -1368,23 +1493,33 @@ Secciones disponibles:
         print(f"Secciones disponibles: {', '.join(sorted(SECCIONES.keys()))}")
         sys.exit(1)
     
+    # Configurar el período desde la configuración
+    global FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO, AÑO
+    FECHA_INICIO, FECHA_FIN, DIAS_PERIODO, PERIODO = configurar_periodo(periodo_seleccionado, CONFIG)
+    AÑO = str(FECHA_FIN.year)
+    
     print("=" * 80)
     print("MOTOR DE CÁLCULO ABC+D PARA GESTIÓN DE INVENTARIOS")
     print("=" * 80)
     
+    if periodo_seleccionado:
+        print(f"\nMODO: Período específico")
+        print(f"Período seleccionado: {periodo_seleccionado}")
+    else:
+        print(f"\nMODO: Período por defecto (año completo)")
+    
     if seccion_especifica:
-        print(f"\nMODO: Mono-sección")
         print(f"Sección seleccionada: {seccion_especifica}")
     else:
-        print(f"\nMODO: Multi-sección (todas las secciones)")
+        print(f"MODO: Multi-sección (todas las secciones)")
     
-    print(f"\nPeríodo configurado:")
+    print(f"\nPeríodo de análisis:")
     print(f"   Desde: {FECHA_INICIO.strftime('%d de %B de %Y')}")
     print(f"   Hasta: {FECHA_FIN.strftime('%d de %B de %Y')}")
     print(f"   Días: {DIAS_PERIODO}")
     
     # =========================================================================
-    # CARGA DE DATOS DESDE ARCHIVOS SEPARADOS
+    # CARGA DE DATOS DESDE ARCHIVOS CON DATOS DEL AÑO COMPLETO
     # =========================================================================
     
     print("\n" + "=" * 80)
@@ -1392,6 +1527,7 @@ Secciones disponibles:
     print("=" * 80)
     
     try:
+        # Cargar archivos con datos de TODO el año
         compras_df = pd.read_excel('data/input/SPA_compras.xlsx')
         ventas_df = pd.read_excel('data/input/SPA_ventas.xlsx')
         stock_df = pd.read_excel(f'data/input/SPA_stock_{PERIODO}.xlsx')
@@ -1403,10 +1539,47 @@ Secciones disponibles:
         print(f"ERROR al cargar archivos: {e}")
         sys.exit(1)
     
-    print(f"COMPRAS: {len(compras_df)} registros cargados")
-    print(f"VENTAS: {len(ventas_df)} registros cargados")
+    print(f"COMPRAS (año completo): {len(compras_df)} registros cargados")
+    print(f"VENTAS (año completo): {len(ventas_df)} registros cargados")
     print(f"STOCK: {len(stock_df)} registros cargados")
     print(f"COSTE: {len(coste_df)} registros cargados")
+    
+    # =========================================================================
+    # FILTRAR DATOS POR PERÍODO (SOLO COMPRAS Y VENTAS)
+    # =========================================================================
+    
+    print("\n" + "=" * 80)
+    print("FASE 1A: FILTRADO DE DATOS POR PERÍODO")
+    print("=" * 80)
+    
+    # Convertir fechas a datetime si no lo son
+    compras_df['Fecha'] = pd.to_datetime(compras_df['Fecha'], errors='coerce')
+    ventas_df['Fecha'] = pd.to_datetime(ventas_df['Fecha'], errors='coerce')
+    
+    # Filtrar compras por período
+    filas_antes_compras = len(compras_df)
+    compras_df = compras_df[
+        (compras_df['Fecha'] >= FECHA_INICIO) & 
+        (compras_df['Fecha'] <= FECHA_FIN)
+    ].copy()
+    filas_despues_compras = len(compras_df)
+    print(f"COMPRAS filtradas por período: {filas_antes_compras} → {filas_despues_compras} registros")
+    print(f"   Período: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}")
+    
+    # Filtrar ventas por período
+    filas_antes_ventas = len(ventas_df)
+    ventas_df = ventas_df[
+        (ventas_df['Fecha'] >= FECHA_INICIO) & 
+        (ventas_df['Fecha'] <= FECHA_FIN)
+    ].copy()
+    filas_despues_ventas = len(ventas_df)
+    print(f"VENTAS filtradas por período: {filas_antes_ventas} → {filas_despues_ventas} registros")
+    print(f"   Período: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}")
+    
+    if len(compras_df) == 0:
+        print("ADVERTENCIA: No hay datos de compras en el período especificado.")
+    if len(ventas_df) == 0:
+        print("ADVERTENCIA: No hay datos de ventas en el período especificado.")
     
     # Filtrar filas con Artículo vacío en Compras
     filas_antes = len(compras_df)
@@ -1533,9 +1706,8 @@ Secciones disponibles:
     print(f"Total coste ventas: {ventas_df['Coste'].sum():.2f} €")
     print(f"Total beneficio: {ventas_df['Beneficio'].sum():.2f} €")
     
-    # Convertir fechas
-    compras_df['Fecha'] = pd.to_datetime(compras_df['Fecha'])
-    ventas_df['Fecha'] = pd.to_datetime(ventas_df['Fecha'])
+    # Las fechas ya fueron convertidas y filtradas en FASE 1A
+    # No es necesario convertirlas nuevamente
     
     # =========================================================================
     # NORMALIZACIÓN DE DATOS
@@ -1650,7 +1822,12 @@ Secciones disponibles:
     print("RESUMEN DEL PROCESAMIENTO")
     print("=" * 80)
     
-    print(f"\nPeríodo: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
+    # Mostrar información del período
+    if periodo_seleccionado:
+        print(f"\nPeríodo procesado: {periodo_seleccionado}")
+    else:
+        print(f"\nPeríodo procesado: AÑO COMPLETO (sin filtro de período)")
+    print(f"Fechas: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')} ({DIAS_PERIODO} días)")
     
     print(f"\nSecciones procesadas: {len(secciones_procesadas)}")
     if secciones_procesadas:
