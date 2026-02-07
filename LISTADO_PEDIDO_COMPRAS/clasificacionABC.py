@@ -12,17 +12,21 @@ Este script combina:
 - Envío automático de emails a los encargados de cada sección
 
 MODO DE USO:
-- Sin parámetros: Procesa TODOS los datos y genera un archivo por cada sección
-- Con parámetro --seccion: Procesa solo la sección especificada (modo compatible)
+- Sin parámetros: Procesa TODOS los datos (requiere datos de todo el año)
+- Con parámetro --P1, --P2, --P3 o --P4: Filtra datos por período
+- Con parámetro --seccion: Procesa solo la sección especificada (modo mono-sección)
 
-Ejecutar: 
+Ejecutar:
     python clasificacionABC.py                              # Procesa todas las secciones
-    python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-    python clasificacionABC.py -s interior                  # Procesa solo interior
+    python clasificacionABC.py --P1                         # Procesa período P1 (ene-feb)
+    python clasificacionABC.py --P2                         # Procesa período P2 (mar-may)
+    python clasificacionABC.py --P3                         # Procesa período P3 (jun-ago)
+    python clasificacionABC.py --P4                         # Procesa período P4 (sep-dic)
+    python clasificacionABC.py --P1 -s vivero               # Procesa P1 solo vivero
 
 Los datos se leen de 4 archivos separados:
-- SPA_compras.xlsx: Datos de compras del período
-- SPA_ventas.xlsx: Datos de ventas del período
+- SPA_compras.xlsx: Datos de compras de todo el año
+- SPA_ventas.xlsx: Datos de ventas de todo el año
 - SPA_stock_{periodo}.xlsx: Datos de stock actual
 - SPA_coste.xlsx: Costes unitarios de artículos (para calcular beneficio real)
 
@@ -1345,20 +1349,78 @@ def main():
         epilog="""
 Ejemplos de uso:
   python clasificacionABC.py                              # Procesa todas las secciones
-  python clasificacionABC.py --seccion vivero             # Procesa solo vivero
-  python clasificacionABC.py -s interior                  # Procesa solo interior
+  python clasificacionABC.py --P1                         # Procesa período P1 (ene-feb)
+  python clasificacionABC.py --P2                         # Procesa período P2 (mar-may)
+  python clasificacionABC.py --P3                         # Procesa período P3 (jun-ago)
+  python clasificacionABC.py --P4                         # Procesa período P4 (sep-dic)
+  python clasificacionABC.py --P1 -s vivero               # Procesa P1 solo vivero
+
+Períodos disponibles:
+  --P1: Enero - Febrero
+  --P2: Marzo - Mayo
+  --P3: Junio - Agosto
+  --P4: Septiembre - Diciembre
 
 Secciones disponibles:
-  interior, utiles_jardin, semillas, deco_interior, maf, vivero, 
+  interior, utiles_jardin, semillas, deco_interior, maf, vivero,
   deco_exterior, mascotas_manufacturado, mascotas_vivo, tierra_aridos, fitos
         """
     )
+    
+    # Grupo de argumentos mutuamente exclusivos para períodos
+    periodo_group = parser.add_mutually_exclusive_group()
+    periodo_group.add_argument('--P1', action='store_true', help='Período P1 (Enero - Febrero)')
+    periodo_group.add_argument('--P2', action='store_true', help='Período P2 (Marzo - Mayo)')
+    periodo_group.add_argument('--P3', action='store_true', help='Período P3 (Junio - Agosto)')
+    periodo_group.add_argument('--P4', action='store_true', help='Período P4 (Septiembre - Diciembre)')
+    
     parser.add_argument(
         '-s', '--seccion',
         type=str,
         help='Procesar solo una sección específica (modo mono-sección)'
     )
     args = parser.parse_args()
+    
+    # Determinar el período seleccionado
+    if args.P1:
+        periodo_seleccionado = 'P1'
+    elif args.P2:
+        periodo_seleccionado = 'P2'
+    elif args.P3:
+        periodo_seleccionado = 'P3'
+    elif args.P4:
+        periodo_seleccionado = 'P4'
+    else:
+        periodo_seleccionado = None
+    
+    # Cargar configuración de períodos desde config_comun.json
+    try:
+        with open('config/config_comun.json', 'r', encoding='utf-8') as f:
+            config_comun = json.load(f)
+        periodos_config = config_comun['configuracion_periodo_clasificacion']['periodos']
+    except FileNotFoundError:
+        print("ERROR: No se encontró config/config_comun.json")
+        sys.exit(1)
+    except Exception as e:
+        print(f"ERROR al leer configuración de períodos: {e}")
+        sys.exit(1)
+    
+    # Determinar fechas del período
+    año_actual = datetime.now().year
+    
+    if periodo_seleccionado and periodo_seleccionado in periodos_config:
+        periodo_info = periodos_config[periodo_seleccionado]
+        FECHA_INICIO = datetime(año_actual, periodo_info['mes_inicio'], periodo_info['dia_inicio'])
+        FECHA_FIN = datetime(año_actual, periodo_info['mes_fin'], periodo_info['dia_fin'])
+        PERIODO = periodo_seleccionado
+    elif periodo_seleccionado:
+        print(f"ERROR: Período '{periodo_seleccionado}' no válido.")
+        print(f"Períodos disponibles: P1, P2, P3, P4")
+        sys.exit(1)
+    
+    # Si no se especifica período, usar automático desde ventas (comportamiento original)
+    
+    DIAS_PERIODO = (FECHA_FIN - FECHA_INICIO).days + 1
     
     seccion_especifica = args.seccion.lower() if args.seccion else None
     
@@ -1438,8 +1500,15 @@ Secciones disponibles:
     print(f"VENTAS: {filas_ventas_total} filas totales → {len(ventas_df)} filas de Detalle")
     
     # Normalizar claves de unión en Coste
-    coste_df_sorted = coste_df.sort_values('Fecha ultcom', ascending=False)
-    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Codigo', 'Talla', 'Color'], keep='first').copy()
+    # Verificar si existe la columna 'Ult. compra' para ordenar
+    if 'Ult. compra' in coste_df.columns:
+        coste_df_sorted = coste_df.sort_values('Ult. compra', ascending=False)
+    else:
+        print("  AVISO: No se encontró la columna 'Ult. compra' en SPA_coste.xlsx")
+        print("  Se usará el orden original del archivo (sin ordenar por fecha)")
+        coste_df_sorted = coste_df.copy()
+    
+    coste_df_latest = coste_df_sorted.drop_duplicates(subset=['Artículo', 'Talla', 'Color'], keep='first').copy()
     
     def normalize_keys(df):
         df = df.copy()
@@ -1451,7 +1520,7 @@ Secciones disponibles:
     def normalize_keys_coste(df):
         """Normalizar claves para el archivo SPA_coste.xlsx (usa 'Codigo' en lugar de 'Artículo')"""
         df = df.copy()
-        df['Artículo'] = df['Codigo'].astype(str).str.replace(r'\.0$', '', regex=True)
+        df['Artículo'] = df['Artículo'].astype(str).str.replace(r'\.0$', '', regex=True)
         df['Talla'] = df['Talla'].fillna('').astype(str).str.strip()
         df['Color'] = df['Color'].fillna('').astype(str).str.strip()
         return df
@@ -1536,6 +1605,26 @@ Secciones disponibles:
     # Convertir fechas
     compras_df['Fecha'] = pd.to_datetime(compras_df['Fecha'])
     ventas_df['Fecha'] = pd.to_datetime(ventas_df['Fecha'])
+    
+    # =========================================================================
+    # FILTRAR POR PERÍODO SI SE ESPECIFICÓ
+    # =========================================================================
+    
+    if periodo_seleccionado:
+        print("\n" + "=" * 80)
+        print(f"FASE 1B: FILTRADO POR PERÍODO ({periodo_seleccionado})")
+        print("=" * 80)
+        print(f"Período seleccionado: {FECHA_INICIO.strftime('%d/%m/%Y')} - {FECHA_FIN.strftime('%d/%m/%Y')}")
+        
+        # Filtrar compras por fecha
+        compras_antes = len(compras_df)
+        compras_df = compras_df[(compras_df['Fecha'] >= FECHA_INICIO) & (compras_df['Fecha'] <= FECHA_FIN)].copy()
+        print(f"COMPRAS: {compras_antes} registros → {len(compras_df)} registros filtrados")
+        
+        # Filtrar ventas por fecha
+        ventas_antes = len(ventas_df)
+        ventas_df = ventas_df[(ventas_df['Fecha'] >= FECHA_INICIO) & (ventas_df['Fecha'] <= FECHA_FIN)].copy()
+        print(f"VENTAS: {ventas_antes} registros → {len(ventas_df)} registros filtrados")
     
     # =========================================================================
     # NORMALIZACIÓN DE DATOS
