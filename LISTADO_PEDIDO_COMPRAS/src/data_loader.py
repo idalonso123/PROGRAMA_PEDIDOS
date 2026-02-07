@@ -333,10 +333,31 @@ class DataLoader:
             logger.debug(f"Usando primera hoja del archivo de costes: {primera_hoja}")
 
         df = df.copy()
+        
+        # Log de columnas disponibles para debugging
+        logger.debug(f"Columnas disponibles en costes: {list(df.columns)}")
+
+        # Determinar la columna de código del artículo
+        columna_codigo = None
+        for nombre_posible in ['Codigo', 'Artículo', 'Articulo', 'CODIGO', 'ARTÍCULO']:
+            if nombre_posible in df.columns:
+                columna_codigo = nombre_posible
+                break
+        
+        if columna_codigo is None:
+            logger.error(f"No se encontró columna de código en {nombre_archivo}. Columnas disponibles: {list(df.columns)}")
+            return None
+        
+        logger.debug(f"Usando columna '{columna_codigo}' como código de artículo")
 
         # Normalizar columna de código
-        if 'Codigo' in df.columns:
-            df['Codigo'] = df['Codigo'].astype(str).str.strip()
+        df['Codigo'] = df[columna_codigo].astype(str).str.strip()
+
+        # Verificar que existen las columnas necesarias
+        for col in ['Talla', 'Color']:
+            if col not in df.columns:
+                logger.warning(f"Columna '{col}' no encontrada, inicializando con valores vacíos")
+                df[col] = ''
 
         # Crear clave única para matching
         df['Clave'] = (df['Codigo'] + '|' +

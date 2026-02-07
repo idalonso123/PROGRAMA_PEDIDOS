@@ -276,23 +276,45 @@ def normalizar_articulo(valor):
     except Exception:
         return None
 
-def leer_capital_inmovilizado_stock(df_seccion, ruta_stock="data/input/stock.xlsx"):
+def leer_capital_inmovilizado_stock(df_seccion):
     """
     Lee el archivo de stock y calcula el capital inmovilizado real de los artículos
     de la sección específica, sumando la columna 'Total' solo para esos artículos.
     
+    Busca archivos con el patrón SPA_stock_P*.xlsx (por ejemplo: SPA_stock_P1.xlsx,
+    SPA_stock_P2.xlsx, etc.). Usa el archivo más reciente disponible.
+    
     Args:
         df_seccion: DataFrame con los artículos de la sección (del archivo CLASIFICACION_ABC+D)
-        ruta_stock: Ruta al archivo de stock (data/input/stock.xlsx)
     
     Returns:
         float: Capital inmovilizado total para los artículos de la sección
     """
+    # Buscar archivos con el patrón SPA_stock_P*.xlsx
+    patrones_stock = [
+        "data/input/SPA_stock_P*.xlsx",
+        "data/input/stock.xlsx"  # Fallback legacy
+    ]
+    
+    archivo_encontrado = None
+    for patron in patrones_stock:
+        archivos = glob.glob(patron)
+        if archivos:
+            # Ordenar por nombre (P4 > P3 > P2 > P1)
+            archivos.sort(reverse=True)
+            archivo_encontrado = archivos[0]
+            break
+    
+    if archivo_encontrado:
+        print(f"    ✓ Archivo de stock encontrado: {archivo_encontrado}")
+    else:
+        print(f"    Advertencia: No se encontró ningún archivo de stock")
+        print(f"      - Patrones buscados: {patrones_stock}")
+        return None
+    
+    ruta_stock = archivo_encontrado
+    
     try:
-        if not os.path.exists(ruta_stock):
-            print(f"    Advertencia: No se encontró el archivo de stock '{ruta_stock}'")
-            return None
-        
         # Leer stock, excluyendo filas Cabecera (sumatorios)
         df_stock = pd.read_excel(ruta_stock)
         df_stock = df_stock[df_stock['Tipo registro'] != 'Cabecera']
@@ -1283,9 +1305,10 @@ def procesar_seccion(ruta_archivo, nombre_seccion):
         
         margen_bruto = round(beneficio_total / ventas_totales * 100, 1) if ventas_totales > 0 else 0
         
-        # Usar el capital inmovilizado real del archivo stock.xlsx en lugar del estimado
-        # Pasar df_completo para filtrar solo los artículos de esta sección
-        capital_inmovilizado_real = leer_capital_inmovilizado_stock(df_completo, "data/input/stock.xlsx")
+        # Usar el capital inmovilizado real del archivo SPA_stock_{PERIODO}.xlsx
+        # La función leer_capital_inmovilizado_stock busca primero SPA_stock_{PERIODO_FILENAME}.xlsx
+        # y si no existe, usa stock.xlsx como fallback
+        capital_inmovilizado_real = leer_capital_inmovilizado_stock(df_completo)
         if capital_inmovilizado_real is not None:
             capital_inmovilizado = round(capital_inmovilizado_real, 2)
         else:
